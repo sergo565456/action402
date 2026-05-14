@@ -18,6 +18,7 @@ const metrics = {
   executionsFailed: 0,
   executionReplays: 0,
   executionRejected: 0,
+  targetQuotaExceeded: 0,
   x402PaymentAccepted: 0,
   x402PaymentRequired: 0
 };

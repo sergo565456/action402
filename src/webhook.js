@@ -5,6 +5,7 @@ import { createId, sha256Json, buildReceipt } from "./receipt.js";
 import { createJob, getJobByIdempotencyKey, saveReceipt, updateJob } from "./store.js";
 import { ApiError } from "./errors.js";
 import { assertTargetPolicy } from "./targetPolicy.js";
+import { assertTargetQuota } from "./targetQuota.js";
 import { logEvent, recordMetric } from "./observability.js";
 
 const ALLOWED_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
@@ -170,6 +171,8 @@ export async function executeWebhookAction(input, context = {}) {
     });
     return { job: existing, receipt: existing.receiptId ? undefined : null, idempotentReplay: true };
   }
+
+  assertTargetQuota(target.hostname, config, Date.now(), context);
 
   const job = await createJob({
     id: createId("job"),

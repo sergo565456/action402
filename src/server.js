@@ -9,6 +9,7 @@ import { maybeInstallX402 } from "./x402.js";
 import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
 import { logEvent, observabilitySummary, recordMetric, requestLogger } from "./observability.js";
+import { targetQuotaStats } from "./targetQuota.js";
 
 assertProductionConfig();
 await initStore();
@@ -31,6 +32,7 @@ app.get("/health", async (req, res, next) => {
       publicBaseUrl: config.publicBaseUrl,
       store: await storeStats(),
       observability: observabilitySummary(),
+      targetQuota: targetQuotaStats(),
       rateLimit: {
         enabled: config.rateLimitEnabled,
         windowMs: config.rateLimitWindowMs,

@@ -1,4 +1,5 @@
 import { config } from "./config.js";
+import { effectiveTargetPolicy } from "./targetPolicy.js";
 
 const webhookRequestSchema = {
   type: "object",
@@ -109,6 +110,8 @@ const errorSchema = {
 };
 
 export function publicCapabilities() {
+  const targetPolicy = effectiveTargetPolicy(config);
+
   return {
     name: "Action402",
     version: "0.1.0",
@@ -145,13 +148,19 @@ export function publicCapabilities() {
       privateNetworkTargetsBlocked: true,
       maxWebhookTimeoutMs: config.maxWebhookTimeoutMs,
       maxRetryAttempts: config.maxRetryAttempts,
-      targetAllowlist: config.targetAllowlist,
-      targetBlocklist: config.targetBlocklist,
-      requireTargetAllowlist: config.requireTargetAllowlist,
+      targetPolicyPreset: config.targetPolicyPreset,
+      targetAllowlist: targetPolicy.targetAllowlist,
+      targetBlocklist: targetPolicy.targetBlocklist,
+      requireTargetAllowlist: targetPolicy.requireTargetAllowlist,
       rateLimit: {
         enabled: config.rateLimitEnabled,
         windowMs: config.rateLimitWindowMs,
         maxRequests: config.rateLimitMaxRequests
+      },
+      targetQuota: {
+        enabled: config.targetQuotaEnabled,
+        windowMs: config.targetQuotaWindowMs,
+        maxRequests: config.targetQuotaMaxRequests
       },
       retention: {
         jobRetentionMs: config.jobRetentionMs,

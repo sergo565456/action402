@@ -24,6 +24,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.actions[0].id, "execute.webhook");
   assert.equal(body.actions[0].requestSchema.required.includes("url"), true);
   assert.equal(body.safety.privateNetworkTargetsBlocked, true);
+  assert.equal(body.safety.targetPolicyPreset, "open");
+  assert.equal(body.safety.targetQuota.enabled, true);
 });
 
 test("openapi document exposes execute webhook path", async () => {

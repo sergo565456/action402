@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { assertTargetPolicy, domainMatches } from "../src/targetPolicy.js";
+import { assertTargetPolicy, domainMatches, effectiveTargetPolicy } from "../src/targetPolicy.js";
 
 test("domainMatches supports exact and wildcard hostnames", () => {
   assert.equal(domainMatches("example.com", "example.com"), true);
@@ -40,4 +40,39 @@ test("target policy can require allowlist membership", () => {
       }),
     /not in TARGET_ALLOWLIST/
   );
+});
+
+test("allowlist preset requires configured allowlist membership", () => {
+  assert.doesNotThrow(() =>
+    assertTargetPolicy("api.example.com", {
+      targetPolicyPreset: "allowlist",
+      targetAllowlist: ["api.example.com"],
+      targetBlocklist: [],
+      requireTargetAllowlist: false
+    })
+  );
+
+  assert.throws(
+    () =>
+      assertTargetPolicy("other.example.com", {
+        targetPolicyPreset: "allowlist",
+        targetAllowlist: ["api.example.com"],
+        targetBlocklist: [],
+        requireTargetAllowlist: false
+      }),
+    /not in TARGET_ALLOWLIST/
+  );
+});
+
+test("strict preset adds default metadata blocklist", () => {
+  const policy = effectiveTargetPolicy({
+    targetPolicyPreset: "strict",
+    targetAllowlist: ["metadata.google.internal"],
+    targetBlocklist: [],
+    requireTargetAllowlist: false
+  });
+
+  assert.equal(policy.requireTargetAllowlist, true);
+  assert.equal(policy.targetBlocklist.includes("metadata.google.internal"), true);
+  assert.throws(() => assertTargetPolicy("metadata.google.internal", policy), /blocked by policy/);
 });

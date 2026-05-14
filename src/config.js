@@ -80,9 +80,13 @@ export const config = {
   maxWebhookTimeoutMs: intFromEnv(process.env.MAX_WEBHOOK_TIMEOUT_MS, 12000),
   maxRetryAttempts: intFromEnv(process.env.MAX_RETRY_ATTEMPTS, 3),
   allowHttpTargets: boolFromEnv(process.env.ALLOW_HTTP_TARGETS, false),
+  targetPolicyPreset: String(process.env.TARGET_POLICY_PRESET || "open").toLowerCase(),
   targetAllowlist: listFromEnv(process.env.TARGET_ALLOWLIST),
   targetBlocklist: listFromEnv(process.env.TARGET_BLOCKLIST),
   requireTargetAllowlist: boolFromEnv(process.env.REQUIRE_TARGET_ALLOWLIST, false),
+  targetQuotaEnabled: boolFromEnv(process.env.TARGET_QUOTA_ENABLED, true),
+  targetQuotaWindowMs: intFromEnv(process.env.TARGET_QUOTA_WINDOW_MS, 60000),
+  targetQuotaMaxRequests: intFromEnv(process.env.TARGET_QUOTA_MAX_REQUESTS, 20),
   rateLimitEnabled: boolFromEnv(process.env.RATE_LIMIT_ENABLED, true),
   rateLimitWindowMs: intFromEnv(process.env.RATE_LIMIT_WINDOW_MS, 60000),
   rateLimitMaxRequests: intFromEnv(process.env.RATE_LIMIT_MAX_REQUESTS, 60),
@@ -182,8 +186,25 @@ export function validateStartupConfig(runtimeConfig = config) {
     errors.push("LOG_LEVEL must be debug, info, warn, error, or silent.");
   }
 
+  if (!["open", "allowlist", "strict"].includes(runtimeConfig.targetPolicyPreset)) {
+    errors.push("TARGET_POLICY_PRESET must be open, allowlist, or strict.");
+  }
+
+  if (runtimeConfig.targetQuotaEnabled) {
+    if (runtimeConfig.targetQuotaWindowMs < 1000) {
+      errors.push("TARGET_QUOTA_WINDOW_MS must be at least 1000.");
+    }
+    if (runtimeConfig.targetQuotaMaxRequests < 1) {
+      errors.push("TARGET_QUOTA_MAX_REQUESTS must be at least 1.");
+    }
+  }
+
   if (runtimeConfig.requireTargetAllowlist && runtimeConfig.targetAllowlist.length === 0) {
     errors.push("REQUIRE_TARGET_ALLOWLIST=true requires TARGET_ALLOWLIST to contain at least one hostname.");
+  }
+
+  if (["allowlist", "strict"].includes(runtimeConfig.targetPolicyPreset) && runtimeConfig.targetAllowlist.length === 0) {
+    errors.push(`TARGET_POLICY_PRESET=${runtimeConfig.targetPolicyPreset} requires TARGET_ALLOWLIST to contain at least one hostname.`);
   }
 
   if (!runtimeConfig.x402Enabled) {
@@ -262,9 +283,15 @@ export function runtimeSummary(runtimeConfig = config) {
       maxRequests: runtimeConfig.rateLimitMaxRequests
     },
     targetPolicy: {
+      preset: runtimeConfig.targetPolicyPreset,
       requireTargetAllowlist: runtimeConfig.requireTargetAllowlist,
       allowlistCount: runtimeConfig.targetAllowlist.length,
       blocklistCount: runtimeConfig.targetBlocklist.length
+    },
+    targetQuota: {
+      enabled: runtimeConfig.targetQuotaEnabled,
+      windowMs: runtimeConfig.targetQuotaWindowMs,
+      maxRequests: runtimeConfig.targetQuotaMaxRequests
     },
     observability: {
       logLevel: runtimeConfig.logLevel,

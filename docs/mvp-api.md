@@ -94,6 +94,7 @@ Returns runtime health and active x402 network.
 - Supports managed Postgres through `STORE_DRIVER=postgres`, `DATABASE_URL`, and `POSTGRES_SSL`.
 - Uses `RECEIPT_KEY_ID` and `RECEIPT_PREVIOUS_SECRETS` for receipt key rotation.
 - Cleans up old jobs and receipts through `JOB_RETENTION_MS` and `RECEIPT_RETENTION_MS`.
+- Supports target policy presets and per-target quotas through `TARGET_POLICY_PRESET` and `TARGET_QUOTA_*`.
 - Emits structured JSON logs and exposes process-local observability counters on `/health`.
 - Caps timeout and retry attempts.
 - Strips hop-by-hop headers from outbound calls.

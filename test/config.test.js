@@ -23,6 +23,10 @@ const baseConfig = {
   postgresSsl: false,
   jobRetentionMs: 7 * 24 * 60 * 60 * 1000,
   receiptRetentionMs: 30 * 24 * 60 * 60 * 1000,
+  targetPolicyPreset: "open",
+  targetQuotaEnabled: true,
+  targetQuotaWindowMs: 60000,
+  targetQuotaMaxRequests: 20,
   rateLimitEnabled: true,
   rateLimitWindowMs: 60000,
   rateLimitMaxRequests: 60,
@@ -75,6 +79,35 @@ test("startup config rejects invalid log level", () => {
   });
 
   assert.match(errors.join("\n"), /LOG_LEVEL/);
+});
+
+test("startup config rejects invalid target policy preset", () => {
+  const errors = validateStartupConfig({
+    ...baseConfig,
+    targetPolicyPreset: "custom"
+  });
+
+  assert.match(errors.join("\n"), /TARGET_POLICY_PRESET/);
+});
+
+test("allowlist target policy preset requires target allowlist", () => {
+  const errors = validateStartupConfig({
+    ...baseConfig,
+    targetPolicyPreset: "allowlist"
+  });
+
+  assert.match(errors.join("\n"), /TARGET_ALLOWLIST/);
+});
+
+test("startup config validates target quota limits", () => {
+  const errors = validateStartupConfig({
+    ...baseConfig,
+    targetQuotaWindowMs: 999,
+    targetQuotaMaxRequests: 0
+  });
+
+  assert.match(errors.join("\n"), /TARGET_QUOTA_WINDOW_MS/);
+  assert.match(errors.join("\n"), /TARGET_QUOTA_MAX_REQUESTS/);
 });
 
 test("x402 startup config accepts postgres durable storage", () => {
