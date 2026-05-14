@@ -50,6 +50,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 ## Phase 3: x402 Smoke Script
 
 - [x] Add `scripts/x402-smoke.js`.
+- [x] Add `scripts/readiness-check.js` for profile readiness without printing secrets.
 - [x] Check `/health`.
 - [x] Check `/api/capabilities`.
 - [x] Check `/api/bazaar`.

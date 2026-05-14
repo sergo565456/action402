@@ -33,6 +33,14 @@ npm run dev:mainnet
 
 `dev:demo` can run from `.env.demo.example`. For `testnet` and `mainnet`, create `.env.testnet` or `.env.mainnet` from the matching example file and fill the user-owned values first.
 
+Check which profile values are still missing without printing secrets:
+
+```bash
+npm run readiness -- demo
+npm run readiness -- testnet
+npm run readiness -- mainnet
+```
+
 By default `X402_ENABLED=false`, so the action endpoint runs in demo mode. For Bazaar/mainnet, set:
 
 ```bash
