@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Service Status</title>
+    <meta
+      name="description"
+      content="Browser-friendly service status page for Action402."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Status navigation">
+        <a href="/demo">Demo</a>
+        <a href="/capabilities">Capabilities</a>
+        <a href="/bazaar">Bazaar</a>
+        <a href="/openapi">OpenAPI</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Service status</p>
+          <h1>Action402 is running in demo mode locally.</h1>
+          <p>
+            This browser page mirrors the local health check in a clickable format. Programmatic
+            clients can still call the raw JSON endpoint directly.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/demo">Open Demo Console</a>
+            <a class="button secondary" href="/capabilities">Capabilities</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Health summary">
+          <dl>
+            <div>
+              <dt>service</dt>
+              <dd>Action402</dd>
+            </div>
+            <div>
+              <dt>status</dt>
+              <dd>ok</dd>
+            </div>
+            <div>
+              <dt>x402 mode</dt>
+              <dd>demo</dd>
+            </div>
+            <div>
+              <dt>raw endpoint</dt>
+              <dd><code>/health</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Local runtime</p>
+          <h2>Use the demo console for live checks.</h2>
+          <p>
+            The demo console fetches health and capability JSON internally, then lets you run a paid
+            action simulation and a safety-block check.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>status</span>
+            <h3>GET /health</h3>
+            <p>Returns service name, x402 mode, network, store, and rate-limit status.</p>
+          </article>
+          <article class="endpoint">
+            <span>interactive</span>
+            <h3>GET /demo</h3>
+            <p>Runs the browser-friendly local test console.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Raw API path: /health</span>
+    </footer>
+  </body>
+</html>

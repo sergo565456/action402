@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Demo Console</title>
+    <meta name="description" content="Local Action402 demo console for webhook execution, receipts, and safety checks." />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/demo.css" />
+  </head>
+  <body>
+    <header class="demo-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="/logo-action402.svg" alt="" />
+        </span>
+        <span>Action402</span>
+      </a>
+      <nav class="nav-links" aria-label="Demo navigation">
+        <a href="/">Landing</a>
+        <a href="/brand.html">Brand</a>
+        <a href="/api/capabilities">Capabilities JSON</a>
+        <a href="/openapi.json">OpenAPI JSON</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="demo-shell">
+        <div class="demo-copy">
+          <p class="eyebrow">Local demo console</p>
+          <h1>Evaluate the paid action relay.</h1>
+          <p class="lede">Run the complete demo flow: execution, persisted job, signed receipt, and blocked unsafe target.</p>
+        </div>
+
+        <div class="status-grid" aria-label="Service status">
+          <article class="metric">
+            <span>Mode</span>
+            <strong id="mode-value">...</strong>
+          </article>
+          <article class="metric">
+            <span>Network</span>
+            <strong id="network-value">...</strong>
+          </article>
+          <article class="metric">
+            <span>Store</span>
+            <strong id="store-value">...</strong>
+          </article>
+          <article class="metric">
+            <span>Rate limit</span>
+            <strong id="rate-value">...</strong>
+          </article>
+        </div>
+
+        <section class="workspace" aria-label="Demo workspace">
+          <div class="control-panel">
+            <div class="panel-heading">
+              <p class="eyebrow">Actions</p>
+              <h2>Run checks</h2>
+            </div>
+
+            <div class="button-stack">
+              <button id="refresh-button" type="button">
+                <span aria-hidden="true">01</span>
+                Refresh state
+              </button>
+              <button id="execute-button" type="button">
+                <span aria-hidden="true">02</span>
+                Run demo webhook
+              </button>
+              <button id="safety-button" type="button">
+                <span aria-hidden="true">03</span>
+                Run safety check
+              </button>
+            </div>
+
+            <dl class="last-run">
+              <div>
+                <dt>Last job</dt>
+                <dd id="last-job">none</dd>
+              </div>
+              <div>
+                <dt>Last receipt</dt>
+                <dd id="last-receipt">none</dd>
+              </div>
+              <div>
+                <dt>Receipt verified</dt>
+                <dd id="last-verified">none</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="result-panel">
+            <div class="panel-heading">
+              <p class="eyebrow">Output</p>
+              <h2 id="result-title">Ready</h2>
+            </div>
+            <pre id="result-output">Press "Run demo webhook" to create a job and signed receipt.</pre>
+          </div>
+        </section>
+
+        <section class="agent-guide" aria-label="Agent integration guide">
+          <div>
+            <p class="eyebrow">For agents</p>
+            <h2>Use JSON contracts, not the visual page.</h2>
+            <p>
+              This console is for humans evaluating the service. Autonomous agents should discover
+              Action402 through the capabilities document, OpenAPI contract, and Bazaar metadata.
+            </p>
+          </div>
+          <div class="agent-list">
+            <a href="/api/capabilities">
+              <span>discover</span>
+              <strong>/api/capabilities</strong>
+            </a>
+            <a href="/openapi.json">
+              <span>schema</span>
+              <strong>/openapi.json</strong>
+            </a>
+            <a href="/api/bazaar">
+              <span>marketplace</span>
+              <strong>/api/bazaar</strong>
+            </a>
+            <a href="/api/execute/webhook">
+              <span>paid action</span>
+              <strong>POST /api/execute/webhook</strong>
+            </a>
+          </div>
+          <pre class="agent-snippet">{
+  "url": "https://example.com/webhook",
+  "method": "POST",
+  "body": { "event": "agent.test" },
+  "idempotencyKey": "agent-test-001",
+  "retry": { "attempts": 2, "backoffMs": 300 }
+}</pre>
+        </section>
+
+        <section class="endpoint-grid" aria-label="Live endpoints">
+          <a href="/health">
+            <span>GET</span>
+            <strong>/health</strong>
+          </a>
+          <a href="/api/capabilities">
+            <span>GET</span>
+            <strong>/api/capabilities</strong>
+          </a>
+          <a href="/api/bazaar">
+            <span>GET</span>
+            <strong>/api/bazaar</strong>
+          </a>
+          <a href="/openapi.json">
+            <span>GET</span>
+            <strong>/openapi.json</strong>
+          </a>
+        </section>
+      </section>
+    </main>
+
+    <script src="/demo.js"></script>
+  </body>
+</html>

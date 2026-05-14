@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 landing mockups</title>
+    <meta
+      name="description"
+      content="Five landing page mockup directions for Action402 paid x402 execution infrastructure."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/mockups.css" />
+  </head>
+  <body>
+    <header class="chooser">
+      <a class="chooser-brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402 Mockups</span>
+      </a>
+      <nav aria-label="Mockup variants">
+        <a href="#relay-console">01</a>
+        <a href="#receipt-ledger">02</a>
+        <a href="#bazaar-route">03</a>
+        <a href="#agent-flow">04</a>
+        <a href="#docs-native">05</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">Landing directions</p>
+          <h1>Five ways to make Action402 feel precise, agent-native, and verifiable.</h1>
+        </div>
+        <p>
+          Each mockup keeps the same brand core: paid execution for autonomous agents, x402
+          discovery, exact payment, and signed receipts.
+        </p>
+      </section>
+
+      <section class="mockup relay-console" id="relay-console">
+        <header class="landing-header">
+          <a class="landing-brand" href="#relay-console" aria-label="Action402">
+            <img src="/logo-action402.svg" alt="" />
+            <span>Action402</span>
+          </a>
+          <nav aria-label="Relay Console navigation">
+            <a href="#relay-console-api">API</a>
+            <a href="#relay-console-proof">Receipts</a>
+            <a href="/bazaar">Bazaar</a>
+          </nav>
+        </header>
+
+        <div class="variant-kicker">
+          <span>01</span>
+          <strong>Relay Console</strong>
+        </div>
+
+        <div class="relay-map" aria-hidden="true">
+          <span class="node node-a"></span>
+          <span class="node node-b"></span>
+          <span class="node node-c"></span>
+          <span class="node node-d"></span>
+          <span class="route route-one"></span>
+          <span class="route route-two"></span>
+          <span class="route route-three"></span>
+        </div>
+
+        <section class="hero hero-left">
+          <div class="hero-copy">
+            <p class="eyebrow">x402 paid execution layer</p>
+            <h2>Pay. Execute. Prove.</h2>
+            <p>
+              Reliable webhook and API execution for autonomous AI agents using x402 payments on
+              Base.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="#relay-console-api">View API</a>
+              <a class="button secondary" href="/bazaar">Bazaar Metadata</a>
+            </div>
+          </div>
+
+          <aside class="receipt-panel" aria-label="Execution receipt preview">
+            <div class="panel-topline">
+              <span>402</span>
+              <strong>Payment Required</strong>
+            </div>
+            <dl class="receipt-grid">
+              <div>
+                <dt>job.status</dt>
+                <dd>succeeded</dd>
+              </div>
+              <div>
+                <dt>payment.amount</dt>
+                <dd>0.003 USDC</dd>
+              </div>
+              <div>
+                <dt>receipt.signature</dt>
+                <dd>hmac-sha256</dd>
+              </div>
+              <div>
+                <dt>network</dt>
+                <dd>Base</dd>
+              </div>
+            </dl>
+            <code>Verify at /api/receipts/rcpt_01HX8Z...</code>
+          </aside>
+        </section>
+
+        <section class="feature-strip" id="relay-console-api">
+          <article>
+            <span>01</span>
+            <h3>Built for agents</h3>
+            <p>No accounts required in the buyer path.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Paid per action</h3>
+            <p>Charge exact x402 micro-payments.</p>
+          </article>
+          <article id="relay-console-proof">
+            <span>03</span>
+            <h3>Receipts by default</h3>
+            <p>Return signed proof for every execution.</p>
+          </article>
+        </section>
+      </section>
+
+      <section class="mockup receipt-ledger" id="receipt-ledger">
+        <header class="landing-header">
+          <a class="landing-brand" href="#receipt-ledger" aria-label="Action402">
+            <img src="/logo-action402.svg" alt="" />
+            <span>Action402</span>
+          </a>
+          <nav aria-label="Receipt Ledger navigation">
+            <a href="#ledger-api">API</a>
+            <a href="#ledger-proof">Proof</a>
+            <a href="/bazaar">Bazaar</a>
+          </nav>
+        </header>
+
+        <div class="variant-kicker">
+          <span>02</span>
+          <strong>Receipt Ledger</strong>
+        </div>
+
+        <section class="hero ledger-hero">
+          <div class="hero-copy">
+            <p class="eyebrow">signed receipts for paid actions</p>
+            <h2>Every action returns proof.</h2>
+            <p>
+              Action402 executes bounded webhook calls and records the hashes, status, and signature
+              an agent can verify later.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="#ledger-api">Inspect endpoints</a>
+              <a class="button secondary" href="#ledger-proof">See receipt flow</a>
+            </div>
+          </div>
+
+          <div class="ledger-board" aria-label="Receipt ledger preview">
+            <div class="ledger-row ledger-head">
+              <span>receipt</span>
+              <span>amount</span>
+              <span>status</span>
+              <span>signature</span>
+            </div>
+            <div class="ledger-row">
+              <span>rcpt_01HX8Z</span>
+              <span>$0.003</span>
+              <span class="ok">verified</span>
+              <span>sha256</span>
+            </div>
+            <div class="ledger-row">
+              <span>rcpt_01HX90</span>
+              <span>$0.003</span>
+              <span class="pending">pending</span>
+              <span>queued</span>
+            </div>
+            <div class="ledger-row">
+              <span>rcpt_01HX91</span>
+              <span>$0.003</span>
+              <span class="ok">verified</span>
+              <span>sha256</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="ledger-proof" id="ledger-proof">
+          <article>
+            <strong>requestHash</strong>
+            <code>0x91a4...b7e2</code>
+          </article>
+          <article>
+            <strong>responseHash</strong>
+            <code>0x0fd2...44ac</code>
+          </article>
+          <article>
+            <strong>receipt.signature</strong>
+            <code>hmac-sha256:7f1c...</code>
+          </article>
+        </section>
+      </section>
+
+      <section class="mockup bazaar-route" id="bazaar-route">
+        <header class="landing-header">
+          <a class="landing-brand" href="#bazaar-route" aria-label="Action402">
+            <img src="/logo-action402.svg" alt="" />
+            <span>Action402</span>
+          </a>
+          <nav aria-label="Bazaar Route navigation">
+            <a href="#bazaar-route-api">Route</a>
+            <a href="/bazaar">Metadata</a>
+            <a href="#bazaar-route-use">Use cases</a>
+          </nav>
+        </header>
+
+        <div class="variant-kicker">
+          <span>03</span>
+          <strong>Bazaar Route</strong>
+        </div>
+
+        <section class="hero bazaar-hero">
+          <div class="hero-copy">
+            <p class="eyebrow">built for x402 discovery</p>
+            <h2>The paid action route agents can discover.</h2>
+            <p>
+              Publish one clear x402 endpoint for webhook execution, Bazaar metadata, and public
+              receipt verification.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="/bazaar">Open metadata</a>
+              <a class="button secondary" href="#bazaar-route-api">View route</a>
+            </div>
+          </div>
+
+          <aside class="route-list" id="bazaar-route-api" aria-label="x402 route preview">
+            <div>
+              <span>paid</span>
+              <strong>POST /api/execute/webhook</strong>
+              <em>$0.003 USDC</em>
+            </div>
+            <div>
+              <span>public</span>
+              <strong>GET /api/jobs/:id</strong>
+              <em>status</em>
+            </div>
+            <div>
+              <span>public</span>
+              <strong>GET /api/receipts/:id</strong>
+              <em>verify</em>
+            </div>
+          </aside>
+        </section>
+
+        <section class="usecase-band" id="bazaar-route-use">
+          <article>
+            <h3>Paid webhooks</h3>
+            <p>Let agents trigger bounded side effects without broad API keys.</p>
+          </article>
+          <article>
+            <h3>Usage-gated tools</h3>
+            <p>Charge per webhook, not per seat.</p>
+          </article>
+          <article>
+            <h3>Verifiable execution</h3>
+            <p>Expose public receipts for agent audit trails.</p>
+          </article>
+        </section>
+      </section>
+
+      <section class="mockup agent-flow" id="agent-flow">
+        <header class="landing-header">
+          <a class="landing-brand" href="#agent-flow" aria-label="Action402">
+            <img src="/logo-action402.svg" alt="" />
+            <span>Action402</span>
+          </a>
+          <nav aria-label="Agent Flow navigation">
+            <a href="#agent-flow-steps">Flow</a>
+            <a href="#agent-flow-api">API</a>
+            <a href="/bazaar">Bazaar</a>
+          </nav>
+        </header>
+
+        <div class="variant-kicker">
+          <span>04</span>
+          <strong>Agent Flow</strong>
+        </div>
+
+        <section class="hero flow-hero">
+          <div class="hero-copy">
+            <p class="eyebrow">from payment to proof</p>
+            <h2>Agents pay once. Action402 executes exactly once.</h2>
+            <p>
+              A narrow relay for paid webhook and API actions with retries, idempotency, and signed
+              receipts.
+            </p>
+            <div class="actions">
+              <a class="button primary" href="#agent-flow-api">Start with POST</a>
+              <a class="button secondary" href="#agent-flow-steps">Trace the flow</a>
+            </div>
+          </div>
+
+          <div class="flow-diagram" id="agent-flow-steps" aria-label="Payment execution flow">
+            <div><span>agent</span><strong>request</strong></div>
+            <div><span>x402</span><strong>payment</strong></div>
+            <div><span>A402</span><strong>execute</strong></div>
+            <div><span>target</span><strong>webhook</strong></div>
+            <div><span>receipt</span><strong>proof</strong></div>
+          </div>
+        </section>
+
+        <section class="flow-api" id="agent-flow-api">
+          <pre><code>POST /api/execute/webhook
+X-PAYMENT: signed
+
+{
+  "url": "https://client.example/webhook",
+  "method": "POST",
+  "idempotencyKey": "inv_123:approved:v1"
+}</code></pre>
+          <pre><code>200 OK
+{
+  "job": { "status": "succeeded" },
+  "receipt": { "signature": "hmac-sha256:..." }
+}</code></pre>
+        </section>
+      </section>
+
+      <section class="mockup docs-native" id="docs-native">
+        <header class="landing-header">
+          <a class="landing-brand" href="#docs-native" aria-label="Action402">
+            <img src="/logo-action402.svg" alt="" />
+            <span>Action402</span>
+          </a>
+          <nav aria-label="Docs Native navigation">
+            <a href="#docs-native-api">API</a>
+            <a href="#docs-native-receipts">Receipts</a>
+            <a href="/openapi">OpenAPI</a>
+          </nav>
+        </header>
+
+        <div class="variant-kicker">
+          <span>05</span>
+          <strong>Docs Native</strong>
+        </div>
+
+        <section class="docs-layout">
+          <aside class="docs-sidebar" aria-label="Documentation navigation">
+            <a href="#docs-native-api">MVP API</a>
+            <a href="#docs-native-receipts">Receipts</a>
+            <a href="/bazaar">Bazaar</a>
+            <a href="/capabilities">Capabilities</a>
+          </aside>
+
+          <div class="docs-main">
+            <section class="hero docs-hero">
+              <div class="hero-copy">
+                <p class="eyebrow">developer-native landing</p>
+                <h2>Paid webhook execution in one POST.</h2>
+                <p>
+                  Action402 turns x402 payment into a bounded API action, then returns job status
+                  and a signed receipt.
+                </p>
+                <div class="actions">
+                  <a class="button primary" href="#docs-native-api">Read API</a>
+                  <a class="button secondary" href="/openapi">OpenAPI Overview</a>
+                </div>
+              </div>
+            </section>
+
+            <section class="endpoint-docs" id="docs-native-api">
+              <article>
+                <span>paid</span>
+                <h3>POST /api/execute/webhook</h3>
+                <p>Executes a single outbound HTTPS action after x402 payment verification.</p>
+              </article>
+              <article>
+                <span>public</span>
+                <h3>GET /api/jobs/:id</h3>
+                <p>Returns job status, target origin, attempts, and receipt id.</p>
+              </article>
+              <article id="docs-native-receipts">
+                <span>public</span>
+                <h3>GET /api/receipts/:id</h3>
+                <p>Returns receipt data and verifies the HMAC signature.</p>
+              </article>
+            </section>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

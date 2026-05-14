@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Capabilities</title>
+    <meta
+      name="description"
+      content="Browser-friendly service capabilities page for Action402."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Capabilities navigation">
+        <a href="/mockups">Mockups</a>
+        <a href="/bazaar">Bazaar</a>
+        <a href="/openapi">OpenAPI</a>
+        <a href="/brand.html">Brand</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Service capabilities</p>
+          <h1>What agents can buy, execute, and verify.</h1>
+          <p>
+            Action402 publishes its paid action, x402 payment settings, verification links, and
+            safety limits through an agent-readable capabilities document.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/bazaar">Bazaar Metadata</a>
+            <a class="button secondary" href="/openapi">OpenAPI Overview</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Capabilities summary">
+          <dl>
+            <div>
+              <dt>action</dt>
+              <dd><code>execute.webhook</code></dd>
+            </div>
+            <div>
+              <dt>method</dt>
+              <dd>POST</dd>
+            </div>
+            <div>
+              <dt>price</dt>
+              <dd>$0.003</dd>
+            </div>
+            <div>
+              <dt>raw endpoint</dt>
+              <dd><code>/api/capabilities</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Safety limits</p>
+          <h2>Bounded execution, not broad automation.</h2>
+          <p>
+            The service keeps the agent-facing action narrow: allowed methods are capped, private
+            network targets are blocked, retries are bounded, and receipts store hashes instead of
+            raw payloads.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>allowed methods</span>
+            <h3>POST, PUT, PATCH, DELETE</h3>
+            <p>Outbound methods are restricted to side-effect actions.</p>
+          </article>
+          <article class="endpoint">
+            <span>target policy</span>
+            <h3>HTTPS targets only</h3>
+            <p>Localhost and private network targets are blocked by default.</p>
+          </article>
+          <article class="endpoint">
+            <span>proof</span>
+            <h3>hmac-sha256 receipts</h3>
+            <p>Jobs link to signed receipts for later verification.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Capability preview</p>
+        <h2>Agent-readable contract.</h2>
+        <pre><code>{
+  "name": "Action402",
+  "version": "0.1.0",
+  "tagline": "Pay. Execute. Prove.",
+  "x402": {
+    "enabled": false,
+    "scheme": "exact",
+    "network": "eip155:84532",
+    "price": "$0.003"
+  },
+  "actions": [
+    {
+      "id": "execute.webhook",
+      "method": "POST",
+      "path": "/api/execute/webhook"
+    }
+  ],
+  "verification": {
+    "jobLookup": "/api/jobs/{id}",
+    "receiptLookup": "/api/receipts/{id}",
+    "receiptSignature": "hmac-sha256"
+  }
+}</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Raw API path: /api/capabilities</span>
+    </footer>
+  </body>
+</html>

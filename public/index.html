@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 - Paid execution for AI agents</title>
+    <meta
+      name="description"
+      content="Reliable webhook and API execution for autonomous agents using x402 payments on Base."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="/logo-action402.svg" alt="" />
+        </span>
+        <span>Action402</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#api">API</a>
+        <a href="#receipts">Receipts</a>
+        <a href="/demo">Demo</a>
+        <a href="/mockups">Mockups</a>
+        <a href="/brand.html">Brand</a>
+        <a href="/bazaar">Bazaar</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <canvas id="relay-canvas" aria-hidden="true"></canvas>
+        <div class="hero-copy">
+          <p class="eyebrow">x402 paid execution layer</p>
+          <h1>Pay. Execute. Prove.</h1>
+          <p class="hero-lede">
+            Reliable webhook and API execution for autonomous AI agents using x402 payments on Base.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#api">View API</a>
+            <a class="button secondary" href="/demo.html">Run Demo</a>
+            <a class="button secondary" href="/mockups">View Mockups</a>
+          </div>
+        </div>
+        <div class="hero-terminal" aria-label="Execution receipt preview">
+          <div class="terminal-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <pre><code>POST /api/execute/webhook
+402 Payment Required
+X-PAYMENT: signed
+
+job.status = "succeeded"
+receipt.signature = "hmac-sha256:..."
+proof = "request + response hashes"</code></pre>
+        </div>
+      </section>
+
+      <section class="strip" aria-label="Positioning">
+        <div>
+          <strong>Built for agents</strong>
+          <span>No accounts, no dashboards required for the buyer path.</span>
+        </div>
+        <div>
+          <strong>Paid per action</strong>
+          <span>Charge exact x402 micro-payments for each execution.</span>
+        </div>
+        <div>
+          <strong>Receipts by default</strong>
+          <span>Return a signed record agents can verify later.</span>
+        </div>
+      </section>
+
+      <section class="section-grid" id="api">
+        <div class="section-copy">
+          <p class="eyebrow">MVP API</p>
+          <h2>One paid endpoint, two public verification endpoints.</h2>
+          <p>
+            The first product surface is intentionally narrow: accept a paid execution request,
+            deliver it safely, then make the result inspectable.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>paid</span>
+            <h3>POST /api/execute/webhook</h3>
+            <p>Runs one outbound HTTPS action with retries, timeout control, and idempotency.</p>
+          </article>
+          <article class="endpoint">
+            <span>public</span>
+            <h3>GET /api/jobs/:id</h3>
+            <p>Returns status, attempt history, target origin, and receipt linkage.</p>
+          </article>
+          <article class="endpoint">
+            <span>public</span>
+            <h3>GET /api/receipts/:id</h3>
+            <p>Verifies the HMAC receipt and exposes hashes without leaking full payloads.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="workflow" id="receipts">
+        <div class="workflow-step">
+          <span>01</span>
+          <h3>Agent pays</h3>
+          <p>The protected route uses x402 middleware and advertises Bazaar metadata.</p>
+        </div>
+        <div class="workflow-step">
+          <span>02</span>
+          <h3>Relay executes</h3>
+          <p>Action402 validates the target, retries transient failures, and prevents duplicates.</p>
+        </div>
+        <div class="workflow-step">
+          <span>03</span>
+          <h3>Receipt proves</h3>
+          <p>The response includes a signed receipt over the request hash, response hash, and outcome.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Reliable actions for autonomous agents.</span>
+    </footer>
+
+    <script src="/visual.js"></script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "action402",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Paid webhook execution with verifiable receipts for AI agents using x402.",
+  "scripts": {
+    "dev": "node src/server.js",
+    "dev:demo": "node scripts/start-profile.js demo",
+    "dev:testnet": "node scripts/start-profile.js testnet",
+    "dev:mainnet": "node scripts/start-profile.js mainnet",
+    "start": "node src/server.js",
+    "smoke:x402": "node scripts/x402-smoke.js",
+    "test": "node --import ./scripts/test-env.js --test test/receipt.test.js test/api-contract.test.js test/rate-limit.test.js test/target-policy.test.js test/config.test.js"
+  },
+  "dependencies": {
+    "@coinbase/x402": "latest",
+    "@x402/core": "latest",
+    "@x402/evm": "latest",
+    "@x402/express": "latest",
+    "dotenv": "latest",
+    "express": "latest"
+  },
+  "devDependencies": {}
+}

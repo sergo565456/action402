@@ -1,0 +1,28 @@
+<svg width="420" height="220" viewBox="0 0 420 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Action402 A4 Relay logo</title>
+  <desc id="desc">A stylized A4 monogram where the number four forms a relay arrow.</desc>
+  <defs>
+    <linearGradient id="cream" x1="44" y1="28" x2="198" y2="178" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF9EA"/>
+      <stop offset="1" stop-color="#E7DDC8"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="194" y1="50" x2="350" y2="177" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#85E7A1"/>
+      <stop offset="1" stop-color="#29C989"/>
+    </linearGradient>
+    <filter id="softShadow" x="0" y="0" width="420" height="220" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#000000" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <g filter="url(#softShadow)">
+    <path
+      d="M44 176L128 42H174L214 176H169L160 142H107L86 176H44ZM128 107H153L143 70L128 107Z"
+      fill="url(#cream)"
+    />
+    <path
+      d="M205 176V145H164L245 74H283V131H322V111L376 151L322 191V171H283V176H205ZM214 131H246V103L214 131Z"
+      fill="url(#mint)"
+    />
+    <path d="M245 176H283V202H245V176Z" fill="#62DC90"/>
+  </g>
+</svg>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 OpenAPI Overview</title>
+    <meta
+      name="description"
+      content="Browser-friendly overview of the Action402 OpenAPI contract."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="OpenAPI navigation">
+        <a href="/mockups">Mockups</a>
+        <a href="/bazaar">Bazaar</a>
+        <a href="/capabilities">Capabilities</a>
+        <a href="/brand.html">Brand</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">OpenAPI overview</p>
+          <h1>Paid webhook execution with public verification endpoints.</h1>
+          <p>
+            The API contract is intentionally narrow: execute one paid action, inspect the job, and
+            verify the receipt.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/bazaar">Bazaar Metadata</a>
+            <a class="button secondary" href="/capabilities">Capabilities</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="OpenAPI summary">
+          <dl>
+            <div>
+              <dt>version</dt>
+              <dd>OpenAPI 3.1.0</dd>
+            </div>
+            <div>
+              <dt>service</dt>
+              <dd>Action402 API</dd>
+            </div>
+            <div>
+              <dt>raw endpoint</dt>
+              <dd><code>/openapi.json</code></dd>
+            </div>
+            <div>
+              <dt>payment</dt>
+              <dd>x402 when enabled</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Paths</p>
+          <h2>Small surface, clear behavior.</h2>
+          <p>
+            The browser page summarizes the raw OpenAPI JSON so clickable navigation stays usable
+            in browsers that block direct JSON documents.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>paid</span>
+            <h3>POST /api/execute/webhook</h3>
+            <p>Protected by x402 in production mode. Returns job and receipt links.</p>
+          </article>
+          <article class="endpoint">
+            <span>public</span>
+            <h3>GET /api/jobs/:id</h3>
+            <p>Returns job status, target origin, attempts, and receipt id.</p>
+          </article>
+          <article class="endpoint">
+            <span>public</span>
+            <h3>GET /api/receipts/:id</h3>
+            <p>Returns receipt data and verifies the HMAC signature.</p>
+          </article>
+          <article class="endpoint">
+            <span>metadata</span>
+            <h3>GET /api/capabilities</h3>
+            <p>Returns agent-readable service configuration and safety limits.</p>
+          </article>
+          <article class="endpoint">
+            <span>metadata</span>
+            <h3>GET /api/bazaar</h3>
+            <p>Returns Bazaar-facing x402 discovery metadata.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Request preview</p>
+        <h2>Execute one webhook.</h2>
+        <pre><code>{
+  "url": "https://example.com/webhook",
+  "method": "POST",
+  "body": {
+    "event": "agent.test",
+    "ok": true
+  },
+  "idempotencyKey": "agent-test-001",
+  "retry": {
+    "attempts": 2,
+    "backoffMs": 300
+  }
+}</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Raw API path: /openapi.json</span>
+    </footer>
+  </body>
+</html>
