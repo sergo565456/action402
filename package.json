@@ -10,8 +10,10 @@
     "dev:testnet": "node scripts/start-profile.js testnet",
     "dev:mainnet": "node scripts/start-profile.js mainnet",
     "db:migrate": "node scripts/db-migrate.js",
+    "deploy:check": "node scripts/deploy-check.js",
     "readiness": "node scripts/readiness-check.js",
     "start": "node src/server.js",
+    "smoke:testnet:unpaid": "node scripts/testnet-unpaid-smoke.js",
     "smoke:x402": "node scripts/x402-smoke.js",
     "test": "node --import ./scripts/test-env.js --test test/receipt.test.js test/api-contract.test.js test/rate-limit.test.js test/target-policy.test.js test/target-quota.test.js test/config.test.js test/store.test.js test/observability.test.js"
   },

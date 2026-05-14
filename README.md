@@ -41,6 +41,15 @@ npm run readiness -- testnet
 npm run readiness -- mainnet
 ```
 
+Deployment path:
+
+```bash
+npm run deploy:check -- http://127.0.0.1:4021
+npm run smoke:testnet:unpaid
+```
+
+See `docs/deployment.md` for the Docker/PaaS deployment flow.
+
 By default `X402_ENABLED=false`, so the action endpoint runs in demo mode. For Bazaar/mainnet, set:
 
 ```bash

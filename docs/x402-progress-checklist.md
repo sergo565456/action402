@@ -51,6 +51,8 @@ Use this file as the active execution list for getting from local demo MVP to a 
 
 - [x] Add `scripts/x402-smoke.js`.
 - [x] Add `scripts/readiness-check.js` for profile readiness without printing secrets.
+- [x] Add `scripts/testnet-unpaid-smoke.js` for no-private-key unpaid 402 checks.
+- [x] Add deploy check script for static and JSON endpoint verification.
 - [x] Check `/health`.
 - [x] Check `/api/capabilities`.
 - [x] Check `/api/bazaar`.
@@ -61,7 +63,9 @@ Use this file as the active execution list for getting from local demo MVP to a 
 
 ## Phase 4: Deployment Checklist
 
-- [ ] Choose hosting target.
+- [x] Choose hosting target: Docker-capable Node PaaS first.
+- [x] Add Dockerfile and container healthcheck.
+- [x] Add deployment guide in `docs/deployment.md`.
 - [ ] Set `PUBLIC_BASE_URL`.
 - [ ] Set production env vars.
 - [ ] Set managed Postgres `DATABASE_URL`.

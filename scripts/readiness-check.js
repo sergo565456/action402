@@ -64,7 +64,7 @@ process.env.ACTION402_PROFILE = profile;
 const { config, validateStartupConfig } = await import("../src/config.js");
 
 const userFields = [
-  field("PAY_TO", valueStatus(config.payTo, ["Your", "your"]), config.x402Enabled, "Receiving wallet address. Public address, not a private key."),
+  field("PAY_TO", valueStatus(config.payTo, ["Your", "your", "0x1111111111111111111111111111111111111111"]), config.x402Enabled, "Receiving wallet address. Public address, not a private key."),
   field("RECEIPT_SECRET", secretStatus(config.receiptSecret), config.x402Enabled, "Random app secret used for receipt HMAC signatures."),
   field("PUBLIC_BASE_URL", valueStatus(config.publicBaseUrl, ["your-action402-domain.example"]), profile === "mainnet", "Public deployed URL for x402/Bazaar discovery."),
   field("DATABASE_URL", valueStatus(config.databaseUrl, ["user:password@host", "your-"]), config.storeDriver === "postgres", "Managed Postgres connection string."),

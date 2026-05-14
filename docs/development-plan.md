@@ -51,6 +51,8 @@ The first useful product is intentionally narrow:
 - [x] Add env profiles for demo, testnet, and mainnet.
 - [x] Add stronger startup validation for x402 production/testnet settings.
 - [x] Add x402 smoke script for unpaid `402 Payment Required` checks.
+- [x] Add Docker/PaaS deployment path and deployment verification script.
+- [x] Add local no-private-key testnet unpaid 402 smoke.
 - [ ] Deploy with a public `PUBLIC_BASE_URL`.
 - [ ] Enable `X402_ENABLED=true`.
 - [ ] Configure CDP facilitator credentials.
