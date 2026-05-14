@@ -1,8 +1,12 @@
 import { config } from "./config.js";
 import { executeWebhookRouteConfig } from "./bazaar.js";
+import { logEvent } from "./observability.js";
 
 export async function maybeInstallX402(app) {
-  if (!config.x402Enabled) return false;
+  if (!config.x402Enabled) {
+    logEvent("debug", "x402.disabled");
+    return false;
+  }
 
   const { paymentMiddleware, x402ResourceServer } = await import("@x402/express");
   const { ExactEvmScheme } = await import("@x402/evm/exact/server");
@@ -15,6 +19,11 @@ export async function maybeInstallX402(app) {
   );
 
   app.use(paymentMiddleware(executeWebhookRouteConfig(), server));
+  logEvent("info", "x402.middleware_installed", {
+    network: config.x402Network,
+    price: config.x402Price,
+    facilitatorHost: new URL(config.facilitatorUrl).host
+  });
   return true;
 }
 

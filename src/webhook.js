@@ -5,6 +5,7 @@ import { createId, sha256Json, buildReceipt } from "./receipt.js";
 import { createJob, getJobByIdempotencyKey, saveReceipt, updateJob } from "./store.js";
 import { ApiError } from "./errors.js";
 import { assertTargetPolicy } from "./targetPolicy.js";
+import { logEvent, recordMetric } from "./observability.js";
 
 const ALLOWED_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const BLOCKED_HEADER_NAMES = new Set([
@@ -136,7 +137,7 @@ function shouldRetry(result) {
   return result.status === 408 || result.status === 429 || result.status >= 500;
 }
 
-export async function executeWebhookAction(input) {
+export async function executeWebhookAction(input, context = {}) {
   if (input === null || typeof input !== "object" || Array.isArray(input)) {
     throw new ApiError(400, "invalid_request", "request body must be a JSON object.");
   }
@@ -160,6 +161,13 @@ export async function executeWebhookAction(input) {
   const existing = idempotencyKey ? await getJobByIdempotencyKey(idempotencyKey) : undefined;
 
   if (existing) {
+    recordMetric("executionReplays");
+    logEvent("info", "execution.replay", {
+      requestId: context.requestId,
+      jobId: existing.id,
+      receiptId: existing.receiptId || null,
+      status: existing.status
+    });
     return { job: existing, receipt: existing.receiptId ? undefined : null, idempotentReplay: true };
   }
 
@@ -173,6 +181,16 @@ export async function executeWebhookAction(input) {
     attempts: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
+  });
+  recordMetric("executionsStarted");
+  logEvent("info", "execution.started", {
+    requestId: context.requestId,
+    jobId: job.id,
+    targetHost: target.host,
+    targetPath: target.pathname,
+    method,
+    maxAttempts: retry.attempts,
+    timeoutMs
   });
 
   const outboundHeaders = normalizeHeaders(input.headers);
@@ -229,6 +247,7 @@ export async function executeWebhookAction(input) {
   };
 
   const status = finalResponse.ok ? "succeeded" : "failed";
+  recordMetric(finalResponse.ok ? "executionsSucceeded" : "executionsFailed");
   const responseHash = sha256Json(finalResponse);
   const updatedJob = await updateJob(job.id, {
     status,
@@ -251,6 +270,18 @@ export async function executeWebhookAction(input) {
 
   const finalJob = await updateJob(job.id, {
     receiptId: receipt.id
+  });
+
+  logEvent(finalResponse.ok ? "info" : "warn", finalResponse.ok ? "execution.succeeded" : "execution.failed", {
+    requestId: context.requestId,
+    jobId: finalJob.id,
+    receiptId: receipt.id,
+    targetHost: target.host,
+    targetPath: target.pathname,
+    method,
+    attempts: finalJob.attempts.length,
+    targetStatus: finalResponse.status,
+    error: finalResponse.ok ? undefined : finalJob.error
   });
 
   return { job: finalJob, receipt, idempotentReplay: false };

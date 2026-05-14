@@ -11,6 +11,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Managed Postgres storage support is implemented through `STORE_DRIVER=postgres`.
 - [x] Rate limit exists for execution endpoint.
 - [x] Target allowlist/blocklist policy exists.
+- [x] Structured execution observability exists.
 - [x] Agent-readable `/api/capabilities` exists.
 - [x] OpenAPI `/openapi.json` exists.
 - [x] Bazaar metadata `/api/bazaar` exists.
@@ -88,6 +89,6 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Add receipt key versioning.
 - [x] Add job retention/cleanup.
 - [x] Move durable storage from JSON file to production storage.
-- [ ] Add observability/logging for settlements and failed executions.
+- [x] Add observability/logging for settlements and failed executions.
 - [ ] Add per-target quotas.
 - [ ] Add target policy presets for customers.

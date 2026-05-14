@@ -12,7 +12,7 @@
     "db:migrate": "node scripts/db-migrate.js",
     "start": "node src/server.js",
     "smoke:x402": "node scripts/x402-smoke.js",
-    "test": "node --import ./scripts/test-env.js --test test/receipt.test.js test/api-contract.test.js test/rate-limit.test.js test/target-policy.test.js test/config.test.js test/store.test.js"
+    "test": "node --import ./scripts/test-env.js --test test/receipt.test.js test/api-contract.test.js test/rate-limit.test.js test/target-policy.test.js test/config.test.js test/store.test.js test/observability.test.js"
   },
   "dependencies": {
     "@coinbase/x402": "latest",

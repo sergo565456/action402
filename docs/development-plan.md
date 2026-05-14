@@ -43,6 +43,7 @@ The first useful product is intentionally narrow:
 - [x] Add per-target and per-origin rate limits. Basic per-client execution rate limit is implemented.
 - [x] Add receipt key versioning.
 - [x] Add optional webhook target allowlist. `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST` are implemented.
+- [x] Add structured logs and `/health` observability counters for requests, x402 payment flow, replays, successes, and failures.
 
 ### Milestone 3: Bazaar Launch
 

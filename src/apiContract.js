@@ -160,6 +160,11 @@ export function publicCapabilities() {
       storage: {
         driver: config.storeDriver,
         durable: config.storeDriver !== "memory"
+      },
+      observability: {
+        structuredJsonLogs: true,
+        requestLogEnabled: config.requestLogEnabled,
+        logLevel: config.logLevel
       }
     },
     links: {

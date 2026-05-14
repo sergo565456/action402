@@ -83,7 +83,9 @@ export const config = {
   requireTargetAllowlist: boolFromEnv(process.env.REQUIRE_TARGET_ALLOWLIST, false),
   rateLimitEnabled: boolFromEnv(process.env.RATE_LIMIT_ENABLED, true),
   rateLimitWindowMs: intFromEnv(process.env.RATE_LIMIT_WINDOW_MS, 60000),
-  rateLimitMaxRequests: intFromEnv(process.env.RATE_LIMIT_MAX_REQUESTS, 60)
+  rateLimitMaxRequests: intFromEnv(process.env.RATE_LIMIT_MAX_REQUESTS, 60),
+  logLevel: String(process.env.LOG_LEVEL || (process.env.NODE_ENV === "test" ? "silent" : "info")).toLowerCase(),
+  requestLogEnabled: boolFromEnv(process.env.REQUEST_LOG_ENABLED, process.env.NODE_ENV !== "test")
 };
 
 function isLocalUrl(value) {
@@ -170,6 +172,10 @@ export function validateStartupConfig(runtimeConfig = config) {
     }
   }
 
+  if (!["debug", "info", "warn", "error", "silent"].includes(runtimeConfig.logLevel)) {
+    errors.push("LOG_LEVEL must be debug, info, warn, error, or silent.");
+  }
+
   if (runtimeConfig.requireTargetAllowlist && runtimeConfig.targetAllowlist.length === 0) {
     errors.push("REQUIRE_TARGET_ALLOWLIST=true requires TARGET_ALLOWLIST to contain at least one hostname.");
   }
@@ -252,6 +258,10 @@ export function runtimeSummary(runtimeConfig = config) {
       requireTargetAllowlist: runtimeConfig.requireTargetAllowlist,
       allowlistCount: runtimeConfig.targetAllowlist.length,
       blocklistCount: runtimeConfig.targetBlocklist.length
+    },
+    observability: {
+      logLevel: runtimeConfig.logLevel,
+      requestLogEnabled: runtimeConfig.requestLogEnabled
     }
   };
 }

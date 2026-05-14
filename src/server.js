@@ -8,12 +8,15 @@ import { verifyReceipt } from "./receipt.js";
 import { maybeInstallX402 } from "./x402.js";
 import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
+import { logEvent, observabilitySummary, recordMetric, requestLogger } from "./observability.js";
 
 assertProductionConfig();
 await initStore();
+logEvent("info", "service.starting", runtimeSummary());
 
 const app = express();
 
+app.use(requestLogger);
 app.use(express.static("public", { extensions: ["html"] }));
 
 app.get("/health", async (req, res, next) => {
@@ -27,6 +30,7 @@ app.get("/health", async (req, res, next) => {
       price: config.x402Price,
       publicBaseUrl: config.publicBaseUrl,
       store: await storeStats(),
+      observability: observabilitySummary(),
       rateLimit: {
         enabled: config.rateLimitEnabled,
         windowMs: config.rateLimitWindowMs,
@@ -57,7 +61,16 @@ app.use("/api/execute", createRateLimiter());
 
 app.post("/api/execute/webhook", async (req, res) => {
   try {
-    const result = await executeWebhookAction(req.body || {});
+    if (config.x402Enabled) {
+      recordMetric("x402PaymentAccepted");
+      logEvent("info", "x402.payment_accepted_for_execution", {
+        requestId: req.requestId,
+        price: config.x402Price,
+        network: config.x402Network
+      });
+    }
+
+    const result = await executeWebhookAction(req.body || {}, { requestId: req.requestId });
     const receiptSummary =
       result.receipt === undefined
         ? { id: result.job.receiptId, replay: true }
@@ -82,6 +95,13 @@ app.post("/api/execute/webhook", async (req, res) => {
     });
   } catch (error) {
     const status = error.status || 400;
+    recordMetric("executionRejected");
+    logEvent(status >= 500 ? "error" : "warn", "execution.rejected", {
+      requestId: req.requestId,
+      status,
+      code: error.code,
+      message: error.message
+    });
     res.status(status).json(errorBody(error));
   }
 });

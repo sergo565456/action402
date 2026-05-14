@@ -25,6 +25,8 @@ const baseConfig = {
   rateLimitEnabled: true,
   rateLimitWindowMs: 60000,
   rateLimitMaxRequests: 60,
+  logLevel: "info",
+  requestLogEnabled: true,
   requireTargetAllowlist: false,
   targetAllowlist: [],
   targetBlocklist: []
@@ -63,6 +65,15 @@ test("postgres store rejects placeholder DATABASE_URL", () => {
   });
 
   assert.match(errors.join("\n"), /not a placeholder/);
+});
+
+test("startup config rejects invalid log level", () => {
+  const errors = validateStartupConfig({
+    ...baseConfig,
+    logLevel: "verbose"
+  });
+
+  assert.match(errors.join("\n"), /LOG_LEVEL/);
 });
 
 test("x402 startup config accepts postgres durable storage", () => {

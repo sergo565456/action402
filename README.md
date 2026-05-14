@@ -87,3 +87,5 @@ The local MVP can persist jobs and receipts to `STORE_FILE` as a small JSON stor
 Use `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true` to constrain where agents can send outbound actions. The service still blocks localhost and private network targets by default.
 
 Use `RATE_LIMIT_*` settings to protect the paid execution endpoint from repeated calls by the same client. Keep `RECEIPT_SECRET` stable and private. When rotating receipt secrets, set a new `RECEIPT_KEY_ID` and keep old keys in `RECEIPT_PREVIOUS_SECRETS` as comma-separated `keyId:secret` entries.
+
+Use `LOG_LEVEL` and `REQUEST_LOG_ENABLED` to control structured JSON logs. `/health` exposes process-local observability counters for requests, x402 payment-required responses, accepted paid executions, execution replays, successes, failures, and rejected execution requests.
