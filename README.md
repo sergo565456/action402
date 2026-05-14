@@ -9,6 +9,8 @@ Action402 is a small x402-native execution relay for autonomous agents. Agents p
 - `POST /api/execute/webhook` - paid action endpoint in x402 mode.
 - `GET /api/jobs/:id` - public job status.
 - `GET /api/receipts/:id` - public receipt verification.
+- `GET /api/verify/jobs/:id` - proof report linking job, receipt, signature, target, method, status, and attempts.
+- `GET /api/verify/receipts/:id` - proof report by receipt id.
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
 - `GET /api/capabilities` - agent-readable service capabilities.
 - `GET /openapi.json` - OpenAPI 3.1 contract for integrations.
@@ -49,6 +51,13 @@ npm run smoke:testnet:unpaid
 ```
 
 See `docs/deployment.md` for the Docker/PaaS deployment flow.
+
+After creating a demo job, verify its proof report:
+
+```bash
+npm run verify:receipt -- http://127.0.0.1:4021 job_...
+npm run verify:receipt -- http://127.0.0.1:4021 rcpt_...
+```
 
 By default `X402_ENABLED=false`, so the action endpoint runs in demo mode. For Bazaar/mainnet, set:
 
@@ -112,3 +121,5 @@ Use `TARGET_QUOTA_*` settings to cap executions per target hostname in a rolling
 Use `RATE_LIMIT_*` settings to protect the paid execution endpoint from repeated calls by the same client. Keep `RECEIPT_SECRET` stable and private. When rotating receipt secrets, set a new `RECEIPT_KEY_ID` and keep old keys in `RECEIPT_PREVIOUS_SECRETS` as comma-separated `keyId:secret` entries.
 
 Use `LOG_LEVEL` and `REQUEST_LOG_ENABLED` to control structured JSON logs. `/health` exposes process-local observability counters for requests, x402 payment-required responses, accepted paid executions, execution replays, successes, failures, and rejected execution requests.
+
+Agents can call `/api/verify/jobs/:id` or `/api/verify/receipts/:id` to get a single JSON proof report. The report checks the HMAC signature and confirms that retained job fields match the signed receipt payload.

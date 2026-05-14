@@ -68,6 +68,10 @@ async function main() {
 
   if (capabilities) {
     record("capabilities expose execute.webhook", capabilities.actions?.[0]?.id === "execute.webhook");
+    record(
+      "capabilities expose proof report",
+      capabilities.verification?.jobReceiptVerification === "/api/verify/jobs/{id}"
+    );
     if (expectX402) {
       record("capabilities mark action paid", capabilities.actions?.[0]?.paid === true);
     }

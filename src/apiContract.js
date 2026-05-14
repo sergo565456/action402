@@ -109,6 +109,30 @@ const errorSchema = {
   }
 };
 
+const verificationReportSchema = {
+  type: "object",
+  required: ["ok", "receiptId", "jobId", "signatureVerified", "checks"],
+  properties: {
+    ok: { type: "boolean" },
+    jobId: { type: ["string", "null"] },
+    receiptId: { type: ["string", "null"] },
+    keyId: { type: ["string", "null"] },
+    signatureVerified: { type: "boolean" },
+    checks: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["name", "ok"],
+        properties: {
+          name: { type: "string" },
+          ok: { type: "boolean" },
+          details: {}
+        }
+      }
+    }
+  }
+};
+
 export function publicCapabilities() {
   const targetPolicy = effectiveTargetPolicy(config);
 
@@ -139,6 +163,8 @@ export function publicCapabilities() {
     verification: {
       jobLookup: "/api/jobs/{id}",
       receiptLookup: "/api/receipts/{id}",
+      jobReceiptVerification: "/api/verify/jobs/{id}",
+      receiptVerification: "/api/verify/receipts/{id}",
       receiptSignature: "hmac-sha256",
       activeReceiptKeyId: config.receiptKeyId
     },
@@ -315,6 +341,80 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/verify/jobs/{id}": {
+        get: {
+          summary: "Verify job and receipt consistency",
+          description:
+            "Returns an agent-readable proof report covering receipt signature validity plus consistency between the stored job and its linked receipt.",
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" }
+            }
+          ],
+          responses: {
+            "200": {
+              description: "Verification report",
+              content: {
+                "application/json": {
+                  schema: verificationReportSchema
+                }
+              }
+            },
+            "404": {
+              description: "Job or receipt not found",
+              content: {
+                "application/json": {
+                  schema: errorSchema
+                }
+              }
+            },
+            "409": {
+              description: "Job exists but no receipt is linked yet",
+              content: {
+                "application/json": {
+                  schema: errorSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/verify/receipts/{id}": {
+        get: {
+          summary: "Verify receipt proof report",
+          description:
+            "Returns receipt signature checks and, when the linked job is still retained, full job/receipt consistency checks.",
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" }
+            }
+          ],
+          responses: {
+            "200": {
+              description: "Verification report",
+              content: {
+                "application/json": {
+                  schema: verificationReportSchema
+                }
+              }
+            },
+            "404": {
+              description: "Receipt not found",
+              content: {
+                "application/json": {
+                  schema: errorSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/capabilities": {
         get: {
           summary: "Fetch agent-readable service capabilities",
@@ -350,6 +450,7 @@ export function openApiSpec() {
       schemas: {
         WebhookRequest: webhookRequestSchema,
         ExecuteWebhookResponse: executeWebhookResponseSchema,
+        VerificationReport: verificationReportSchema,
         Error: errorSchema
       }
     }

@@ -102,5 +102,5 @@ Do this only after unpaid smoke passes:
 2. Use a buyer wallet/client with funded Base Sepolia or Base mainnet USDC.
 3. Run a paid x402 request against `POST /api/execute/webhook`.
 4. Confirm job succeeded.
-5. Confirm receipt verifies.
+5. Confirm receipt verifies with `npm run verify:receipt -- https://your-action402-domain.example job_...`.
 6. Confirm facilitator/CDP settlement.

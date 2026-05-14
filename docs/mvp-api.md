@@ -68,6 +68,14 @@ Returns job status, target origin, attempts, and receipt id.
 
 Returns receipt data and `verified: true` if the HMAC signature still matches.
 
+`GET /api/verify/jobs/:id`
+
+Returns a proof report that checks the receipt signature and confirms the stored job matches the signed receipt payload.
+
+`GET /api/verify/receipts/:id`
+
+Returns a proof report by receipt id. If the linked job is still retained, the report includes job/receipt consistency checks.
+
 `GET /api/bazaar`
 
 Returns Bazaar-facing metadata, example request, and output schema.

@@ -5,6 +5,7 @@ import { openApiSpec, publicCapabilities } from "./apiContract.js";
 import { executeWebhookAction } from "./webhook.js";
 import { getJob, getReceipt, initStore, storeStats } from "./store.js";
 import { verifyReceipt } from "./receipt.js";
+import { verifyJobReceipt, verifyStoredReceipt } from "./receiptVerification.js";
 import { maybeInstallX402 } from "./x402.js";
 import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
@@ -144,6 +145,47 @@ app.get("/api/receipts/:id", async (req, res, next) => {
       ...receipt,
       verified: verifyReceipt(receipt)
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/verify/jobs/:id", async (req, res, next) => {
+  try {
+    const job = await getJob(req.params.id);
+    if (!job) {
+      res.status(404).json(errorBody(new ApiError(404, "job_not_found", "job not found")));
+      return;
+    }
+
+    if (!job.receiptId) {
+      res.status(409).json(errorBody(new ApiError(409, "receipt_not_ready", "job has no receipt yet")));
+      return;
+    }
+
+    const receipt = await getReceipt(job.receiptId);
+    if (!receipt) {
+      res.status(404).json(errorBody(new ApiError(404, "receipt_not_found", "receipt not found")));
+      return;
+    }
+
+    res.json(verifyJobReceipt({ job, receipt }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/verify/receipts/:id", async (req, res, next) => {
+  try {
+    const receipt = await getReceipt(req.params.id);
+    if (!receipt) {
+      res.status(404).json(errorBody(new ApiError(404, "receipt_not_found", "receipt not found")));
+      return;
+    }
+
+    const jobId = receipt.payload?.jobId;
+    const job = jobId ? await getJob(jobId) : undefined;
+    res.json(job ? verifyJobReceipt({ job, receipt }) : verifyStoredReceipt(receipt));
   } catch (error) {
     next(error);
   }

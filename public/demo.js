@@ -108,16 +108,18 @@ async function runDemoWebhook() {
       fetchJson(execution.links.job),
       fetchJson(execution.links.receipt)
     ]);
+    const verification = await fetchJson(`/api/verify/jobs/${job.id}`);
 
     elements.lastJob.textContent = job.id;
     elements.lastReceipt.textContent = receipt.id;
-    elements.lastVerified.textContent = String(receipt.verified);
+    elements.lastVerified.textContent = verification.ok ? "ok" : "failed";
 
     setOutput("Webhook executed", {
       request,
       execution,
       job,
-      receipt
+      receipt,
+      verification
     });
 
     await refreshSummaryOnly();

@@ -7,6 +7,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Local demo server works.
 - [x] Demo webhook execution works.
 - [x] Signed receipts verify.
+- [x] Agent-readable job/receipt proof report exists.
 - [x] Durable local JSON storage works.
 - [x] Managed Postgres storage support is implemented through `STORE_DRIVER=postgres`.
 - [x] Rate limit exists for execution endpoint.
@@ -57,6 +58,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Check `/api/capabilities`.
 - [x] Check `/api/bazaar`.
 - [x] Check `/openapi.json`.
+- [x] Check verification paths are published.
 - [x] Check unpaid `POST /api/execute/webhook` returns `402`.
 - [x] Check `PAYMENT-REQUIRED` or equivalent x402 payment header exists.
 - [x] Print a concise pass/fail summary.
