@@ -24,6 +24,22 @@ function listFromEnv(value) {
     .filter(Boolean);
 }
 
+function keyedSecretsFromEnv(value) {
+  if (!value) return {};
+  return Object.fromEntries(
+    String(value)
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => {
+        const separator = item.indexOf(":");
+        if (separator === -1) return [item, ""];
+        return [item.slice(0, separator).trim(), item.slice(separator + 1).trim()];
+      })
+      .filter(([keyId, secret]) => keyId && secret)
+  );
+}
+
 function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/, "");
 }
@@ -45,9 +61,13 @@ export const config = {
   cdpApiKeyId: process.env.CDP_API_KEY_ID || "",
   cdpApiKeySecret: process.env.CDP_API_KEY_SECRET || "",
   publicBaseUrl: trimTrailingSlash(process.env.PUBLIC_BASE_URL || `http://localhost:${port}`),
+  receiptKeyId: process.env.RECEIPT_KEY_ID || "default",
   receiptSecret: process.env.RECEIPT_SECRET || "development-only-receipt-secret",
+  receiptPreviousSecrets: keyedSecretsFromEnv(process.env.RECEIPT_PREVIOUS_SECRETS),
   storeFile:
     process.env.STORE_FILE || (process.env.NODE_ENV === "test" ? ":memory:" : "data/action402-store.json"),
+  jobRetentionMs: intFromEnv(process.env.JOB_RETENTION_MS, 7 * 24 * 60 * 60 * 1000),
+  receiptRetentionMs: intFromEnv(process.env.RECEIPT_RETENTION_MS, 30 * 24 * 60 * 60 * 1000),
   maxWebhookTimeoutMs: intFromEnv(process.env.MAX_WEBHOOK_TIMEOUT_MS, 12000),
   maxRetryAttempts: intFromEnv(process.env.MAX_RETRY_ATTEMPTS, 3),
   allowHttpTargets: boolFromEnv(process.env.ALLOW_HTTP_TARGETS, false),
@@ -97,6 +117,18 @@ export function validateStartupConfig(runtimeConfig = config) {
 
   if (!isAbsoluteHttpUrl(runtimeConfig.publicBaseUrl)) {
     errors.push("PUBLIC_BASE_URL must be an absolute http(s) URL.");
+  }
+
+  if (!/^[a-zA-Z0-9._-]{1,64}$/.test(runtimeConfig.receiptKeyId)) {
+    errors.push("RECEIPT_KEY_ID must be 1-64 characters and use letters, numbers, dot, underscore, or dash.");
+  }
+
+  if (runtimeConfig.jobRetentionMs < 0) {
+    errors.push("JOB_RETENTION_MS must be 0 or greater.");
+  }
+
+  if (runtimeConfig.receiptRetentionMs < 0) {
+    errors.push("RECEIPT_RETENTION_MS must be 0 or greater.");
   }
 
   if (runtimeConfig.rateLimitEnabled) {
@@ -174,6 +206,11 @@ export function runtimeSummary(runtimeConfig = config) {
     publicBaseUrl: runtimeConfig.publicBaseUrl,
     facilitatorUrl: runtimeConfig.facilitatorUrl,
     storeFile: runtimeConfig.storeFile,
+    receiptKeyId: runtimeConfig.receiptKeyId,
+    retention: {
+      jobRetentionMs: runtimeConfig.jobRetentionMs,
+      receiptRetentionMs: runtimeConfig.receiptRetentionMs
+    },
     rateLimit: {
       enabled: runtimeConfig.rateLimitEnabled,
       windowMs: runtimeConfig.rateLimitWindowMs,

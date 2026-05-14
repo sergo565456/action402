@@ -5,6 +5,7 @@ import { config } from "./config.js";
 const jobs = new Map();
 const receipts = new Map();
 const idempotencyIndex = new Map();
+let lastCleanupAt = null;
 
 function useMemoryStore() {
   return config.storeFile === ":memory:";
@@ -56,9 +57,61 @@ function persistStore() {
   fs.renameSync(tempFile, file);
 }
 
+function timestampMs(value) {
+  const parsed = Date.parse(value || "");
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function receiptCreatedAt(receipt) {
+  return receipt?.payload?.createdAt || receipt?.createdAt || "";
+}
+
+export function pruneExpired(now = Date.now(), options = {}) {
+  const persist = options.persist ?? true;
+  let removedJobs = 0;
+  let removedReceipts = 0;
+
+  if (config.jobRetentionMs > 0) {
+    for (const job of jobs.values()) {
+      const updatedAt = timestampMs(job.updatedAt || job.createdAt);
+      if (updatedAt > 0 && now - updatedAt > config.jobRetentionMs) {
+        jobs.delete(job.id);
+        removedJobs += 1;
+      }
+    }
+  }
+
+  const retainedReceiptIds = new Set(
+    Array.from(jobs.values())
+      .map((job) => job.receiptId)
+      .filter(Boolean)
+  );
+
+  if (config.receiptRetentionMs > 0) {
+    for (const receipt of receipts.values()) {
+      const createdAt = timestampMs(receiptCreatedAt(receipt));
+      const linkedToRetainedJob = retainedReceiptIds.has(receipt.id);
+      if (!linkedToRetainedJob && createdAt > 0 && now - createdAt > config.receiptRetentionMs) {
+        receipts.delete(receipt.id);
+        removedReceipts += 1;
+      }
+    }
+  }
+
+  if (removedJobs > 0 || removedReceipts > 0) {
+    rebuildIndexes();
+    lastCleanupAt = new Date(now).toISOString();
+    if (persist) persistStore();
+  }
+
+  return { removedJobs, removedReceipts };
+}
+
 loadStore();
+pruneExpired(Date.now(), { persist: true });
 
 export function createJob(job) {
+  pruneExpired(Date.now(), { persist: false });
   jobs.set(job.id, job);
   if (job.idempotencyKey) {
     idempotencyIndex.set(job.idempotencyKey, job.id);
@@ -68,6 +121,7 @@ export function createJob(job) {
 }
 
 export function updateJob(id, patch) {
+  pruneExpired(Date.now(), { persist: false });
   const current = jobs.get(id);
   if (!current) return undefined;
   const next = { ...current, ...patch, updatedAt: new Date().toISOString() };
@@ -89,6 +143,7 @@ export function getJobByIdempotencyKey(key) {
 }
 
 export function saveReceipt(receipt) {
+  pruneExpired(Date.now(), { persist: false });
   receipts.set(receipt.id, receipt);
   persistStore();
   return receipt;
@@ -110,6 +165,11 @@ export function storeStats() {
     durable: !useMemoryStore(),
     storeFile: useMemoryStore() ? ":memory:" : resolvedStoreFile(),
     jobs: jobs.size,
-    receipts: receipts.size
+    receipts: receipts.size,
+    lastCleanupAt,
+    retention: {
+      jobRetentionMs: config.jobRetentionMs,
+      receiptRetentionMs: config.receiptRetentionMs
+    }
   };
 }

@@ -91,6 +91,8 @@ Returns runtime health and active x402 network.
 - Supports `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true`.
 - Applies a per-client execution rate limit through `RATE_LIMIT_*` settings.
 - Persists jobs and receipts to `STORE_FILE` for local durability.
+- Uses `RECEIPT_KEY_ID` and `RECEIPT_PREVIOUS_SECRETS` for receipt key rotation.
+- Cleans up old jobs and receipts through `JOB_RETENTION_MS` and `RECEIPT_RETENTION_MS`.
 - Caps timeout and retry attempts.
 - Strips hop-by-hop headers from outbound calls.
 - Stores payload/response hashes in receipts instead of raw payloads.

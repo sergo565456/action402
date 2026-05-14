@@ -136,7 +136,8 @@ export function publicCapabilities() {
     verification: {
       jobLookup: "/api/jobs/{id}",
       receiptLookup: "/api/receipts/{id}",
-      receiptSignature: "hmac-sha256"
+      receiptSignature: "hmac-sha256",
+      activeReceiptKeyId: config.receiptKeyId
     },
     safety: {
       allowedMethods: ["POST", "PUT", "PATCH", "DELETE"],
@@ -151,6 +152,10 @@ export function publicCapabilities() {
         enabled: config.rateLimitEnabled,
         windowMs: config.rateLimitWindowMs,
         maxRequests: config.rateLimitMaxRequests
+      },
+      retention: {
+        jobRetentionMs: config.jobRetentionMs,
+        receiptRetentionMs: config.receiptRetentionMs
       }
     },
     links: {

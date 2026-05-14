@@ -81,8 +81,8 @@ Use this file as the active execution list for getting from local demo MVP to a 
 
 ## Phase 6: Post-Smoke Hardening
 
-- [ ] Add receipt key versioning.
-- [ ] Add job retention/cleanup.
+- [x] Add receipt key versioning.
+- [x] Add job retention/cleanup.
 - [ ] Move durable storage from JSON file to production storage.
 - [ ] Add observability/logging for settlements and failed executions.
 - [ ] Add per-target quotas.

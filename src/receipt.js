@@ -22,18 +22,33 @@ export function canonicalJson(value) {
   return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
 }
 
-export function signReceiptPayload(payload) {
+function receiptSecretsByKeyId() {
+  return {
+    ...config.receiptPreviousSecrets,
+    [config.receiptKeyId]: config.receiptSecret
+  };
+}
+
+export function signReceiptPayload(payload, secret = config.receiptSecret) {
   const signature = crypto
-    .createHmac("sha256", config.receiptSecret)
+    .createHmac("sha256", secret)
     .update(canonicalJson(payload))
     .digest("base64url");
 
   return `hmac-sha256:${signature}`;
 }
 
-export function verifyReceipt(receipt) {
+export function verifyReceipt(receipt, secretsByKeyId = receiptSecretsByKeyId()) {
   if (!receipt || !receipt.payload || !receipt.signature) return false;
-  return signReceiptPayload(receipt.payload) === receipt.signature;
+
+  if (!receipt.keyId) {
+    return signReceiptPayload(receipt.payload) === receipt.signature;
+  }
+
+  const secret = secretsByKeyId[receipt.keyId];
+  if (!secret) return false;
+
+  return signReceiptPayload(receipt.payload, secret) === receipt.signature;
 }
 
 export function buildReceipt({ job, requestHash, responseHash, target, response }) {
@@ -53,6 +68,7 @@ export function buildReceipt({ job, requestHash, responseHash, target, response 
 
   return {
     id: createId("rcpt"),
+    keyId: config.receiptKeyId,
     payload,
     signature: signReceiptPayload(payload)
   };

@@ -39,8 +39,9 @@ The first useful product is intentionally narrow:
 
 - [x] Replace in-memory store with durable storage. Local file-backed JSON is implemented; production should move to Postgres, SQLite/D1, Redis, or a managed queue.
 - [ ] Add admin-safe job retention policy.
+- [x] Add local job/receipt retention cleanup through `JOB_RETENTION_MS` and `RECEIPT_RETENTION_MS`.
 - [x] Add per-target and per-origin rate limits. Basic per-client execution rate limit is implemented.
-- [ ] Add receipt key versioning.
+- [x] Add receipt key versioning.
 - [x] Add optional webhook target allowlist. `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST` are implemented.
 
 ### Milestone 3: Bazaar Launch
