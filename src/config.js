@@ -49,6 +49,11 @@ const defaultNetwork = facilitatorUrl.includes("x402.org")
   ? DEFAULT_TESTNET_NETWORK
   : DEFAULT_MAINNET_NETWORK;
 const port = intFromEnv(process.env.PORT, DEFAULT_PORT);
+const storeFile =
+  process.env.STORE_FILE || (process.env.NODE_ENV === "test" ? ":memory:" : "data/action402-store.json");
+const storeDriver = String(
+  process.env.STORE_DRIVER || (storeFile === ":memory:" ? "memory" : "json")
+).toLowerCase();
 
 export const config = {
   profile: process.env.ACTION402_PROFILE || process.env.NODE_ENV || "local",
@@ -64,8 +69,10 @@ export const config = {
   receiptKeyId: process.env.RECEIPT_KEY_ID || "default",
   receiptSecret: process.env.RECEIPT_SECRET || "development-only-receipt-secret",
   receiptPreviousSecrets: keyedSecretsFromEnv(process.env.RECEIPT_PREVIOUS_SECRETS),
-  storeFile:
-    process.env.STORE_FILE || (process.env.NODE_ENV === "test" ? ":memory:" : "data/action402-store.json"),
+  storeDriver,
+  storeFile,
+  databaseUrl: process.env.DATABASE_URL || "",
+  postgresSsl: boolFromEnv(process.env.POSTGRES_SSL, false),
   jobRetentionMs: intFromEnv(process.env.JOB_RETENTION_MS, 7 * 24 * 60 * 60 * 1000),
   receiptRetentionMs: intFromEnv(process.env.RECEIPT_RETENTION_MS, 30 * 24 * 60 * 60 * 1000),
   maxWebhookTimeoutMs: intFromEnv(process.env.MAX_WEBHOOK_TIMEOUT_MS, 12000),
@@ -98,6 +105,15 @@ function isAbsoluteHttpUrl(value) {
   }
 }
 
+function isPostgresUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "postgres:" || parsed.protocol === "postgresql:";
+  } catch {
+    return false;
+  }
+}
+
 function isPlaceholderSecret(value) {
   return (
     !value ||
@@ -117,6 +133,20 @@ export function validateStartupConfig(runtimeConfig = config) {
 
   if (!isAbsoluteHttpUrl(runtimeConfig.publicBaseUrl)) {
     errors.push("PUBLIC_BASE_URL must be an absolute http(s) URL.");
+  }
+
+  if (!["memory", "json", "postgres"].includes(runtimeConfig.storeDriver)) {
+    errors.push("STORE_DRIVER must be memory, json, or postgres.");
+  }
+
+  if (runtimeConfig.storeDriver === "postgres") {
+    if (!runtimeConfig.databaseUrl) {
+      errors.push("STORE_DRIVER=postgres requires DATABASE_URL.");
+    } else if (!isPostgresUrl(runtimeConfig.databaseUrl)) {
+      errors.push("DATABASE_URL must start with postgres:// or postgresql://.");
+    } else if (runtimeConfig.databaseUrl.includes("user:password@host") || runtimeConfig.databaseUrl.includes("your-")) {
+      errors.push("DATABASE_URL must be a real Postgres connection string, not a placeholder.");
+    }
   }
 
   if (!/^[a-zA-Z0-9._-]{1,64}$/.test(runtimeConfig.receiptKeyId)) {
@@ -156,8 +186,8 @@ export function validateStartupConfig(runtimeConfig = config) {
     errors.push("X402_ENABLED=true requires RECEIPT_SECRET to be a non-placeholder secret of at least 24 characters.");
   }
 
-  if (runtimeConfig.storeFile === ":memory:") {
-    errors.push("X402_ENABLED=true requires durable STORE_FILE storage.");
+  if (runtimeConfig.storeDriver === "memory" || (runtimeConfig.storeDriver === "json" && runtimeConfig.storeFile === ":memory:")) {
+    errors.push("X402_ENABLED=true requires durable storage. Use STORE_DRIVER=json or STORE_DRIVER=postgres.");
   }
 
   if (![DEFAULT_TESTNET_NETWORK, DEFAULT_MAINNET_NETWORK].includes(runtimeConfig.x402Network)) {
@@ -205,7 +235,9 @@ export function runtimeSummary(runtimeConfig = config) {
     price: runtimeConfig.x402Price,
     publicBaseUrl: runtimeConfig.publicBaseUrl,
     facilitatorUrl: runtimeConfig.facilitatorUrl,
+    storeDriver: runtimeConfig.storeDriver,
     storeFile: runtimeConfig.storeFile,
+    databaseConfigured: Boolean(runtimeConfig.databaseUrl),
     receiptKeyId: runtimeConfig.receiptKeyId,
     retention: {
       jobRetentionMs: runtimeConfig.jobRetentionMs,

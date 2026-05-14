@@ -157,13 +157,13 @@ export async function executeWebhookAction(input) {
     throw new ApiError(400, "invalid_idempotency_key", "idempotencyKey must be 160 characters or fewer.");
   }
 
-  const existing = idempotencyKey ? getJobByIdempotencyKey(idempotencyKey) : undefined;
+  const existing = idempotencyKey ? await getJobByIdempotencyKey(idempotencyKey) : undefined;
 
   if (existing) {
     return { job: existing, receipt: existing.receiptId ? undefined : null, idempotentReplay: true };
   }
 
-  const job = createJob({
+  const job = await createJob({
     id: createId("job"),
     type: "webhook",
     status: "running",
@@ -230,13 +230,13 @@ export async function executeWebhookAction(input) {
 
   const status = finalResponse.ok ? "succeeded" : "failed";
   const responseHash = sha256Json(finalResponse);
-  const updatedJob = updateJob(job.id, {
+  const updatedJob = await updateJob(job.id, {
     status,
     error: finalResponse.ok ? undefined : finalResponse.error || `target returned ${finalResponse.status}`,
     attempts: job.attempts
   });
 
-  const receipt = saveReceipt(
+  const receipt = await saveReceipt(
     buildReceipt({
       job: updatedJob,
       requestHash,
@@ -249,7 +249,7 @@ export async function executeWebhookAction(input) {
     })
   );
 
-  const finalJob = updateJob(job.id, {
+  const finalJob = await updateJob(job.id, {
     receiptId: receipt.id
   });
 

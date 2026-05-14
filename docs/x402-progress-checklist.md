@@ -8,6 +8,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Demo webhook execution works.
 - [x] Signed receipts verify.
 - [x] Durable local JSON storage works.
+- [x] Managed Postgres storage support is implemented through `STORE_DRIVER=postgres`.
 - [x] Rate limit exists for execution endpoint.
 - [x] Target allowlist/blocklist policy exists.
 - [x] Agent-readable `/api/capabilities` exists.
@@ -40,6 +41,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
   - Base mainnet: `eip155:8453`
   - Base Sepolia/testnet: `eip155:84532`
 - [x] Validate durable storage is enabled when `X402_ENABLED=true`.
+- [x] Validate Postgres requires `DATABASE_URL`.
 - [x] Emit clear startup messages with mode, network, price, public URL, and storage.
 
 ## Phase 3: x402 Smoke Script
@@ -58,6 +60,8 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [ ] Choose hosting target.
 - [ ] Set `PUBLIC_BASE_URL`.
 - [ ] Set production env vars.
+- [ ] Set managed Postgres `DATABASE_URL`.
+- [ ] Run `npm run db:migrate`.
 - [ ] Confirm static pages load:
   - `/`
   - `/demo.html`
@@ -83,7 +87,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 
 - [x] Add receipt key versioning.
 - [x] Add job retention/cleanup.
-- [ ] Move durable storage from JSON file to production storage.
+- [x] Move durable storage from JSON file to production storage.
 - [ ] Add observability/logging for settlements and failed executions.
 - [ ] Add per-target quotas.
 - [ ] Add target policy presets for customers.

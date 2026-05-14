@@ -3,34 +3,39 @@ import { config, assertProductionConfig, runtimeSummary } from "./config.js";
 import { publicBazaarMetadata } from "./bazaar.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
 import { executeWebhookAction } from "./webhook.js";
-import { getJob, getReceipt, storeStats } from "./store.js";
+import { getJob, getReceipt, initStore, storeStats } from "./store.js";
 import { verifyReceipt } from "./receipt.js";
 import { maybeInstallX402 } from "./x402.js";
 import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
 
 assertProductionConfig();
+await initStore();
 
 const app = express();
 
 app.use(express.static("public", { extensions: ["html"] }));
 
-app.get("/health", (req, res) => {
-  res.json({
-    ok: true,
-    service: "Action402",
-    profile: config.profile,
-    x402Enabled: config.x402Enabled,
-    network: config.x402Network,
-    price: config.x402Price,
-    publicBaseUrl: config.publicBaseUrl,
-    store: storeStats(),
-    rateLimit: {
-      enabled: config.rateLimitEnabled,
-      windowMs: config.rateLimitWindowMs,
-      maxRequests: config.rateLimitMaxRequests
-    }
-  });
+app.get("/health", async (req, res, next) => {
+  try {
+    res.json({
+      ok: true,
+      service: "Action402",
+      profile: config.profile,
+      x402Enabled: config.x402Enabled,
+      network: config.x402Network,
+      price: config.x402Price,
+      publicBaseUrl: config.publicBaseUrl,
+      store: await storeStats(),
+      rateLimit: {
+        enabled: config.rateLimitEnabled,
+        windowMs: config.rateLimitWindowMs,
+        maxRequests: config.rateLimitMaxRequests
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/api/bazaar", (req, res) => {
@@ -81,37 +86,45 @@ app.post("/api/execute/webhook", async (req, res) => {
   }
 });
 
-app.get("/api/jobs/:id", (req, res) => {
-  const job = getJob(req.params.id);
-  if (!job) {
-    res.status(404).json(errorBody(new ApiError(404, "job_not_found", "job not found")));
-    return;
-  }
+app.get("/api/jobs/:id", async (req, res, next) => {
+  try {
+    const job = await getJob(req.params.id);
+    if (!job) {
+      res.status(404).json(errorBody(new ApiError(404, "job_not_found", "job not found")));
+      return;
+    }
 
-  res.json({
-    id: job.id,
-    type: job.type,
-    status: job.status,
-    target: job.target,
-    method: job.method,
-    attempts: job.attempts,
-    receiptId: job.receiptId,
-    createdAt: job.createdAt,
-    updatedAt: job.updatedAt
-  });
+    res.json({
+      id: job.id,
+      type: job.type,
+      status: job.status,
+      target: job.target,
+      method: job.method,
+      attempts: job.attempts,
+      receiptId: job.receiptId,
+      createdAt: job.createdAt,
+      updatedAt: job.updatedAt
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
-app.get("/api/receipts/:id", (req, res) => {
-  const receipt = getReceipt(req.params.id);
-  if (!receipt) {
-    res.status(404).json(errorBody(new ApiError(404, "receipt_not_found", "receipt not found")));
-    return;
-  }
+app.get("/api/receipts/:id", async (req, res, next) => {
+  try {
+    const receipt = await getReceipt(req.params.id);
+    if (!receipt) {
+      res.status(404).json(errorBody(new ApiError(404, "receipt_not_found", "receipt not found")));
+      return;
+    }
 
-  res.json({
-    ...receipt,
-    verified: verifyReceipt(receipt)
-  });
+    res.json({
+      ...receipt,
+      verified: verifyReceipt(receipt)
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use((error, req, res, next) => {
@@ -138,7 +151,7 @@ if (process.env.NODE_ENV !== "test") {
     console.log(`network: ${summary.network}`);
     console.log(`price: ${summary.price}`);
     console.log(`public URL: ${summary.publicBaseUrl}`);
-    console.log(`store: ${summary.storeFile}`);
+    console.log(`store: ${summary.storeDriver}`);
     console.log(
       `rate limit: ${summary.rateLimit.enabled ? `${summary.rateLimit.maxRequests}/${summary.rateLimit.windowMs}ms` : "off"}`
     );

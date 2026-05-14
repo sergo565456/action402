@@ -37,7 +37,7 @@ The first useful product is intentionally narrow:
 
 ### Milestone 2: Production Readiness
 
-- [x] Replace in-memory store with durable storage. Local file-backed JSON is implemented; production should move to Postgres, SQLite/D1, Redis, or a managed queue.
+- [x] Replace in-memory store with durable storage. Local file-backed JSON and managed Postgres are implemented.
 - [ ] Add admin-safe job retention policy.
 - [x] Add local job/receipt retention cleanup through `JOB_RETENTION_MS` and `RECEIPT_RETENTION_MS`.
 - [x] Add per-target and per-origin rate limits. Basic per-client execution rate limit is implemented.

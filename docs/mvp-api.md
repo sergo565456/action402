@@ -91,6 +91,7 @@ Returns runtime health and active x402 network.
 - Supports `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true`.
 - Applies a per-client execution rate limit through `RATE_LIMIT_*` settings.
 - Persists jobs and receipts to `STORE_FILE` for local durability.
+- Supports managed Postgres through `STORE_DRIVER=postgres`, `DATABASE_URL`, and `POSTGRES_SSL`.
 - Uses `RECEIPT_KEY_ID` and `RECEIPT_PREVIOUS_SECRETS` for receipt key rotation.
 - Cleans up old jobs and receipts through `JOB_RETENTION_MS` and `RECEIPT_RETENTION_MS`.
 - Caps timeout and retry attempts.

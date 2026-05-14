@@ -16,7 +16,10 @@ const baseConfig = {
   receiptKeyId: "default",
   receiptSecret: "development-only-receipt-secret",
   receiptPreviousSecrets: {},
+  storeDriver: "memory",
   storeFile: ":memory:",
+  databaseUrl: "",
+  postgresSsl: false,
   jobRetentionMs: 7 * 24 * 60 * 60 * 1000,
   receiptRetentionMs: 30 * 24 * 60 * 60 * 1000,
   rateLimitEnabled: true,
@@ -40,7 +43,40 @@ test("x402 startup config requires wallet, real secret, and durable storage", ()
 
   assert.match(errors.join("\n"), /PAY_TO/);
   assert.match(errors.join("\n"), /RECEIPT_SECRET/);
-  assert.match(errors.join("\n"), /durable STORE_FILE/);
+  assert.match(errors.join("\n"), /durable storage/);
+});
+
+test("postgres store requires DATABASE_URL", () => {
+  const errors = validateStartupConfig({
+    ...baseConfig,
+    storeDriver: "postgres"
+  });
+
+  assert.match(errors.join("\n"), /DATABASE_URL/);
+});
+
+test("postgres store rejects placeholder DATABASE_URL", () => {
+  const errors = validateStartupConfig({
+    ...baseConfig,
+    storeDriver: "postgres",
+    databaseUrl: "postgres://user:password@host:5432/action402"
+  });
+
+  assert.match(errors.join("\n"), /not a placeholder/);
+});
+
+test("x402 startup config accepts postgres durable storage", () => {
+  const errors = validateStartupConfig({
+    ...baseConfig,
+    profile: "testnet",
+    x402Enabled: true,
+    payTo: "0x1111111111111111111111111111111111111111",
+    receiptSecret: "this-is-a-valid-test-secret-value",
+    storeDriver: "postgres",
+    databaseUrl: "postgres://user:pass@localhost:5432/action402"
+  });
+
+  assert.deepEqual(errors, []);
 });
 
 test("mainnet startup config rejects localhost public URL", () => {
@@ -54,6 +90,7 @@ test("mainnet startup config rejects localhost public URL", () => {
     cdpApiKeyId: "key-id",
     cdpApiKeySecret: "key-secret",
     receiptSecret: "this-is-a-valid-test-secret-value",
+    storeDriver: "json",
     storeFile: "data/test-store.json"
   });
 
@@ -70,6 +107,7 @@ test("CDP facilitator requires CDP credentials", () => {
     facilitatorUrl: "https://api.cdp.coinbase.com/platform/v2/x402",
     publicBaseUrl: "https://action402.example",
     receiptSecret: "this-is-a-valid-test-secret-value",
+    storeDriver: "json",
     storeFile: "data/test-store.json"
   });
 

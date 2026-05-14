@@ -12,15 +12,15 @@ import {
   storeStats
 } from "../src/store.js";
 
-test("store prunes expired jobs and receipts", () => {
-  resetStoreForTests();
+test("store prunes expired jobs and receipts", async () => {
+  await resetStoreForTests();
 
   const now = Date.now();
   const veryOld = new Date(
     now - Math.max(config.jobRetentionMs, config.receiptRetentionMs) - 1000
   ).toISOString();
 
-  createJob({
+  await createJob({
     id: "job_old",
     type: "webhook",
     status: "succeeded",
@@ -32,7 +32,7 @@ test("store prunes expired jobs and receipts", () => {
     createdAt: veryOld,
     updatedAt: veryOld
   });
-  saveReceipt({
+  await saveReceipt({
     id: "rcpt_old",
     keyId: "default",
     payload: {
@@ -41,22 +41,22 @@ test("store prunes expired jobs and receipts", () => {
     signature: "hmac-sha256:test"
   });
 
-  const result = pruneExpired(now, { persist: false });
+  const result = await pruneExpired(now, { persist: false });
 
   assert.equal(result.removedReceipts, 1);
-  assert.equal(getJob("job_old"), undefined);
-  assert.equal(getJobByIdempotencyKey("old-key"), undefined);
-  assert.equal(getReceipt("rcpt_old"), undefined);
+  assert.equal(await getJob("job_old"), undefined);
+  assert.equal(await getJobByIdempotencyKey("old-key"), undefined);
+  assert.equal(await getReceipt("rcpt_old"), undefined);
 });
 
-test("store keeps receipt linked to retained job", () => {
-  resetStoreForTests();
+test("store keeps receipt linked to retained job", async () => {
+  await resetStoreForTests();
 
   const now = Date.now();
   const oldReceipt = new Date(now - config.receiptRetentionMs - 1000).toISOString();
   const current = new Date(now).toISOString();
 
-  createJob({
+  await createJob({
     id: "job_current",
     type: "webhook",
     status: "succeeded",
@@ -68,7 +68,7 @@ test("store keeps receipt linked to retained job", () => {
     createdAt: current,
     updatedAt: current
   });
-  saveReceipt({
+  await saveReceipt({
     id: "rcpt_linked",
     keyId: "default",
     payload: {
@@ -77,11 +77,11 @@ test("store keeps receipt linked to retained job", () => {
     signature: "hmac-sha256:test"
   });
 
-  const result = pruneExpired(now, { persist: false });
+  const result = await pruneExpired(now, { persist: false });
 
   assert.equal(result.removedJobs, 0);
   assert.equal(result.removedReceipts, 0);
-  assert.equal(getReceipt("rcpt_linked").id, "rcpt_linked");
-  assert.equal(storeStats().jobs, 1);
-  assert.equal(storeStats().receipts, 1);
+  assert.equal((await getReceipt("rcpt_linked")).id, "rcpt_linked");
+  assert.equal((await storeStats()).jobs, 1);
+  assert.equal((await storeStats()).receipts, 1);
 });

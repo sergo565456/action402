@@ -156,6 +156,10 @@ export function publicCapabilities() {
       retention: {
         jobRetentionMs: config.jobRetentionMs,
         receiptRetentionMs: config.receiptRetentionMs
+      },
+      storage: {
+        driver: config.storeDriver,
+        durable: config.storeDriver !== "memory"
       }
     },
     links: {

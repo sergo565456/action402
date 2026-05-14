@@ -9,6 +9,7 @@
     "dev:demo": "node scripts/start-profile.js demo",
     "dev:testnet": "node scripts/start-profile.js testnet",
     "dev:mainnet": "node scripts/start-profile.js mainnet",
+    "db:migrate": "node scripts/db-migrate.js",
     "start": "node src/server.js",
     "smoke:x402": "node scripts/x402-smoke.js",
     "test": "node --import ./scripts/test-env.js --test test/receipt.test.js test/api-contract.test.js test/rate-limit.test.js test/target-policy.test.js test/config.test.js test/store.test.js"
@@ -19,7 +20,7 @@
     "@x402/evm": "latest",
     "@x402/express": "latest",
     "dotenv": "latest",
-    "express": "latest"
-  },
-  "devDependencies": {}
+    "express": "latest",
+    "pg": "^8.20.0"
+  }
 }

@@ -76,12 +76,13 @@ User-owned values before testnet/mainnet:
 - `PAY_TO`
 - `RECEIPT_SECRET`
 - `PUBLIC_BASE_URL`
+- `DATABASE_URL` when `STORE_DRIVER=postgres`
 - `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` for the CDP facilitator
 - final `X402_PRICE`
 
 ## Production notes
 
-The local MVP persists jobs and receipts to `STORE_FILE` as a small JSON store. This is enough for local testing and a low-traffic demo, but real customer traffic should move to Postgres, SQLite/D1, Redis, or a managed queue.
+The local MVP can persist jobs and receipts to `STORE_FILE` as a small JSON store. For production or managed hosting, set `STORE_DRIVER=postgres`, `DATABASE_URL`, and usually `POSTGRES_SSL=true`. On startup, Action402 creates the `action402_jobs` and `action402_receipts` tables automatically. You can also run `npm run db:migrate` to validate the connection and create tables before starting the server.
 
 Use `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true` to constrain where agents can send outbound actions. The service still blocks localhost and private network targets by default.
 
