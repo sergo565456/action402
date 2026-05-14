@@ -163,9 +163,9 @@ app.use((error, req, res, next) => {
 });
 
 if (process.env.NODE_ENV !== "test") {
-  app.listen(config.port, () => {
+  const server = app.listen(config.port, config.host, () => {
     const summary = runtimeSummary();
-    console.log(`Action402 listening on http://localhost:${config.port}`);
+    console.log(`Action402 listening on http://${summary.host}:${summary.port}`);
     console.log(`profile: ${summary.profile}`);
     console.log(`mode: ${summary.mode}`);
     console.log(`network: ${summary.network}`);
@@ -175,6 +175,15 @@ if (process.env.NODE_ENV !== "test") {
     console.log(
       `rate limit: ${summary.rateLimit.enabled ? `${summary.rateLimit.maxRequests}/${summary.rateLimit.windowMs}ms` : "off"}`
     );
+  });
+
+  server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${config.port} is already in use. Stop the old Action402 process or set PORT to another value.`);
+      process.exit(1);
+    }
+
+    throw error;
   });
 }
 

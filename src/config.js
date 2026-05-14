@@ -49,6 +49,7 @@ const defaultNetwork = facilitatorUrl.includes("x402.org")
   ? DEFAULT_TESTNET_NETWORK
   : DEFAULT_MAINNET_NETWORK;
 const port = intFromEnv(process.env.PORT, DEFAULT_PORT);
+const host = process.env.HOST || "127.0.0.1";
 const storeFile =
   process.env.STORE_FILE || (process.env.NODE_ENV === "test" ? ":memory:" : "data/action402-store.json");
 const storeDriver = String(
@@ -58,6 +59,7 @@ const storeDriver = String(
 export const config = {
   profile: process.env.ACTION402_PROFILE || process.env.NODE_ENV || "local",
   port,
+  host,
   x402Enabled: boolFromEnv(process.env.X402_ENABLED, false),
   payTo: process.env.PAY_TO || "",
   x402Network: process.env.X402_NETWORK || defaultNetwork,
@@ -65,7 +67,7 @@ export const config = {
   facilitatorUrl,
   cdpApiKeyId: process.env.CDP_API_KEY_ID || "",
   cdpApiKeySecret: process.env.CDP_API_KEY_SECRET || "",
-  publicBaseUrl: trimTrailingSlash(process.env.PUBLIC_BASE_URL || `http://localhost:${port}`),
+  publicBaseUrl: trimTrailingSlash(process.env.PUBLIC_BASE_URL || `http://127.0.0.1:${port}`),
   receiptKeyId: process.env.RECEIPT_KEY_ID || "default",
   receiptSecret: process.env.RECEIPT_SECRET || "development-only-receipt-secret",
   receiptPreviousSecrets: keyedSecretsFromEnv(process.env.RECEIPT_PREVIOUS_SECRETS),
@@ -131,6 +133,10 @@ export function validateStartupConfig(runtimeConfig = config) {
 
   if (runtimeConfig.port < 1 || runtimeConfig.port > 65535) {
     errors.push("PORT must be between 1 and 65535.");
+  }
+
+  if (!runtimeConfig.host || String(runtimeConfig.host).trim().length === 0) {
+    errors.push("HOST must not be empty.");
   }
 
   if (!isAbsoluteHttpUrl(runtimeConfig.publicBaseUrl)) {
@@ -236,6 +242,7 @@ export function runtimeSummary(runtimeConfig = config) {
   return {
     profile: runtimeConfig.profile,
     port: runtimeConfig.port,
+    host: runtimeConfig.host,
     mode: runtimeConfig.x402Enabled ? "x402" : "demo",
     network: runtimeConfig.x402Network,
     price: runtimeConfig.x402Price,

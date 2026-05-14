@@ -5,6 +5,7 @@ import { validateStartupConfig } from "../src/config.js";
 const baseConfig = {
   profile: "demo",
   port: 4021,
+  host: "127.0.0.1",
   x402Enabled: false,
   payTo: "",
   x402Network: "eip155:84532",
@@ -12,7 +13,7 @@ const baseConfig = {
   facilitatorUrl: "https://x402.org/facilitator",
   cdpApiKeyId: "",
   cdpApiKeySecret: "",
-  publicBaseUrl: "http://localhost:4021",
+  publicBaseUrl: "http://127.0.0.1:4021",
   receiptKeyId: "default",
   receiptSecret: "development-only-receipt-secret",
   receiptPreviousSecrets: {},

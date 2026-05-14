@@ -48,7 +48,7 @@ Coinbase docs currently recommend the CDP facilitator for production and note th
 ## Example call
 
 ```bash
-curl -s http://localhost:4021/api/execute/webhook \
+curl -s http://127.0.0.1:4021/api/execute/webhook \
   -H "content-type: application/json" \
   -d '{
     "url": "https://example.com/webhook",
@@ -81,6 +81,8 @@ User-owned values before testnet/mainnet:
 - final `X402_PRICE`
 
 ## Production notes
+
+Local profiles bind to `HOST=127.0.0.1` so Windows/Chrome does not depend on `localhost` resolution. Open `http://127.0.0.1:4021/` for local checks. Production profiles should use `HOST=0.0.0.0` behind a real public `PUBLIC_BASE_URL`.
 
 The local MVP can persist jobs and receipts to `STORE_FILE` as a small JSON store. For production or managed hosting, set `STORE_DRIVER=postgres`, `DATABASE_URL`, and usually `POSTGRES_SSL=true`. On startup, Action402 creates the `action402_jobs` and `action402_receipts` tables automatically. You can also run `npm run db:migrate` to validate the connection and create tables before starting the server.
 
