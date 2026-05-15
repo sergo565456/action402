@@ -44,6 +44,15 @@ function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/, "");
 }
 
+function publicBaseUrlFromEnv(port) {
+  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL;
+
+  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercelHost) return `https://${vercelHost}`;
+
+  return `http://127.0.0.1:${port}`;
+}
+
 const facilitatorUrl = process.env.FACILITATOR_URL || DEFAULT_TESTNET_FACILITATOR;
 const defaultNetwork = facilitatorUrl.includes("x402.org")
   ? DEFAULT_TESTNET_NETWORK
@@ -67,7 +76,7 @@ export const config = {
   facilitatorUrl,
   cdpApiKeyId: process.env.CDP_API_KEY_ID || "",
   cdpApiKeySecret: process.env.CDP_API_KEY_SECRET || "",
-  publicBaseUrl: trimTrailingSlash(process.env.PUBLIC_BASE_URL || `http://127.0.0.1:${port}`),
+  publicBaseUrl: trimTrailingSlash(publicBaseUrlFromEnv(port)),
   receiptKeyId: process.env.RECEIPT_KEY_ID || "default",
   receiptSecret: process.env.RECEIPT_SECRET || "development-only-receipt-secret",
   receiptPreviousSecrets: keyedSecretsFromEnv(process.env.RECEIPT_PREVIOUS_SECRETS),

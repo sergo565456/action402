@@ -48,9 +48,10 @@ Deployment path:
 ```bash
 npm run deploy:check -- http://127.0.0.1:4021
 npm run smoke:testnet:unpaid
+npm run db:migrate -- mainnet
 ```
 
-See `docs/deployment.md` for the Docker/PaaS deployment flow.
+See `docs/deployment.md` for the Vercel deployment flow.
 
 After creating a demo job, verify its proof report:
 
@@ -101,7 +102,7 @@ User-owned values before testnet/mainnet:
 
 - `PAY_TO`
 - `RECEIPT_SECRET`
-- `PUBLIC_BASE_URL`
+- `PUBLIC_BASE_URL` when not using Vercel system URLs
 - `DATABASE_URL` when `STORE_DRIVER=postgres`
 - `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` for the CDP facilitator
 - final `X402_PRICE`
@@ -112,7 +113,9 @@ Local profiles bind to `HOST=127.0.0.1` so Windows/Chrome does not depend on `lo
 
 The local MVP can persist jobs and receipts to `STORE_FILE` as a small JSON store. For production or managed hosting, set `STORE_DRIVER=postgres`, `DATABASE_URL`, and usually `POSTGRES_SSL=true`. On startup, Action402 creates the `action402_jobs` and `action402_receipts` tables automatically. You can also run `npm run db:migrate -- mainnet` to validate the production profile connection and create tables before starting the server.
 
-Use `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true` to constrain where agents can send outbound actions. The service still blocks localhost and private network targets by default.
+The mainnet MVP uses `TARGET_POLICY_PRESET=open` so agents can call arbitrary public HTTPS webhooks. The service still blocks localhost and private network targets by default.
+
+Use `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true` later if a customer-specific deployment needs constrained outbound targets.
 
 Use `TARGET_POLICY_PRESET=open|allowlist|strict` to choose a target policy mode. `allowlist` and `strict` require `TARGET_ALLOWLIST`; `strict` also adds metadata hostnames to the blocklist.
 

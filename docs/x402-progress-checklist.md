@@ -65,7 +65,8 @@ Use this file as the active execution list for getting from local demo MVP to a 
 
 ## Phase 4: Deployment Checklist
 
-- [x] Choose hosting target: Docker-capable Node PaaS first.
+- [x] Choose hosting target: Vercel first.
+- [x] Add Vercel Function entrypoint and route rewrites.
 - [x] Add Dockerfile and container healthcheck.
 - [x] Add deployment guide in `docs/deployment.md`.
 - [ ] Set `PUBLIC_BASE_URL`.

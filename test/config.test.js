@@ -158,3 +158,28 @@ test("CDP facilitator requires CDP credentials", () => {
 
   assert.match(errors.join("\n"), /CDP_API_KEY_ID/);
 });
+
+test("config derives public base URL from Vercel system env", async () => {
+  const previousPublicBaseUrl = process.env.PUBLIC_BASE_URL;
+  const previousVercelProductionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const previousVercelUrl = process.env.VERCEL_URL;
+
+  try {
+    delete process.env.PUBLIC_BASE_URL;
+    delete process.env.VERCEL_URL;
+    process.env.VERCEL_PROJECT_PRODUCTION_URL = "action402.vercel.app";
+
+    const { config } = await import(`../src/config.js?vercel-system-url=${Date.now()}`);
+
+    assert.equal(config.publicBaseUrl, "https://action402.vercel.app");
+  } finally {
+    if (previousPublicBaseUrl === undefined) delete process.env.PUBLIC_BASE_URL;
+    else process.env.PUBLIC_BASE_URL = previousPublicBaseUrl;
+
+    if (previousVercelProductionUrl === undefined) delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    else process.env.VERCEL_PROJECT_PRODUCTION_URL = previousVercelProductionUrl;
+
+    if (previousVercelUrl === undefined) delete process.env.VERCEL_URL;
+    else process.env.VERCEL_URL = previousVercelUrl;
+  }
+});

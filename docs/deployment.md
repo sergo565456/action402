@@ -2,9 +2,9 @@
 
 ## Chosen Target
 
-Use a Docker-capable Node hosting target first: Render, Railway, Fly.io, a VPS, or any PaaS that can run a long-lived Node container.
+Use Vercel first for the public MVP.
 
-This keeps the Express/x402 middleware path unchanged and avoids rewriting the service into platform-specific serverless handlers before the paid relay is proven.
+The app exposes the Express API through `api/index.js` as a Vercel Function, while `public/` is served as static frontend assets.
 
 ## Local Demo Check
 
@@ -38,6 +38,47 @@ npm run dev:testnet
 npm run smoke:x402 -- http://127.0.0.1:4022
 ```
 
+## Vercel Deployment
+
+The Vercel entrypoint is `api/index.js`; route rewrites live in `vercel.json`.
+
+Set these Production environment variables in Vercel Project Settings:
+
+- `ACTION402_PROFILE=mainnet`
+- `X402_ENABLED=true`
+- `PAY_TO`
+- `RECEIPT_KEY_ID=mainnet-v1`
+- `RECEIPT_SECRET`
+- `CDP_API_KEY_ID`
+- `CDP_API_KEY_SECRET`
+- `X402_NETWORK=eip155:8453`
+- `X402_PRICE=$0.003`
+- `FACILITATOR_URL=https://api.cdp.coinbase.com/platform/v2/x402`
+- `STORE_DRIVER=postgres`
+- `DATABASE_URL`
+- `POSTGRES_SSL=true`
+- `TARGET_POLICY_PRESET=open`
+- `TARGET_ALLOWLIST=` blank
+- `REQUIRE_TARGET_ALLOWLIST=false`
+- `TARGET_QUOTA_ENABLED=true`
+- `TARGET_QUOTA_WINDOW_MS=60000`
+- `TARGET_QUOTA_MAX_REQUESTS=20`
+- `RATE_LIMIT_ENABLED=true`
+- `RATE_LIMIT_WINDOW_MS=60000`
+- `RATE_LIMIT_MAX_REQUESTS=60`
+- `LOG_LEVEL=info`
+- `REQUEST_LOG_ENABLED=true`
+
+Do not set `PUBLIC_BASE_URL` to the placeholder value. On Vercel, Action402 can derive it from `VERCEL_PROJECT_PRODUCTION_URL`. Set `PUBLIC_BASE_URL` only after adding a custom production domain, or if you want to force a specific canonical URL.
+
+Deploy:
+
+```bash
+npm test
+npm run db:migrate -- mainnet
+vercel --prod
+```
+
 ## Docker Build
 
 ```bash
@@ -63,7 +104,7 @@ Required for a real x402 testnet or mainnet deployment:
 - `X402_PRICE`
 - `FACILITATOR_URL`
 - `TARGET_POLICY_PRESET`
-- `TARGET_ALLOWLIST` when using `allowlist` or `strict`
+- `TARGET_ALLOWLIST` only when using `allowlist` or `strict`
 
 Mainnet/CDP also needs:
 

@@ -96,7 +96,8 @@ Returns runtime health and active x402 network.
 
 - Blocks localhost and private network targets by default.
 - Allows HTTPS targets only unless `ALLOW_HTTP_TARGETS=true`.
-- Supports `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true`.
+- Uses `TARGET_POLICY_PRESET=open` for the public relay MVP so agents can call arbitrary public HTTPS targets.
+- Supports `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true` for constrained customer deployments.
 - Applies a per-client execution rate limit through `RATE_LIMIT_*` settings.
 - Persists jobs and receipts to `STORE_FILE` for local durability.
 - Supports managed Postgres through `STORE_DRIVER=postgres`, `DATABASE_URL`, and `POSTGRES_SSL`.

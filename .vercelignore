@@ -1,0 +1,10 @@
+.git
+.env
+.env.demo
+.env.testnet
+.env.mainnet
+node_modules
+data
+*.log
+coverage
+npm-debug.log*

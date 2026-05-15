@@ -206,7 +206,7 @@ app.use((error, req, res, next) => {
   res.status(status).json(errorBody(apiError));
 });
 
-if (process.env.NODE_ENV !== "test") {
+if (process.env.NODE_ENV !== "test" && process.env.VERCEL !== "1") {
   const server = app.listen(config.port, config.host, () => {
     const summary = runtimeSummary();
     console.log(`Action402 listening on http://${summary.host}:${summary.port}`);
