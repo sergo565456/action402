@@ -61,6 +61,10 @@
       "destination": "/use-cases.html"
     },
     {
+      "source": "/actions",
+      "destination": "/actions.html"
+    },
+    {
       "source": "/mcp",
       "destination": "/mcp.html"
     },
@@ -71,6 +75,10 @@
     {
       "source": "/proofs",
       "destination": "/proofs.html"
+    },
+    {
+      "source": "/proof/:id",
+      "destination": "/api/index?__action402_path=/proof/:id"
     },
     {
       "source": "/monitoring",

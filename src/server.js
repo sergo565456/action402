@@ -1,5 +1,6 @@
 import express from "express";
 import { config, assertProductionConfig, runtimeSummary } from "./config.js";
+import { publicActionCatalog, publicQuickstart } from "./actionCatalog.js";
 import { publicBazaarMetadata } from "./bazaar.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
 import { executeWebhookAction } from "./webhook.js";
@@ -62,8 +63,37 @@ app.get("/api/capabilities", (req, res) => {
   res.json(publicCapabilities());
 });
 
+app.get("/api/actions", (req, res) => {
+  res.json(
+    publicActionCatalog({
+      baseUrl: config.publicBaseUrl,
+      price: config.x402Price,
+      x402Enabled: config.x402Enabled,
+      network: config.x402Network,
+      targetPolicyPreset: config.targetPolicyPreset
+    })
+  );
+});
+
+app.get("/api/quickstart", (req, res) => {
+  res.json(
+    publicQuickstart({
+      baseUrl: config.publicBaseUrl,
+      price: config.x402Price,
+      x402Enabled: config.x402Enabled,
+      network: config.x402Network,
+      maxRetryAttempts: config.maxRetryAttempts,
+      maxWebhookTimeoutMs: config.maxWebhookTimeoutMs
+    })
+  );
+});
+
 app.get("/openapi.json", (req, res) => {
   res.json(openApiSpec());
+});
+
+app.get("/proof/:id", (req, res) => {
+  res.sendFile("proof.html", { root: "public" });
 });
 
 app.get("/api/proofs/recent", async (req, res, next) => {

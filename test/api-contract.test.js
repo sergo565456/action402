@@ -51,12 +51,23 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
   assert.equal(body.links.llms.endsWith("/llms.txt"), true);
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
+  assert.equal(body.links.actions.endsWith("/actions"), true);
+  assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.equal(body.links.trust.endsWith("/trust"), true);
   assert.equal(body.trust.path, "/api/trust");
+  assert.equal(body.quickstart.path, "/api/quickstart");
+  assert.equal(body.actionCatalog.path, "/api/actions");
+  assert.equal(body.verification.proofBadge, "/proof/{jobOrReceiptId}");
   assert.ok(body.discoveryKeywords.includes("pay per API call"));
+  assert.ok(body.discoveryKeywords.includes("Action402 action catalog"));
+  assert.ok(body.discoveryKeywords.includes("Discord webhook x402"));
   assert.ok(body.discoveryKeywords.includes("Slack webhook x402"));
   assert.ok(body.useCaseTemplates.length >= 6);
+  assert.ok(body.actionTemplates.length >= 9);
+  assert.ok(body.policyModes.some((mode) => mode.id === "open-public-https"));
+  assert.equal(body.scheduledActions.status, "design-ready");
 });
 
 test("openapi document exposes execute webhook path", async () => {
@@ -70,11 +81,48 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/proofs/recent"].get);
   assert.ok(body.paths["/api/monitoring/executions"].get);
   assert.ok(body.paths["/api/trust"].get);
+  assert.ok(body.paths["/api/actions"].get);
+  assert.ok(body.paths["/api/quickstart"].get);
+  assert.ok(body.paths["/proof/{id}"].get);
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
   assert.ok(body.components.schemas.PublicProofSummary);
   assert.ok(body.components.schemas.MonitoringResponse);
+  assert.ok(body.components.schemas.ActionCatalogResponse);
+  assert.ok(body.components.schemas.QuickstartResponse);
   assert.ok(body.components.schemas.TrustResponse);
+});
+
+test("action catalog exposes ready templates and safe future scheduling", async () => {
+  const { response, body } = await request("/api/actions");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.activePrimitive.id, "execute.webhook");
+  assert.equal(body.activePrimitive.path, "/api/execute/webhook");
+  assert.ok(body.categories.includes("chatops"));
+  assert.ok(body.templates.length >= 9);
+  assert.ok(body.templates.some((template) => template.id === "chatops.slack_message"));
+  assert.ok(body.templates.some((template) => template.id === "dev.github_repository_dispatch"));
+  assert.ok(body.discoveryKeywords.includes("Discord webhook x402"));
+  assert.ok(body.policyModes.some((mode) => mode.id === "blocklist-quota"));
+  assert.equal(body.scheduledActions.status, "design-ready");
+  assert.equal(body.scheduledActions.futureShape.path, "/api/schedules/webhook");
+  assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+});
+
+test("quickstart endpoint gives compact agent call flow", async () => {
+  const { response, body } = await request("/api/quickstart");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.payment.route.endsWith("/api/execute/webhook"), true);
+  assert.equal(body.minimalRequest.url, "https://httpbin.org/anything");
+  assert.equal(body.minimalRequest.idempotencyKey, "agent-quickstart-001");
+  assert.ok(body.callFlow.some((step) => step.includes("402")));
+  assert.ok(body.decisionRules.useWhen.some((step) => step.includes("public HTTPS")));
+  assert.equal(body.verify.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
+  assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/actions")));
 });
 
 test("bazaar metadata exposes valid discovery extension", async () => {
@@ -93,8 +141,13 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
   assert.equal(body.links.llms.endsWith("/llms.txt"), true);
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
+  assert.equal(body.links.actions.endsWith("/actions"), true);
+  assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.ok(body.useCaseTemplates.length >= 6);
+  assert.ok(body.actionCatalog.templateCount >= 9);
+  assert.equal(body.quickstart.path, "/api/quickstart");
   assert.equal(route.extensions.bazaar.info.input.method, "POST");
   assert.equal(route.extensions.bazaar.info.input.bodyType, "json");
   assert.equal(route.extensions.bazaar.info.input.body.url, "https://httpbin.org/anything");
@@ -111,9 +164,14 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/api/capabilities"), true);
   assert.equal(body.includes("/pricing"), true);
   assert.equal(body.includes("/use-cases"), true);
+  assert.equal(body.includes("/actions"), true);
+  assert.equal(body.includes("/api/actions"), true);
+  assert.equal(body.includes("/api/quickstart"), true);
   assert.equal(body.includes("/mcp"), true);
   assert.equal(body.includes("/api/trust"), true);
+  assert.equal(body.includes("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.includes("pay per API call"), true);
+  assert.equal(body.includes("Action402 action catalog"), true);
   assert.equal(body.includes("/api/proofs/recent"), true);
   assert.equal(body.includes("/api/monitoring/executions"), true);
   assert.equal(body.includes("MCP/Bazaar guidance"), true);
@@ -124,9 +182,11 @@ test("public product pages load", async () => {
     ["/pricing", "Usage and pricing"],
     ["/onboarding", "Agent onboarding"],
     ["/use-cases", "Use-case templates"],
+    ["/actions", "Action catalog"],
     ["/mcp", "Discovery-first instructions"],
     ["/trust", "Trust summary"],
     ["/proofs", "Verified proof examples"],
+    ["/proof/job_test_missing", "Proof badge"],
     ["/monitoring", "Execution monitoring"]
   ];
 
@@ -350,8 +410,14 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.x402.scheme, "exact");
   assert.equal(body.execution.stats.total, 1);
   assert.equal(body.proofExamples.recentVerifiedProofs, 1);
+  assert.equal(typeof body.trustScore.score, "number");
+  assert.ok(body.trustScore.components.some((component) => component.id === "agent_surfaces"));
+  assert.equal(body.publicSurfaces.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.publicSurfaces.actionCatalog.endsWith("/api/actions"), true);
+  assert.equal(body.publicSurfaces.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.publicSurfaces.useCases.endsWith("/use-cases"), true);
   assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
+  assert.equal(body.trustSignals.includes("public action catalog and quickstart endpoints"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
   assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);
 });

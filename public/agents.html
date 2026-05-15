@@ -21,6 +21,7 @@
         <a href="/pricing">Pricing</a>
         <a href="/onboarding">Onboarding</a>
         <a href="/use-cases">Use Cases</a>
+        <a href="/actions">Actions</a>
         <a href="/mcp">MCP</a>
         <a href="/trust">Trust</a>
         <a href="/proofs">Proofs</a>
@@ -38,6 +39,7 @@
           </p>
           <div class="actions">
             <a class="button primary" href="/onboarding">Copy-Paste Onboarding</a>
+            <a class="button secondary" href="/actions">Action Catalog</a>
             <a class="button secondary" href="/use-cases">Use Cases</a>
             <a class="button secondary" href="/mcp">MCP Guide</a>
             <a class="button secondary" href="/api/bazaar">Bazaar Metadata</a>
@@ -60,6 +62,10 @@
             <div>
               <dt>proof</dt>
               <dd><code>signed receipt + hash report</code></dd>
+            </div>
+            <div>
+              <dt>quickstart</dt>
+              <dd><code>/api/quickstart</code></dd>
             </div>
           </dl>
         </aside>
@@ -104,7 +110,7 @@ before treating the action as complete.</code></pre>
       <section class="code-section">
         <p class="eyebrow">Call flow</p>
         <h2>Minimal integration path.</h2>
-        <pre><code>1. Read /api/capabilities or /openapi.json.
+        <pre><code>1. Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.
 2. POST /api/execute/webhook with url, method, body, idempotencyKey, retry, timeoutMs.
 3. In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.
 4. Read links.job or links.receipt from the response.
@@ -143,6 +149,16 @@ verify /api/verify/jobs/{id}</code></pre>
             <span>machine readable</span>
             <h3>GET /llms.txt</h3>
             <p>Plain text guidance for agent crawlers and LLM context loaders.</p>
+          </article>
+          <article class="endpoint">
+            <span>machine readable</span>
+            <h3>GET /api/quickstart</h3>
+            <p>Compact payment, request, and verification flow for agents.</p>
+          </article>
+          <article class="endpoint">
+            <span>machine readable</span>
+            <h3>GET /api/actions</h3>
+            <p>Action templates, policy modes, snippets, and scheduled-action compatibility notes.</p>
           </article>
           <article class="endpoint">
             <span>machine readable</span>

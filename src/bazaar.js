@@ -1,4 +1,5 @@
 import { config } from "./config.js";
+import { publicActionTemplates } from "./actionCatalog.js";
 import { executeWebhookResponseSchema } from "./apiContract.js";
 import { AGENT_PROMPT, DISCOVERY_KEYWORDS, SERVICE_TAGS } from "./agentDiscovery.js";
 import { publicUseCaseTemplates } from "./useCases.js";
@@ -167,20 +168,33 @@ export function publicBazaarMetadata() {
         "AI agent action relay",
         "verifiable execution",
         "pay per API call",
+        "Action402 action catalog",
+        "agent quickstart x402",
+        "x402 action templates",
+        "public proof badge",
         "Slack webhook x402",
+        "Discord webhook x402",
+        "Telegram bot x402",
         "Zapier webhook x402",
+        "Make webhook x402",
         "GitHub Actions dispatch x402",
-        "agent-safe webhook execution"
+        "agent-safe webhook execution",
+        "scheduled paid webhook"
       ],
       qualitySignals: [
         "Valid @x402/extensions/bazaar discovery extension",
         "Unpaid execution route returns 402 Payment Required when x402 is enabled",
         "OpenAPI 3.1 contract is available",
         "Agent-readable capabilities document is available",
+        "Machine-readable action catalog is available",
+        "Compact quickstart endpoint is available",
         "Public job and receipt verification endpoints are available",
+        "Public proof badge pages are available for job and receipt ids",
         "Public redacted proof examples are available",
         "Public execution monitoring summary is available",
         "Use-case templates are published for agent task matching",
+        "Policy modes are described for open, blocklist/quota, and allowlist operation",
+        "Scheduled-action capability is marked design-ready, not falsely advertised as active",
         "MCP guide is published for discovery-first clients",
         "Public trust summary is available",
         "Receipts sign request and response hashes instead of exposing raw payloads"
@@ -199,6 +213,24 @@ export function publicBazaarMetadata() {
       }
     },
     useCaseTemplates: publicUseCaseTemplates(),
+    actionCatalog: {
+      path: "/api/actions",
+      templateCount: publicActionTemplates().length,
+      categories: Array.from(new Set(publicActionTemplates().map((template) => template.category))).sort(),
+      topTemplates: publicActionTemplates()
+        .slice(0, 5)
+        .map((template) => ({
+          id: template.id,
+          title: template.title,
+          category: template.category,
+          paidRoute: template.paidRoute
+        }))
+    },
+    quickstart: {
+      path: "/api/quickstart",
+      description:
+        "Compact buyer flow for agents: minimal request, payment guardrails, snippets, and proof verification links."
+    },
     mcp: {
       recommendedToolName: "execute_webhook",
       discoveryHint:
@@ -215,11 +247,15 @@ export function publicBazaarMetadata() {
       pricing: `${config.publicBaseUrl}/pricing`,
       onboarding: `${config.publicBaseUrl}/onboarding`,
       useCases: `${config.publicBaseUrl}/use-cases`,
+      actions: `${config.publicBaseUrl}/actions`,
       mcpGuide: `${config.publicBaseUrl}/mcp`,
       trust: `${config.publicBaseUrl}/trust`,
       proofs: `${config.publicBaseUrl}/proofs`,
+      proofBadge: `${config.publicBaseUrl}/proof/{jobOrReceiptId}`,
       monitoring: `${config.publicBaseUrl}/monitoring`,
       llms: `${config.publicBaseUrl}/llms.txt`,
+      quickstart: `${config.publicBaseUrl}/api/quickstart`,
+      actionCatalog: `${config.publicBaseUrl}/api/actions`,
       capabilities: `${config.publicBaseUrl}/api/capabilities`,
       openapi: `${config.publicBaseUrl}/openapi.json`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`

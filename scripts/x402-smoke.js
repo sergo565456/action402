@@ -45,6 +45,8 @@ async function main() {
 
   const health = await checkJsonEndpoint("/health");
   const capabilities = await checkJsonEndpoint("/api/capabilities");
+  const actions = await checkJsonEndpoint("/api/actions");
+  const quickstart = await checkJsonEndpoint("/api/quickstart");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
   await checkJsonEndpoint("/openapi.json");
 
@@ -61,6 +63,16 @@ async function main() {
       "MCP discovery hint is published",
       capabilities.mcp?.recommendedToolName === "execute_webhook"
     );
+  }
+
+  if (actions) {
+    record("Action catalog is published", Array.isArray(actions.templates) && actions.templates.length >= 9);
+    record("Policy modes are published", Array.isArray(actions.policyModes) && actions.policyModes.length >= 3);
+  }
+
+  if (quickstart) {
+    record("Quickstart route is published", quickstart.payment?.route?.endsWith("/api/execute/webhook"));
+    record("Quickstart proof badge is published", quickstart.verify?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
   }
 
   if (bazaar) {

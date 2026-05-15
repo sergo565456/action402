@@ -1,6 +1,7 @@
 import { config } from "./config.js";
 import { effectiveTargetPolicy } from "./targetPolicy.js";
 import { AGENT_PROMPT, DISCOVERY_KEYWORDS } from "./agentDiscovery.js";
+import { POLICY_MODES, SCHEDULED_ACTION_PATTERN, publicActionTemplates } from "./actionCatalog.js";
 import { publicUseCaseTemplates } from "./useCases.js";
 
 const webhookRequestSchema = {
@@ -192,12 +193,124 @@ const monitoringResponseSchema = {
   }
 };
 
+const actionTemplateSchema = {
+  type: "object",
+  required: ["id", "status", "category", "title", "description", "paidRoute", "exampleRequest"],
+  properties: {
+    id: { type: "string" },
+    status: { type: "string" },
+    category: { type: "string" },
+    title: { type: "string" },
+    description: { type: "string" },
+    tags: {
+      type: "array",
+      items: { type: "string" }
+    },
+    searchPhrases: {
+      type: "array",
+      items: { type: "string" }
+    },
+    actionId: { type: "string" },
+    paidRoute: { type: "string" },
+    exampleRequest: webhookRequestSchema,
+    buyerValue: { type: "string" },
+    targetOwnerValue: { type: "string" },
+    verification: {
+      type: "array",
+      items: { type: "string" }
+    }
+  }
+};
+
+const actionCatalogResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "activePrimitive", "categories", "templates", "policyModes", "scheduledActions"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    activePrimitive: { type: "object" },
+    categories: {
+      type: "array",
+      items: { type: "string" }
+    },
+    templates: {
+      type: "array",
+      items: actionTemplateSchema
+    },
+    policyModes: {
+      type: "array",
+      items: { type: "object" }
+    },
+    scheduledActions: { type: "object" },
+    snippets: {
+      type: "array",
+      items: { type: "object" }
+    },
+    discoveryKeywords: {
+      type: "array",
+      items: { type: "string" }
+    },
+    links: { type: "object" }
+  }
+};
+
+const quickstartResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "purpose", "payment", "minimalRequest", "callFlow", "verify"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    purpose: { type: "string" },
+    recommendedUse: { type: "string" },
+    payment: { type: "object" },
+    minimalRequest: webhookRequestSchema,
+    callFlow: {
+      type: "array",
+      items: { type: "string" }
+    },
+    decisionRules: { type: "object" },
+    limits: { type: "object" },
+    snippets: {
+      type: "array",
+      items: { type: "object" }
+    },
+    verify: { type: "object" },
+    nextDiscoverySteps: {
+      type: "array",
+      items: { type: "string" }
+    }
+  }
+};
+
 const trustResponseSchema = {
   type: "object",
-  required: ["ok", "status", "x402", "storage", "execution", "proofExamples", "trustSignals"],
+  required: [
+    "ok",
+    "status",
+    "trustScore",
+    "x402",
+    "storage",
+    "execution",
+    "proofExamples",
+    "trustSignals"
+  ],
   properties: {
     ok: { type: "boolean" },
     status: { type: "string", enum: ["ok", "attention"] },
+    trustScore: {
+      type: "object",
+      required: ["score", "maxScore", "grade", "summary"],
+      properties: {
+        score: { type: "integer" },
+        maxScore: { type: "integer" },
+        grade: { type: "string" },
+        summary: { type: "string" },
+        components: {
+          type: "array",
+          items: { type: "object" }
+        }
+      }
+    },
     x402: {
       type: "object",
       properties: {
@@ -252,6 +365,17 @@ export function publicCapabilities() {
     agentPrompt: AGENT_PROMPT,
     publicBaseUrl: config.publicBaseUrl,
     useCaseTemplates: publicUseCaseTemplates(),
+    actionCatalog: {
+      path: "/api/actions",
+      description:
+        "Machine-readable action template catalog for agent task matching, policy mode selection, and buyer snippets.",
+      templateCount: publicActionTemplates().length,
+      categories: Array.from(new Set(publicActionTemplates().map((template) => template.category))).sort()
+    },
+    quickstart: {
+      path: "/api/quickstart",
+      description: "Compact agent quickstart with payment guardrails, minimal request, snippets, and verification flow."
+    },
     x402: {
       enabled: config.x402Enabled,
       scheme: "exact",
@@ -283,10 +407,13 @@ export function publicCapabilities() {
         responseSchema: executeWebhookResponseSchema
       }
     ],
+    actionTemplates: publicActionTemplates(),
+    policyModes: POLICY_MODES,
+    scheduledActions: SCHEDULED_ACTION_PATTERN,
     agentInstructions: {
       oneLine: AGENT_PROMPT,
       callFlow: [
-        "Read /api/capabilities or /openapi.json.",
+        "Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.",
         "Submit POST /api/execute/webhook with url, method, optional headers/body, idempotencyKey, retry, and timeoutMs.",
         "In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.",
         "Read links.job or links.receipt from the response.",
@@ -301,6 +428,7 @@ export function publicCapabilities() {
       jobReceiptVerification: "/api/verify/jobs/{id}",
       receiptVerification: "/api/verify/receipts/{id}",
       recentProofExamples: "/api/proofs/recent",
+      proofBadge: "/proof/{jobOrReceiptId}",
       receiptSignature: "hmac-sha256",
       activeReceiptKeyId: config.receiptKeyId
     },
@@ -337,9 +465,14 @@ export function publicCapabilities() {
         "paid webhook execution",
         "x402 webhook receipt",
         "agent action relay",
+        "Action402 action catalog",
+        "agent quickstart x402",
         "pay per API call",
         "Slack webhook x402",
+        "Discord webhook x402",
+        "Telegram bot x402",
         "Zapier webhook x402",
+        "Make webhook x402",
         "GitHub Actions dispatch x402"
       ],
       bazaarFlow: [
@@ -387,6 +520,9 @@ export function publicCapabilities() {
     },
     links: {
       openapi: `${config.publicBaseUrl}/openapi.json`,
+      quickstart: `${config.publicBaseUrl}/api/quickstart`,
+      actionCatalog: `${config.publicBaseUrl}/api/actions`,
+      actions: `${config.publicBaseUrl}/actions`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
       agentsGuide: `${config.publicBaseUrl}/agents`,
       pricing: `${config.publicBaseUrl}/pricing`,
@@ -395,6 +531,7 @@ export function publicCapabilities() {
       mcpGuide: `${config.publicBaseUrl}/mcp`,
       trust: `${config.publicBaseUrl}/trust`,
       proofs: `${config.publicBaseUrl}/proofs`,
+      proofBadge: `${config.publicBaseUrl}/proof/{jobOrReceiptId}`,
       monitoring: `${config.publicBaseUrl}/monitoring`,
       llms: `${config.publicBaseUrl}/llms.txt`
     }
@@ -685,6 +822,40 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/actions": {
+        get: {
+          summary: "Fetch machine-readable action catalog",
+          description:
+            "Returns ready action templates, policy modes, buyer snippets, discovery keywords, and the safe scheduled-action design pattern.",
+          responses: {
+            "200": {
+              description: "Action catalog",
+              content: {
+                "application/json": {
+                  schema: actionCatalogResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/quickstart": {
+        get: {
+          summary: "Fetch compact agent quickstart",
+          description:
+            "Returns the shortest integration flow for agents: payment guardrails, minimal request, snippets, and proof verification links.",
+          responses: {
+            "200": {
+              description: "Agent quickstart",
+              content: {
+                "application/json": {
+                  schema: quickstartResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/capabilities": {
         get: {
           summary: "Fetch agent-readable service capabilities",
@@ -701,6 +872,26 @@ export function openApiSpec() {
           responses: {
             "200": {
               description: "Bazaar metadata"
+            }
+          }
+        }
+      },
+      "/proof/{id}": {
+        get: {
+          summary: "Render public proof badge page",
+          description:
+            "Browser-friendly proof page for a job id or receipt id. The page fetches the verification API client-side.",
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" }
+            }
+          ],
+          responses: {
+            "200": {
+              description: "HTML proof badge page"
             }
           }
         }
@@ -723,6 +914,9 @@ export function openApiSpec() {
         VerificationReport: verificationReportSchema,
         PublicProofSummary: publicProofSummarySchema,
         MonitoringResponse: monitoringResponseSchema,
+        ActionTemplate: actionTemplateSchema,
+        ActionCatalogResponse: actionCatalogResponseSchema,
+        QuickstartResponse: quickstartResponseSchema,
         TrustResponse: trustResponseSchema,
         Error: errorSchema
       }

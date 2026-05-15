@@ -52,6 +52,7 @@ async function loadTrust() {
     const stats = execution.stats || {};
     const proofs = body.proofExamples || {};
     const storage = body.storage || {};
+    const score = body.trustScore || {};
 
     trustSummary.textContent =
       body.status === "ok"
@@ -60,6 +61,7 @@ async function loadTrust() {
 
     trustMetrics.innerHTML = [
       renderMetric("status", body.status || "unknown", `generated ${formatDate(body.generatedAt)}`),
+      renderMetric("trust score", `${score.score ?? "n/a"}/${score.maxScore ?? 100}`, score.summary || "public buyer score"),
       renderMetric("price", body.x402?.price || "n/a", body.x402?.network || "unknown network"),
       renderMetric("recent failure", formatPercent(execution.recentFailureRate), "default 24 hour window"),
       renderMetric("verified proofs", proofs.recentVerifiedProofs ?? 0, `latest ${formatDate(proofs.latestVerifiedProofAt)}`),

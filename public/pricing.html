@@ -19,6 +19,7 @@
       </a>
       <nav class="page-nav" aria-label="Pricing navigation">
         <a href="/agents">Agents</a>
+        <a href="/actions">Actions</a>
         <a href="/use-cases">Use Cases</a>
         <a href="/trust">Trust</a>
         <a href="/onboarding">Onboarding</a>
@@ -36,6 +37,7 @@
           </p>
           <div class="actions">
             <a class="button primary" href="/onboarding">Start Integration</a>
+            <a class="button secondary" href="/actions">Action Catalog</a>
             <a class="button secondary" href="/use-cases">Use Cases</a>
             <a class="button secondary" href="/trust">Trust Summary</a>
             <a class="button secondary" href="/proofs">View Proofs</a>
@@ -73,6 +75,16 @@
           </p>
         </div>
         <div class="endpoint-list">
+          <article class="endpoint">
+            <span>free</span>
+            <h3>GET /api/quickstart</h3>
+            <p>Minimal request, payment guardrails, snippets, and proof verification links.</p>
+          </article>
+          <article class="endpoint">
+            <span>free</span>
+            <h3>GET /api/actions</h3>
+            <p>Action templates, policy modes, buyer snippets, and scheduled-action compatibility notes.</p>
+          </article>
           <article class="endpoint">
             <span>free</span>
             <h3>GET /api/capabilities</h3>

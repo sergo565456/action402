@@ -14,6 +14,8 @@ Agent entry points:
 - https://action402.vercel.app/trust - public trust summary.
 - https://action402.vercel.app/pricing - current price and free surfaces.
 - https://action402.vercel.app/api/capabilities - machine-readable service contract.
+- https://action402.vercel.app/api/quickstart - compact buyer flow for agents.
+- https://action402.vercel.app/api/actions - action template catalog and policy modes.
 - https://action402.vercel.app/api/bazaar - x402/Bazaar route metadata.
 - https://action402.vercel.app/llms.txt - compact LLM context.
 
@@ -27,6 +29,8 @@ Agent entry points:
 - `GET /api/proofs/recent` - redacted public verified proof examples.
 - `GET /api/monitoring/executions` - durable execution counters and recent failure categories.
 - `GET /api/trust` - redacted public trust summary for buyer-side inspection.
+- `GET /api/quickstart` - compact agent quickstart with payment guardrails and verification flow.
+- `GET /api/actions` - machine-readable action catalog, policy modes, buyer snippets, and scheduled-action compatibility notes.
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
 - `GET /api/capabilities` - agent-readable service capabilities.
 - `GET /openapi.json` - OpenAPI 3.1 contract for integrations.
@@ -78,6 +82,8 @@ verify /api/verify/jobs/{id} or /api/verify/receipts/{id}
 Useful public surfaces for discovery clients:
 
 - `GET /api/capabilities` - canonical agent-readable contract, use-case templates, safety limits, and MCP hints.
+- `GET /api/quickstart` - shortest safe call flow for agents.
+- `GET /api/actions` - ready action templates for ChatOps, no-code automation, GitHub dispatch, ops alerts, analytics, and CRM updates.
 - `GET /api/bazaar` - x402/Bazaar route config, price, payTo, tags, examples, and quality signals.
 - `GET /api/trust` - current public trust signals with sensitive execution data redacted.
 - `GET /api/proofs/recent` - verified proof examples without target URLs, bodies, hashes, or signatures.
@@ -161,7 +167,7 @@ After starting an x402-enabled server, run:
 npm run smoke:x402 -- http://127.0.0.1:4021
 ```
 
-The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi.json`, agent discovery fields, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header.
+The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi.json`, agent discovery fields, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, public trust/proof surfaces, and proof badge routing.
 
 ## Agent discovery
 
@@ -169,7 +175,10 @@ Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 
 - `GET /llms.txt` - concise plain-text service guide.
 - `GET /api/capabilities` - action schema, x402 settings, safety limits, verification links, discovery keywords, and MCP hints.
+- `GET /api/quickstart` - minimal request, payment guardrails, copy-paste snippets, and proof verification links.
+- `GET /api/actions` - action templates, policy modes, and the scheduled-action design path.
 - `GET /api/bazaar` - Bazaar route config and x402 discovery metadata.
+- `GET /proof/{jobOrReceiptId}` - browser-friendly proof badge for one job or receipt.
 - `GET /openapi.json` - OpenAPI 3.1 contract.
 - `/agents` - browser-friendly integration guide.
 

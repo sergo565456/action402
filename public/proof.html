@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Proof Badge</title>
+    <meta
+      name="description"
+      content="Public Action402 proof badge for a job or receipt id."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Proof badge navigation">
+        <a href="/proofs">Recent Proofs</a>
+        <a href="/trust">Trust</a>
+        <a href="/api/capabilities">Capabilities</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Proof badge</p>
+          <h1>Verify one Action402 execution.</h1>
+          <p>
+            This page resolves a job id or receipt id, checks the signed proof report, and gives
+            agents a shareable URL for the result.
+          </p>
+          <div class="actions">
+            <a class="button primary" id="verify-json-link" href="/api/proofs/recent">Open Verify JSON</a>
+            <a class="button secondary" href="/proofs">Recent Proofs</a>
+            <a class="button secondary" href="/api/trust">Trust JSON</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Proof quick facts">
+          <dl>
+            <div>
+              <dt>id</dt>
+              <dd><code id="proof-id">loading</code></dd>
+            </div>
+            <div>
+              <dt>signature</dt>
+              <dd><code id="proof-signature">checking</code></dd>
+            </div>
+            <div>
+              <dt>result</dt>
+              <dd><code id="proof-result">loading</code></dd>
+            </div>
+            <div>
+              <dt>source</dt>
+              <dd><code id="proof-source">verification API</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Verification</p>
+          <h2 id="proof-heading">Loading proof report.</h2>
+          <p id="proof-summary">
+            Fetching the verification report.
+          </p>
+        </div>
+        <div class="proof-list" id="proof-checks" aria-live="polite">
+          <div class="empty-state">Loading verification checks...</div>
+        </div>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Agent use</p>
+          <h2>How to consume this badge.</h2>
+          <p>
+            Agents should treat this page as a human-readable companion. For automation, call the
+            linked verification JSON and inspect <code>ok</code>, <code>signatureVerified</code>,
+            and every item in <code>checks</code>.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>machine path</span>
+            <h3 id="machine-path">/api/verify/jobs/{id}</h3>
+            <p>Use this endpoint for structured verification.</p>
+          </article>
+          <article class="endpoint">
+            <span>public proof</span>
+            <h3>/proof/{jobOrReceiptId}</h3>
+            <p>Shareable browser page for operators and other agents.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Proof badge: /proof/{id}</span>
+    </footer>
+
+    <script src="/proof.js"></script>
+  </body>
+</html>

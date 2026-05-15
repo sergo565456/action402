@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Action Catalog</title>
+    <meta
+      name="description"
+      content="Machine-readable and browser-friendly action catalog for Action402 paid x402 execution."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Action catalog navigation">
+        <a href="/agents">Agents</a>
+        <a href="/onboarding">Onboarding</a>
+        <a href="/use-cases">Use Cases</a>
+        <a href="/trust">Trust</a>
+        <a href="/api/actions">Catalog JSON</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Action catalog</p>
+          <h1>Ready action patterns agents can choose from.</h1>
+          <p>
+            Action402 still exposes one paid primitive, but agents can match tasks to common
+            action templates before paying: ChatOps, no-code automation, GitHub dispatch,
+            incident alerts, analytics, and CRM updates.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/actions">Open Catalog JSON</a>
+            <a class="button secondary" href="/api/quickstart">Quickstart JSON</a>
+            <a class="button secondary" href="/agents">Agent Guide</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Catalog quick facts">
+          <dl>
+            <div>
+              <dt>raw endpoint</dt>
+              <dd><code>/api/actions</code></dd>
+            </div>
+            <div>
+              <dt>paid primitive</dt>
+              <dd><code>POST /api/execute/webhook</code></dd>
+            </div>
+            <div>
+              <dt>policy modes</dt>
+              <dd><code>open, quota, allowlist</code></dd>
+            </div>
+            <div>
+              <dt>schedules</dt>
+              <dd><code>design-ready</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Live catalog</p>
+          <h2>Templates loaded from the API.</h2>
+          <p id="actions-summary">
+            Loading action templates from <code>/api/actions</code>.
+          </p>
+        </div>
+        <div class="template-grid" id="actions-grid" aria-live="polite">
+          <div class="empty-state">Loading action catalog...</div>
+        </div>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Policy mode</p>
+          <h2>Open by default, restrict when needed.</h2>
+          <p>
+            The public MVP should stay broadly useful for agents, while partner deployments can
+            move to allowlists. The catalog describes those modes without changing the current
+            paid route contract.
+          </p>
+        </div>
+        <div class="endpoint-list" id="policy-list">
+          <article class="endpoint">
+            <span>loading</span>
+            <h3>Policy modes</h3>
+            <p>Loading from <code>/api/actions</code>.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Scheduling</p>
+        <h2>Scheduled actions are described, not falsely active.</h2>
+        <p id="schedule-note">
+          Loading scheduled-action compatibility note.
+        </p>
+        <pre><code id="schedule-shape">Loading...</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Action catalog: /actions</span>
+    </footer>
+
+    <script src="/actions.js"></script>
+  </body>
+</html>
