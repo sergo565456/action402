@@ -170,6 +170,8 @@ export function publicBazaarMetadata() {
         "pay per API call",
         "Action402 action catalog",
         "agent quickstart x402",
+        "Action402 integration snippets",
+        "x402 verification snippets",
         "x402 action templates",
         "public proof badge",
         "Slack webhook x402",
@@ -188,6 +190,7 @@ export function publicBazaarMetadata() {
         "Agent-readable capabilities document is available",
         "Machine-readable action catalog is available",
         "Compact quickstart endpoint is available",
+        "Copy-paste integration snippets are available",
         "Public job and receipt verification endpoints are available",
         "Public proof badge pages are available for job and receipt ids",
         "Public redacted proof examples are available",
@@ -231,6 +234,11 @@ export function publicBazaarMetadata() {
       description:
         "Compact buyer flow for agents: minimal request, payment guardrails, snippets, and proof verification links."
     },
+    snippets: {
+      path: "/api/snippets",
+      description:
+        "Copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails."
+    },
     mcp: {
       recommendedToolName: "execute_webhook",
       discoveryHint:
@@ -248,6 +256,7 @@ export function publicBazaarMetadata() {
       onboarding: `${config.publicBaseUrl}/onboarding`,
       useCases: `${config.publicBaseUrl}/use-cases`,
       actions: `${config.publicBaseUrl}/actions`,
+      snippetsGuide: `${config.publicBaseUrl}/snippets`,
       mcpGuide: `${config.publicBaseUrl}/mcp`,
       trust: `${config.publicBaseUrl}/trust`,
       proofs: `${config.publicBaseUrl}/proofs`,
@@ -255,6 +264,7 @@ export function publicBazaarMetadata() {
       monitoring: `${config.publicBaseUrl}/monitoring`,
       llms: `${config.publicBaseUrl}/llms.txt`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
+      snippets: `${config.publicBaseUrl}/api/snippets`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       capabilities: `${config.publicBaseUrl}/api/capabilities`,
       openapi: `${config.publicBaseUrl}/openapi.json`,

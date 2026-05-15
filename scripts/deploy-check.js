@@ -58,6 +58,7 @@ async function main() {
   await checkStatic("/onboarding", "Agent onboarding");
   await checkStatic("/use-cases", "Use-case templates");
   await checkStatic("/actions", "Action catalog");
+  await checkStatic("/snippets", "Integration snippets");
   await checkStatic("/mcp", "Discovery-first instructions");
   await checkStatic("/trust", "Trust summary");
   await checkStatic("/proofs", "Verified proof examples");
@@ -69,6 +70,7 @@ async function main() {
   const capabilities = await checkJson("/api/capabilities");
   const actions = await checkJson("/api/actions");
   const quickstart = await checkJson("/api/quickstart");
+  const snippets = await checkJson("/api/snippets");
   const bazaar = await checkJson("/api/bazaar");
   const proofs = await checkJson("/api/proofs/recent");
   const monitoring = await checkJson("/api/monitoring/executions");
@@ -113,6 +115,7 @@ async function main() {
       Array.isArray(capabilities.actionTemplates) && capabilities.actionTemplates.length >= 9
     );
     record("capabilities expose quickstart", capabilities.quickstart?.path === "/api/quickstart");
+    record("capabilities expose snippets", capabilities.snippets?.path === "/api/snippets");
     record("capabilities expose action catalog", capabilities.actionCatalog?.path === "/api/actions");
     record("capabilities expose proof badge", capabilities.verification?.proofBadge === "/proof/{jobOrReceiptId}");
     record("capabilities expose MCP guide link", typeof capabilities.links?.mcpGuide === "string");
@@ -140,6 +143,16 @@ async function main() {
     record("quickstart endpoint exposes call flow", Array.isArray(quickstart.callFlow) && quickstart.callFlow.length >= 5);
   }
 
+  if (snippets) {
+    record("snippets endpoint exposes payment route", snippets.payment?.route?.endsWith("/api/execute/webhook"));
+    record("snippets endpoint exposes groups", Array.isArray(snippets.groups) && snippets.groups.length >= 4);
+    record(
+      "snippets endpoint exposes verification examples",
+      snippets.groups?.some((group) => group.id === "verification" && Array.isArray(group.snippets) && group.snippets.length >= 2)
+    );
+    record("snippets endpoint exposes proof badge link", snippets.links?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
+  }
+
   if (bazaar) {
     const route = bazaar.routeConfig?.["POST /api/execute/webhook"];
     record("bazaar route exists", Boolean(route));
@@ -158,6 +171,7 @@ async function main() {
     record("bazaar metadata has proof link", typeof bazaar.links?.proofs === "string");
     record("bazaar metadata has action catalog link", typeof bazaar.links?.actionCatalog === "string");
     record("bazaar metadata has quickstart link", typeof bazaar.links?.quickstart === "string");
+    record("bazaar metadata has snippets link", typeof bazaar.links?.snippets === "string");
     record("bazaar metadata has proof badge link", typeof bazaar.links?.proofBadge === "string");
     record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
     record("bazaar metadata has use-case link", typeof bazaar.links?.useCases === "string");
@@ -198,6 +212,7 @@ async function main() {
     record("trust endpoint exposes public surfaces", typeof trust.publicSurfaces?.useCases === "string");
     record("trust endpoint exposes score", typeof trust.trustScore?.score === "number");
     record("trust endpoint exposes action catalog surface", typeof trust.publicSurfaces?.actionCatalog === "string");
+    record("trust endpoint exposes snippets surface", typeof trust.publicSurfaces?.snippets === "string");
     record("trust endpoint exposes trust signals", Array.isArray(trust.trustSignals) && trust.trustSignals.length >= 6);
   }
 

@@ -282,6 +282,43 @@ const quickstartResponseSchema = {
   }
 };
 
+const snippetsResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "purpose", "payment", "groups", "links"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    purpose: { type: "string" },
+    payment: { type: "object" },
+    groups: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["id", "title", "snippets"],
+        properties: {
+          id: { type: "string" },
+          title: { type: "string" },
+          description: { type: "string" },
+          snippets: {
+            type: "array",
+            items: {
+              type: "object",
+              required: ["id", "title", "language", "code"],
+              properties: {
+                id: { type: "string" },
+                title: { type: "string" },
+                language: { type: "string" },
+                code: { type: "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    links: { type: "object" }
+  }
+};
+
 const trustResponseSchema = {
   type: "object",
   required: [
@@ -376,6 +413,11 @@ export function publicCapabilities() {
       path: "/api/quickstart",
       description: "Compact agent quickstart with payment guardrails, minimal request, snippets, and verification flow."
     },
+    snippets: {
+      path: "/api/snippets",
+      description:
+        "Copy-paste snippets for discovery, paid execution, proof verification, and buyer-side payment guardrails."
+    },
     x402: {
       enabled: config.x402Enabled,
       scheme: "exact",
@@ -414,6 +456,7 @@ export function publicCapabilities() {
       oneLine: AGENT_PROMPT,
       callFlow: [
         "Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.",
+        "Use /api/snippets for copy-paste buyer and proof verification examples.",
         "Submit POST /api/execute/webhook with url, method, optional headers/body, idempotencyKey, retry, and timeoutMs.",
         "In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.",
         "Read links.job or links.receipt from the response.",
@@ -429,6 +472,7 @@ export function publicCapabilities() {
       receiptVerification: "/api/verify/receipts/{id}",
       recentProofExamples: "/api/proofs/recent",
       proofBadge: "/proof/{jobOrReceiptId}",
+      integrationSnippets: "/api/snippets",
       receiptSignature: "hmac-sha256",
       activeReceiptKeyId: config.receiptKeyId
     },
@@ -521,6 +565,8 @@ export function publicCapabilities() {
     links: {
       openapi: `${config.publicBaseUrl}/openapi.json`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
+      snippets: `${config.publicBaseUrl}/api/snippets`,
+      snippetsGuide: `${config.publicBaseUrl}/snippets`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       actions: `${config.publicBaseUrl}/actions`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
@@ -856,6 +902,23 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/snippets": {
+        get: {
+          summary: "Fetch integration snippets",
+          description:
+            "Returns copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.",
+          responses: {
+            "200": {
+              description: "Integration snippets",
+              content: {
+                "application/json": {
+                  schema: snippetsResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/capabilities": {
         get: {
           summary: "Fetch agent-readable service capabilities",
@@ -917,6 +980,7 @@ export function openApiSpec() {
         ActionTemplate: actionTemplateSchema,
         ActionCatalogResponse: actionCatalogResponseSchema,
         QuickstartResponse: quickstartResponseSchema,
+        SnippetsResponse: snippetsResponseSchema,
         TrustResponse: trustResponseSchema,
         Error: errorSchema
       }

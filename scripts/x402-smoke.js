@@ -47,6 +47,7 @@ async function main() {
   const capabilities = await checkJsonEndpoint("/api/capabilities");
   const actions = await checkJsonEndpoint("/api/actions");
   const quickstart = await checkJsonEndpoint("/api/quickstart");
+  const snippets = await checkJsonEndpoint("/api/snippets");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
   await checkJsonEndpoint("/openapi.json");
 
@@ -73,6 +74,11 @@ async function main() {
   if (quickstart) {
     record("Quickstart route is published", quickstart.payment?.route?.endsWith("/api/execute/webhook"));
     record("Quickstart proof badge is published", quickstart.verify?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
+  }
+
+  if (snippets) {
+    record("Integration snippets are published", Array.isArray(snippets.groups) && snippets.groups.length >= 4);
+    record("Verification snippets are published", snippets.groups?.some((group) => group.id === "verification"));
   }
 
   if (bazaar) {

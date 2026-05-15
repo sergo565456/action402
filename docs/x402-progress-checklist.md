@@ -16,11 +16,16 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Per-target quotas exist.
 - [x] Structured execution observability exists.
 - [x] Agent-readable `/api/capabilities` exists.
+- [x] Agent-readable `/api/quickstart` exists.
+- [x] Copy-paste integration snippets `/api/snippets` exist.
+- [x] Action catalog `/api/actions` exists.
 - [x] OpenAPI `/openapi.json` exists.
 - [x] Bazaar metadata `/api/bazaar` exists.
 - [x] Agent guide `/agents` exists.
 - [x] LLM/agent context `/llms.txt` exists.
 - [x] Demo console `/demo.html` exists.
+- [x] Snippets page `/snippets` exists.
+- [x] Proof badge route `/proof/{jobOrReceiptId}` exists.
 
 ## Phase 1: x402 Configuration Profiles
 
@@ -101,6 +106,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Confirm Bazaar discovery path.
 - [x] Confirm CDP merchant lookup returns Action402 resource.
 - [x] Confirm CDP search for `Action402` returns Action402 resource.
+- [x] Confirm production deploy check passes for action catalog, snippets, proof badge, trust, and monitoring surfaces.
 
 Latest production proof:
 
@@ -120,3 +126,7 @@ Latest production proof:
 - [x] Add observability/logging for settlements and failed executions.
 - [x] Add per-target quotas.
 - [x] Add target policy presets for customers.
+- [x] Add public action catalog and quickstart surfaces.
+- [x] Add proof badge pages for job/receipt ids.
+- [x] Add public trust score summary.
+- [x] Add copy-paste integration snippets for buyer and verification flows.

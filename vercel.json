@@ -65,6 +65,10 @@
       "destination": "/actions.html"
     },
     {
+      "source": "/snippets",
+      "destination": "/snippets.html"
+    },
+    {
       "source": "/mcp",
       "destination": "/mcp.html"
     },

@@ -53,13 +53,17 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
+  assert.equal(body.links.snippetsGuide.endsWith("/snippets"), true);
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.equal(body.links.trust.endsWith("/trust"), true);
   assert.equal(body.trust.path, "/api/trust");
   assert.equal(body.quickstart.path, "/api/quickstart");
+  assert.equal(body.snippets.path, "/api/snippets");
   assert.equal(body.actionCatalog.path, "/api/actions");
   assert.equal(body.verification.proofBadge, "/proof/{jobOrReceiptId}");
+  assert.equal(body.verification.integrationSnippets, "/api/snippets");
   assert.ok(body.discoveryKeywords.includes("pay per API call"));
   assert.ok(body.discoveryKeywords.includes("Action402 action catalog"));
   assert.ok(body.discoveryKeywords.includes("Discord webhook x402"));
@@ -83,6 +87,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/trust"].get);
   assert.ok(body.paths["/api/actions"].get);
   assert.ok(body.paths["/api/quickstart"].get);
+  assert.ok(body.paths["/api/snippets"].get);
   assert.ok(body.paths["/proof/{id}"].get);
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
@@ -90,6 +95,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.MonitoringResponse);
   assert.ok(body.components.schemas.ActionCatalogResponse);
   assert.ok(body.components.schemas.QuickstartResponse);
+  assert.ok(body.components.schemas.SnippetsResponse);
   assert.ok(body.components.schemas.TrustResponse);
 });
 
@@ -125,6 +131,21 @@ test("quickstart endpoint gives compact agent call flow", async () => {
   assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/actions")));
 });
 
+test("snippets endpoint exposes buyer and verification examples", async () => {
+  const { response, body } = await request("/api/snippets");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.payment.route.endsWith("/api/execute/webhook"), true);
+  assert.ok(body.groups.length >= 4);
+  assert.ok(body.groups.some((group) => group.id === "discovery"));
+  assert.ok(body.groups.some((group) => group.id === "paid-call"));
+  const verification = body.groups.find((group) => group.id === "verification");
+  assert.ok(verification);
+  assert.ok(verification.snippets.some((snippet) => snippet.id === "verify-job-javascript"));
+  assert.equal(body.links.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
+});
+
 test("bazaar metadata exposes valid discovery extension", async () => {
   const { response, body } = await request("/api/bazaar");
   const route = body.routeConfig["POST /api/execute/webhook"];
@@ -143,11 +164,13 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.ok(body.useCaseTemplates.length >= 6);
   assert.ok(body.actionCatalog.templateCount >= 9);
   assert.equal(body.quickstart.path, "/api/quickstart");
+  assert.equal(body.snippets.path, "/api/snippets");
   assert.equal(route.extensions.bazaar.info.input.method, "POST");
   assert.equal(route.extensions.bazaar.info.input.bodyType, "json");
   assert.equal(route.extensions.bazaar.info.input.body.url, "https://httpbin.org/anything");
@@ -167,6 +190,8 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/actions"), true);
   assert.equal(body.includes("/api/actions"), true);
   assert.equal(body.includes("/api/quickstart"), true);
+  assert.equal(body.includes("/api/snippets"), true);
+  assert.equal(body.includes("/snippets"), true);
   assert.equal(body.includes("/mcp"), true);
   assert.equal(body.includes("/api/trust"), true);
   assert.equal(body.includes("/proof/{jobOrReceiptId}"), true);
@@ -183,6 +208,7 @@ test("public product pages load", async () => {
     ["/onboarding", "Agent onboarding"],
     ["/use-cases", "Use-case templates"],
     ["/actions", "Action catalog"],
+    ["/snippets", "Integration snippets"],
     ["/mcp", "Discovery-first instructions"],
     ["/trust", "Trust summary"],
     ["/proofs", "Verified proof examples"],
@@ -413,11 +439,13 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(typeof body.trustScore.score, "number");
   assert.ok(body.trustScore.components.some((component) => component.id === "agent_surfaces"));
   assert.equal(body.publicSurfaces.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.publicSurfaces.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.publicSurfaces.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.publicSurfaces.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.publicSurfaces.useCases.endsWith("/use-cases"), true);
   assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
   assert.equal(body.trustSignals.includes("public action catalog and quickstart endpoints"), true);
+  assert.equal(body.trustSignals.includes("copy-paste integration snippets for buyers and verifiers"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
   assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);
 });

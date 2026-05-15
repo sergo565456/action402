@@ -3,6 +3,7 @@ import { config, assertProductionConfig, runtimeSummary } from "./config.js";
 import { publicActionCatalog, publicQuickstart } from "./actionCatalog.js";
 import { publicBazaarMetadata } from "./bazaar.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
+import { publicIntegrationSnippets } from "./snippets.js";
 import { executeWebhookAction } from "./webhook.js";
 import { executionStats, getJob, getReceipt, initStore, listRecentJobs, storeStats } from "./store.js";
 import { verifyReceipt } from "./receipt.js";
@@ -84,6 +85,17 @@ app.get("/api/quickstart", (req, res) => {
       network: config.x402Network,
       maxRetryAttempts: config.maxRetryAttempts,
       maxWebhookTimeoutMs: config.maxWebhookTimeoutMs
+    })
+  );
+});
+
+app.get("/api/snippets", (req, res) => {
+  res.json(
+    publicIntegrationSnippets({
+      baseUrl: config.publicBaseUrl,
+      price: config.x402Price,
+      x402Enabled: config.x402Enabled,
+      network: config.x402Network
     })
   );
 });

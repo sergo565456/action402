@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Integration Snippets</title>
+    <meta
+      name="description"
+      content="Copy-paste integration snippets for Action402 x402 paid execution and proof verification."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Snippet navigation">
+        <a href="/agents">Agents</a>
+        <a href="/actions">Actions</a>
+        <a href="/onboarding">Onboarding</a>
+        <a href="/trust">Trust</a>
+        <a href="/api/snippets">Snippets JSON</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Integration snippets</p>
+          <h1>Copy-paste calls agents can use safely.</h1>
+          <p>
+            Discovery, paid execution, proof verification, and buyer policy examples are
+            published as JSON and rendered here for operators.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/snippets">Open Snippets JSON</a>
+            <a class="button secondary" href="/api/quickstart">Quickstart JSON</a>
+            <a class="button secondary" href="/api/actions">Action Catalog</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Snippet quick facts">
+          <dl>
+            <div>
+              <dt>raw endpoint</dt>
+              <dd><code>/api/snippets</code></dd>
+            </div>
+            <div>
+              <dt>paid route</dt>
+              <dd><code>/api/execute/webhook</code></dd>
+            </div>
+            <div>
+              <dt>verify</dt>
+              <dd><code>/api/verify/jobs/{id}</code></dd>
+            </div>
+            <div>
+              <dt>badge</dt>
+              <dd><code>/proof/{id}</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Live snippets</p>
+          <h2>Loaded from the API.</h2>
+          <p id="snippets-summary">
+            Loading snippets from <code>/api/snippets</code>.
+          </p>
+        </div>
+        <div class="endpoint-list" id="snippets-list" aria-live="polite">
+          <div class="empty-state">Loading snippets...</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Integration snippets: /snippets</span>
+    </footer>
+
+    <script src="/snippets.js"></script>
+  </body>
+</html>

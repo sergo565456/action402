@@ -15,6 +15,7 @@ Agent entry points:
 - https://action402.vercel.app/pricing - current price and free surfaces.
 - https://action402.vercel.app/api/capabilities - machine-readable service contract.
 - https://action402.vercel.app/api/quickstart - compact buyer flow for agents.
+- https://action402.vercel.app/api/snippets - copy-paste buyer and verification snippets.
 - https://action402.vercel.app/api/actions - action template catalog and policy modes.
 - https://action402.vercel.app/api/bazaar - x402/Bazaar route metadata.
 - https://action402.vercel.app/llms.txt - compact LLM context.
@@ -30,6 +31,7 @@ Agent entry points:
 - `GET /api/monitoring/executions` - durable execution counters and recent failure categories.
 - `GET /api/trust` - redacted public trust summary for buyer-side inspection.
 - `GET /api/quickstart` - compact agent quickstart with payment guardrails and verification flow.
+- `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - `GET /api/actions` - machine-readable action catalog, policy modes, buyer snippets, and scheduled-action compatibility notes.
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
 - `GET /api/capabilities` - agent-readable service capabilities.
@@ -83,6 +85,7 @@ Useful public surfaces for discovery clients:
 
 - `GET /api/capabilities` - canonical agent-readable contract, use-case templates, safety limits, and MCP hints.
 - `GET /api/quickstart` - shortest safe call flow for agents.
+- `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - `GET /api/actions` - ready action templates for ChatOps, no-code automation, GitHub dispatch, ops alerts, analytics, and CRM updates.
 - `GET /api/bazaar` - x402/Bazaar route config, price, payTo, tags, examples, and quality signals.
 - `GET /api/trust` - current public trust signals with sensitive execution data redacted.
@@ -176,6 +179,7 @@ Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 - `GET /llms.txt` - concise plain-text service guide.
 - `GET /api/capabilities` - action schema, x402 settings, safety limits, verification links, discovery keywords, and MCP hints.
 - `GET /api/quickstart` - minimal request, payment guardrails, copy-paste snippets, and proof verification links.
+- `GET /api/snippets` - dedicated copy-paste discovery, paid call, verification, and buyer policy examples.
 - `GET /api/actions` - action templates, policy modes, and the scheduled-action design path.
 - `GET /api/bazaar` - Bazaar route config and x402 discovery metadata.
 - `GET /proof/{jobOrReceiptId}` - browser-friendly proof badge for one job or receipt.
