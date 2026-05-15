@@ -69,30 +69,43 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Add Vercel Function entrypoint and route rewrites.
 - [x] Add Dockerfile and container healthcheck.
 - [x] Add deployment guide in `docs/deployment.md`.
-- [ ] Set `PUBLIC_BASE_URL`.
-- [ ] Set production env vars.
-- [ ] Set managed Postgres `DATABASE_URL`.
-- [ ] Run `npm run db:migrate`.
-- [ ] Confirm static pages load:
+- [x] Set `PUBLIC_BASE_URL`.
+- [x] Set production env vars.
+- [x] Set managed Postgres `DATABASE_URL`.
+- [x] Run `npm run db:migrate`.
+- [x] Confirm static pages load:
   - `/`
   - `/demo.html`
   - `/brand.html`
-- [ ] Confirm JSON endpoints load:
+- [x] Confirm JSON endpoints load:
   - `/health`
   - `/api/capabilities`
   - `/api/bazaar`
   - `/openapi.json`
-- [ ] Confirm unpaid protected action returns `402`.
+- [x] Confirm unpaid protected action returns `402`.
+- [x] Confirm `402 Payment-Required` uses canonical HTTPS resource URL.
 
 ## Phase 5: First Paid Settlement
 
-- [ ] Prepare buyer wallet/client.
-- [ ] Fund buyer with required testnet/mainnet USDC.
-- [ ] Run paid x402 request against `POST /api/execute/webhook`.
-- [ ] Confirm job succeeded.
-- [ ] Confirm receipt verifies.
-- [ ] Confirm settlement through facilitator/CDP.
-- [ ] Confirm Bazaar discovery path.
+- [x] Prepare buyer wallet/client.
+- [x] Fund buyer with required testnet/mainnet USDC.
+- [x] Run paid x402 request against `POST /api/execute/webhook`.
+- [x] Confirm job succeeded.
+- [x] Confirm receipt verifies.
+- [x] Confirm settlement through facilitator/CDP.
+- [x] Confirm Bazaar discovery path.
+- [x] Confirm CDP merchant lookup returns Action402 resource.
+- [x] Confirm CDP search for `Action402` returns Action402 resource.
+
+Latest production proof:
+
+- Production URL: `https://action402.vercel.app`
+- CDP resource: `https://action402.vercel.app/api/execute/webhook`
+- PayTo: `0x75113dcF8Ce34f0338440D40270e420f8C1762b8`
+- Price: `$0.003`
+- Paid smoke job: `job_d1616d16c77a12083a74f7e6`
+- Paid smoke receipt: `rcpt_a8a7c40e3a2f344b1b4f6326`
+- Paid smoke tx: `0xef2d4f21bdd077516f881ee5af5bb7ac392091d5071cf5f1a13f49921717c5db`
 
 ## Phase 6: Post-Smoke Hardening
 
