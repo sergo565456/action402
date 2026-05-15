@@ -45,6 +45,10 @@
       "destination": "/openapi.html"
     },
     {
+      "source": "/agents",
+      "destination": "/agents.html"
+    },
+    {
       "source": "/mockups",
       "destination": "/mockups.html"
     }

@@ -18,6 +18,8 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Agent-readable `/api/capabilities` exists.
 - [x] OpenAPI `/openapi.json` exists.
 - [x] Bazaar metadata `/api/bazaar` exists.
+- [x] Agent guide `/agents` exists.
+- [x] LLM/agent context `/llms.txt` exists.
 - [x] Demo console `/demo.html` exists.
 
 ## Phase 1: x402 Configuration Profiles
@@ -58,7 +60,10 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Check `/api/capabilities`.
 - [x] Check `/api/bazaar`.
 - [x] Check `/openapi.json`.
+- [x] Check `/agents`.
+- [x] Check `/llms.txt`.
 - [x] Check verification paths are published.
+- [x] Check agent prompt, discovery keywords, and MCP hints are published.
 - [x] Check unpaid `POST /api/execute/webhook` returns `402`.
 - [x] Check `PAYMENT-REQUIRED` or equivalent x402 payment header exists.
 - [x] Print a concise pass/fail summary.

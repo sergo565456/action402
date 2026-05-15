@@ -20,6 +20,20 @@ async function request(path, options = {}) {
   }
 }
 
+async function requestText(path) {
+  const server = app.listen(0);
+  try {
+    const { port } = server.address();
+    const response = await fetch(`http://127.0.0.1:${port}${path}`);
+    const body = await response.text();
+    return { response, body };
+  } finally {
+    await new Promise((resolve, reject) => {
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
+  }
+}
+
 test("capabilities document exposes execute webhook action", async () => {
   const { response, body } = await request("/api/capabilities");
 
@@ -31,6 +45,11 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.safety.targetPolicyPreset, "open");
   assert.equal(body.safety.targetQuota.enabled, true);
   assert.equal(body.verification.jobReceiptVerification, "/api/verify/jobs/{id}");
+  assert.ok(body.discoveryKeywords.includes("paid webhook execution"));
+  assert.equal(body.agentPrompt.includes("Use Action402"), true);
+  assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/verify")), true);
+  assert.equal(body.mcp.recommendedToolName, "execute_webhook");
+  assert.equal(body.links.llms.endsWith("/llms.txt"), true);
 });
 
 test("openapi document exposes execute webhook path", async () => {
@@ -54,11 +73,27 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(validateBazaarDiscovery().valid, true);
   assert.equal(route.serviceName, "Action402");
   assert.equal(route.tags.includes("x402"), true);
+  assert.equal(route.tags.includes("paid-webhook"), true);
+  assert.ok(body.discoveryKeywords.includes("x402 paid API"));
+  assert.equal(body.agentPrompt.includes("paid public HTTPS"), true);
+  assert.equal(body.discovery.searchQueries.includes("Action402"), true);
+  assert.equal(body.mcp.recommendedToolName, "execute_webhook");
+  assert.equal(body.links.llms.endsWith("/llms.txt"), true);
   assert.equal(route.extensions.bazaar.info.input.method, "POST");
   assert.equal(route.extensions.bazaar.info.input.bodyType, "json");
   assert.equal(route.extensions.bazaar.info.input.body.url, "https://httpbin.org/anything");
   assert.equal(route.extensions.bazaar.info.output.type, "json");
   assert.ok(route.extensions.bazaar.schema.properties.input);
+});
+
+test("llms.txt exposes agent discovery guidance", async () => {
+  const { response, body } = await requestText("/llms.txt");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.includes("Action402"), true);
+  assert.equal(body.includes("paid webhook execution"), true);
+  assert.equal(body.includes("/api/capabilities"), true);
+  assert.equal(body.includes("MCP/Bazaar guidance"), true);
 });
 
 test("vercel rewrite strips internal catch-all path query", () => {

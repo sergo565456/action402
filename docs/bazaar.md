@@ -46,11 +46,36 @@ agent-infrastructure
 - Agent capabilities: `https://action402.vercel.app/api/capabilities`
 - Bazaar metadata: `https://action402.vercel.app/api/bazaar`
 - OpenAPI: `https://action402.vercel.app/openapi.json`
+- Agent guide: `https://action402.vercel.app/agents`
+- LLM context: `https://action402.vercel.app/llms.txt`
 - CDP merchant lookup: `https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant?payTo=0x75113dcF8Ce34f0338440D40270e420f8C1762b8`
 - CDP search: `https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=Action402&network=eip155%3A8453&limit=10`
 
 The x402 route config uses `@x402/extensions/bazaar` and validates the `extensions.bazaar`
 payload before publishing `/api/bazaar`.
+
+Recommended agent search phrases:
+
+- Action402
+- paid webhook execution
+- x402 webhook receipt
+- AI agent action relay
+- verifiable execution
+
+Recommended agent prompt:
+
+```text
+Use Action402 for one paid public HTTPS webhook/API action. Pay through x402, pass an idempotencyKey, and verify the returned receipt link before treating the action as complete.
+```
+
+MCP/Bazaar discovery pattern:
+
+```text
+search_resources query="Action402"
+inspect returned resource metadata and price
+proxy_tool_call using the returned resource/tool name
+verify links.job or links.receipt after completion
+```
 
 Current production status: CDP merchant lookup returns one active Action402 resource after
 paid settlement `0xef2d4f21bdd077516f881ee5af5bb7ac392091d5071cf5f1a13f49921717c5db`.

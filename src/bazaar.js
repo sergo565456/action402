@@ -1,16 +1,7 @@
 import { config } from "./config.js";
 import { executeWebhookResponseSchema } from "./apiContract.js";
+import { AGENT_PROMPT, DISCOVERY_KEYWORDS, SERVICE_TAGS } from "./agentDiscovery.js";
 import { declareDiscoveryExtension, validateDiscoveryExtension } from "@x402/extensions/bazaar";
-
-const SERVICE_TAGS = [
-  "x402",
-  "webhook",
-  "execution",
-  "receipts",
-  "ai-agents",
-  "idempotency",
-  "retries"
-];
 
 const EXAMPLE_REQUEST = {
   url: "https://httpbin.org/anything",
@@ -130,7 +121,7 @@ export function executeWebhookRouteConfig() {
         }
       ],
       description:
-        "Paid webhook/API execution for autonomous agents. Executes one outbound HTTPS action with retries and idempotency, then returns a signed receipt with request and response hashes.",
+        "Paid webhook/API execution for autonomous agents. Executes one public HTTPS action after x402 payment, applies retries and idempotency, then returns a signed receipt with request hash, response hash, target, status, and attempt count.",
       mimeType: "application/json",
       serviceName: "Action402",
       tags: SERVICE_TAGS,
@@ -149,9 +140,11 @@ export function publicBazaarMetadata() {
     name: "Action402",
     tagline: "Pay. Execute. Prove.",
     description:
-      "Paid webhook and API execution for autonomous agents using x402 payments on Base.",
+      "x402-native paid webhook and API execution for autonomous agents. Agents pay per action, Action402 executes one public HTTPS request with retries and idempotency, then returns a signed proof receipt.",
     category: "agent-infrastructure",
     tags: SERVICE_TAGS,
+    discoveryKeywords: DISCOVERY_KEYWORDS,
+    agentPrompt: AGENT_PROMPT,
     resource: `${config.publicBaseUrl}/api/execute/webhook`,
     x402Enabled: config.x402Enabled,
     payment: {
@@ -166,6 +159,21 @@ export function publicBazaarMetadata() {
         config.payTo === ""
           ? null
           : `https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant?payTo=${config.payTo}`,
+      searchQueries: [
+        "Action402",
+        "paid webhook execution",
+        "x402 webhook receipt",
+        "AI agent action relay",
+        "verifiable execution"
+      ],
+      qualitySignals: [
+        "Valid @x402/extensions/bazaar discovery extension",
+        "Unpaid execution route returns 402 Payment Required when x402 is enabled",
+        "OpenAPI 3.1 contract is available",
+        "Agent-readable capabilities document is available",
+        "Public job and receipt verification endpoints are available",
+        "Receipts sign request and response hashes instead of exposing raw payloads"
+      ],
       bazaarExtensionValid: validation.valid,
       bazaarExtensionErrors: validation.errors || [],
       inputExample: EXAMPLE_REQUEST,
@@ -174,6 +182,24 @@ export function publicBazaarMetadata() {
         job: "/api/verify/jobs/{id}",
         receipt: "/api/verify/receipts/{id}"
       }
+    },
+    mcp: {
+      recommendedToolName: "execute_webhook",
+      discoveryHint:
+        "Search Bazaar/x402 MCP discovery for Action402 or paid webhook execution, then call the returned tool/resource with the JSON input example.",
+      buyerFlow: [
+        "search_resources query=Action402",
+        "select the Action402 execute webhook resource",
+        "proxy_tool_call with x402 payment handling",
+        "verify the returned job or receipt link"
+      ]
+    },
+    links: {
+      agentsGuide: `${config.publicBaseUrl}/agents`,
+      llms: `${config.publicBaseUrl}/llms.txt`,
+      capabilities: `${config.publicBaseUrl}/api/capabilities`,
+      openapi: `${config.publicBaseUrl}/openapi.json`,
+      bazaar: `${config.publicBaseUrl}/api/bazaar`
     },
     routeConfig
   };
@@ -184,4 +210,8 @@ export function validateBazaarDiscovery() {
   return validateDiscoveryExtension(route.extensions.bazaar);
 }
 
-export { EXAMPLE_REQUEST as bazaarExampleRequest, EXAMPLE_RESPONSE as bazaarExampleResponse, SERVICE_TAGS };
+export {
+  EXAMPLE_REQUEST as bazaarExampleRequest,
+  EXAMPLE_RESPONSE as bazaarExampleResponse,
+  SERVICE_TAGS
+};

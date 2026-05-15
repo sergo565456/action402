@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 for Agents</title>
+    <meta
+      name="description"
+      content="Agent integration guide for Action402 paid webhook execution, x402 discovery, receipts, and verification."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Agent navigation">
+        <a href="/api/capabilities">Capabilities</a>
+        <a href="/api/bazaar">Bazaar JSON</a>
+        <a href="/openapi.json">OpenAPI</a>
+        <a href="/llms.txt">llms.txt</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">For autonomous agents</p>
+          <h1>Pay for one action. Execute it. Verify the proof.</h1>
+          <p>
+            Action402 is an x402-native execution relay for agents that need safe, paid,
+            verifiable side effects without long-lived API keys or account setup.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/capabilities">Capabilities JSON</a>
+            <a class="button secondary" href="/openapi.json">OpenAPI</a>
+            <a class="button secondary" href="/api/bazaar">Bazaar Metadata</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Agent quick facts">
+          <dl>
+            <div>
+              <dt>use when</dt>
+              <dd>one paid public HTTPS action is needed</dd>
+            </div>
+            <div>
+              <dt>paid route</dt>
+              <dd><code>POST /api/execute/webhook</code></dd>
+            </div>
+            <div>
+              <dt>payment</dt>
+              <dd><code>x402 exact</code></dd>
+            </div>
+            <div>
+              <dt>proof</dt>
+              <dd><code>signed receipt + hash report</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Agent decision rule</p>
+          <h2>Use Action402 for bounded side effects.</h2>
+          <p>
+            The service is intentionally narrow: one paid outbound request, bounded retries,
+            idempotency, and a public proof trail after completion.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>good fit</span>
+            <h3>Trigger one webhook/API call</h3>
+            <p>Send a public HTTPS request after x402 payment and get job plus receipt links.</p>
+          </article>
+          <article class="endpoint">
+            <span>good fit</span>
+            <h3>Prove the action later</h3>
+            <p>Verify signature, target, status, attempt count, request hash, and response hash.</p>
+          </article>
+          <article class="endpoint">
+            <span>not a fit</span>
+            <h3>Long-running workflows</h3>
+            <p>Use a workflow engine when the task needs multi-step orchestration or private network access.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Copy-paste prompt</p>
+        <h2>Give this to an agent.</h2>
+        <pre><code>Use Action402 for one paid public HTTPS webhook/API action.
+Pay through x402, pass an idempotencyKey, and verify the returned receipt link
+before treating the action as complete.</code></pre>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Call flow</p>
+        <h2>Minimal integration path.</h2>
+        <pre><code>1. Read /api/capabilities or /openapi.json.
+2. POST /api/execute/webhook with url, method, body, idempotencyKey, retry, timeoutMs.
+3. In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.
+4. Read links.job or links.receipt from the response.
+5. Verify with /api/verify/jobs/{id} or /api/verify/receipts/{id}.</code></pre>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Discovery</p>
+          <h2>How agents should find it.</h2>
+          <p>
+            Search for Action402, paid webhook execution, x402 webhook receipt, AI agent action
+            relay, or verifiable execution. The same phrases are present in capabilities,
+            Bazaar metadata, and llms.txt.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>machine readable</span>
+            <h3>GET /llms.txt</h3>
+            <p>Plain text guidance for agent crawlers and LLM context loaders.</p>
+          </article>
+          <article class="endpoint">
+            <span>machine readable</span>
+            <h3>GET /api/capabilities</h3>
+            <p>Capability, safety, verification, discovery keywords, and MCP hints.</p>
+          </article>
+          <article class="endpoint">
+            <span>x402 discovery</span>
+            <h3>GET /api/bazaar</h3>
+            <p>Route config, Bazaar extension payload, x402 payment details, and quality signals.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">MCP / Bazaar</p>
+        <h2>Discovery-first tool use.</h2>
+        <pre><code>search_resources query="Action402"
+inspect returned resource metadata and price
+proxy_tool_call using the returned resource/tool name
+verify links.job or links.receipt after completion</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Agent guide: /agents</span>
+    </footer>
+  </body>
+</html>

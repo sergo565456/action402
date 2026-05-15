@@ -44,12 +44,31 @@ async function main() {
   console.log(`Action402 x402 smoke: ${baseUrl}`);
 
   const health = await checkJsonEndpoint("/health");
-  await checkJsonEndpoint("/api/capabilities");
-  await checkJsonEndpoint("/api/bazaar");
+  const capabilities = await checkJsonEndpoint("/api/capabilities");
+  const bazaar = await checkJsonEndpoint("/api/bazaar");
   await checkJsonEndpoint("/openapi.json");
 
   if (health) {
     record("x402 is enabled", health.x402Enabled === true, `x402Enabled=${health.x402Enabled}`);
+  }
+
+  if (capabilities) {
+    record(
+      "agent discovery prompt is published",
+      typeof capabilities.agentPrompt === "string" && capabilities.agentPrompt.includes("Action402")
+    );
+    record(
+      "MCP discovery hint is published",
+      capabilities.mcp?.recommendedToolName === "execute_webhook"
+    );
+  }
+
+  if (bazaar) {
+    record("Bazaar extension is valid", bazaar.discovery?.bazaarExtensionValid === true);
+    record(
+      "Bazaar discovery keywords are published",
+      Array.isArray(bazaar.discoveryKeywords) && bazaar.discoveryKeywords.includes("paid webhook execution")
+    );
   }
 
   try {

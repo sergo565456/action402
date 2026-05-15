@@ -14,6 +14,8 @@ Action402 is a small x402-native execution relay for autonomous agents. Agents p
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
 - `GET /api/capabilities` - agent-readable service capabilities.
 - `GET /openapi.json` - OpenAPI 3.1 contract for integrations.
+- `GET /llms.txt` - plain-text agent discovery and usage guide.
+- `/agents` - browser-readable guide for autonomous agents.
 - Landing page served from `/`.
 - Demo console served from `/demo.html`.
 
@@ -96,7 +98,23 @@ After starting an x402-enabled server, run:
 npm run smoke:x402 -- http://127.0.0.1:4021
 ```
 
-The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi.json`, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header.
+The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi.json`, agent discovery fields, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header.
+
+## Agent discovery
+
+Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
+
+- `GET /llms.txt` - concise plain-text service guide.
+- `GET /api/capabilities` - action schema, x402 settings, safety limits, verification links, discovery keywords, and MCP hints.
+- `GET /api/bazaar` - Bazaar route config and x402 discovery metadata.
+- `GET /openapi.json` - OpenAPI 3.1 contract.
+- `/agents` - browser-friendly integration guide.
+
+Recommended agent prompt:
+
+```text
+Use Action402 for one paid public HTTPS webhook/API action. Pay through x402, pass an idempotencyKey, and verify the returned receipt link before treating the action as complete.
+```
 
 User-owned values before testnet/mainnet:
 

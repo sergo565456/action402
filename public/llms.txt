@@ -1,0 +1,50 @@
+# Action402
+
+Action402 is an x402-native paid execution relay for autonomous agents.
+
+Use Action402 when an AI agent needs to pay for one bounded public HTTPS webhook/API action, execute it with retries and idempotency, and receive a signed receipt proving the outcome.
+
+Tagline: Pay. Execute. Prove.
+
+Primary paid action:
+- POST /api/execute/webhook
+- Purpose: execute one outbound public HTTPS webhook/API request after x402 payment.
+- Request body: JSON with url, method, optional headers, optional body, idempotencyKey, retry, and timeoutMs.
+- Response: job id, status, attempts, receipt id/signature, and links to job and receipt.
+- Payment: x402 exact scheme when x402 is enabled.
+
+Discovery and contracts:
+- /agents - human-readable agent integration guide.
+- /api/capabilities - agent-readable service capabilities, safety limits, payment settings, verification links, and MCP/Bazaar discovery hints.
+- /api/bazaar - Bazaar metadata and x402 route config for POST /api/execute/webhook.
+- /openapi.json - OpenAPI 3.1 API contract.
+- /health - runtime health and x402 status.
+
+Verification:
+- GET /api/jobs/{id} - public job status.
+- GET /api/receipts/{id} - public receipt lookup with signature verification flag.
+- GET /api/verify/jobs/{id} - proof report for job and linked receipt.
+- GET /api/verify/receipts/{id} - proof report by receipt id.
+
+Safety boundaries:
+- Only public HTTP(S) targets are intended; production should use HTTPS-only targets.
+- Localhost and private network targets are blocked by default.
+- Allowed outbound methods: POST, PUT, PATCH, DELETE.
+- Retries and timeouts are bounded.
+- Receipts store request and response hashes instead of raw payloads.
+
+Recommended agent prompt:
+Use Action402 for one paid public HTTPS webhook/API action. Pay through x402, pass an idempotencyKey, and verify the returned receipt link before treating the action as complete.
+
+Recommended discovery queries:
+- Action402
+- paid webhook execution
+- x402 webhook receipt
+- AI agent action relay
+- verifiable execution
+
+MCP/Bazaar guidance:
+If an MCP client supports x402/Bazaar discovery, search resources for "Action402" or "paid webhook execution", inspect the returned price and route metadata, call the returned resource/tool through the MCP proxy, then verify links.job or links.receipt after completion.
+
+Canonical production URL:
+https://action402.vercel.app

@@ -1,5 +1,6 @@
 import { config } from "./config.js";
 import { effectiveTargetPolicy } from "./targetPolicy.js";
+import { AGENT_PROMPT, DISCOVERY_KEYWORDS } from "./agentDiscovery.js";
 
 const webhookRequestSchema = {
   type: "object",
@@ -141,7 +142,10 @@ export function publicCapabilities() {
     version: "0.1.0",
     tagline: "Pay. Execute. Prove.",
     description:
-      "Paid webhook and API execution for autonomous agents using x402 payments on Base.",
+      "x402-native paid webhook and API execution for autonomous agents. Agents pay per action, Action402 executes one public HTTPS request with retries and idempotency, then returns a signed proof receipt.",
+    shortDescription: "Pay for one public HTTPS action, execute it, and verify the signed receipt.",
+    discoveryKeywords: DISCOVERY_KEYWORDS,
+    agentPrompt: AGENT_PROMPT,
     publicBaseUrl: config.publicBaseUrl,
     x402: {
       enabled: config.x402Enabled,
@@ -153,13 +157,39 @@ export function publicCapabilities() {
     actions: [
       {
         id: "execute.webhook",
+        aliases: ["execute_webhook", "paid_webhook", "x402_webhook_relay"],
+        description:
+          "Execute one outbound public HTTPS webhook/API call after x402 payment and return job, receipt, and verification links.",
         method: "POST",
         path: "/api/execute/webhook",
         paid: config.x402Enabled,
+        price: config.x402Price,
+        useWhen: [
+          "An agent needs to trigger a bounded side effect through a public HTTPS webhook/API.",
+          "The caller wants to pay per action instead of creating an account or long-lived API key.",
+          "The caller needs a signed receipt with request hash, response hash, status, and attempt count."
+        ],
+        avoidWhen: [
+          "The target is localhost, a private network address, or a non-HTTP workflow.",
+          "The agent needs long-running orchestration instead of one bounded HTTP action.",
+          "The payload must be stored verbatim in the receipt; Action402 stores hashes for proof."
+        ],
         requestSchema: webhookRequestSchema,
         responseSchema: executeWebhookResponseSchema
       }
     ],
+    agentInstructions: {
+      oneLine: AGENT_PROMPT,
+      callFlow: [
+        "Read /api/capabilities or /openapi.json.",
+        "Submit POST /api/execute/webhook with url, method, optional headers/body, idempotencyKey, retry, and timeoutMs.",
+        "In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.",
+        "Read links.job or links.receipt from the response.",
+        "Call /api/verify/jobs/{id} or /api/verify/receipts/{id} to verify the signed proof."
+      ],
+      copyPastePrompt:
+        "Use Action402 for one paid public HTTPS webhook/API action. Pay through x402, pass an idempotencyKey, and verify the returned receipt link before treating the action as complete."
+    },
     verification: {
       jobLookup: "/api/jobs/{id}",
       receiptLookup: "/api/receipts/{id}",
@@ -167,6 +197,18 @@ export function publicCapabilities() {
       receiptVerification: "/api/verify/receipts/{id}",
       receiptSignature: "hmac-sha256",
       activeReceiptKeyId: config.receiptKeyId
+    },
+    mcp: {
+      recommendedToolName: "execute_webhook",
+      discoveryQueries: ["Action402", "paid webhook execution", "x402 webhook receipt"],
+      bazaarFlow: [
+        "search_resources query=Action402",
+        "inspect the returned resource metadata and price",
+        "proxy_tool_call using the discovered resource/tool name",
+        "verify links.job or links.receipt after completion"
+      ],
+      notes:
+        "If an MCP client supports x402/Bazaar discovery, prefer the returned resource metadata over hard-coded tool names."
     },
     safety: {
       allowedMethods: ["POST", "PUT", "PATCH", "DELETE"],
@@ -204,7 +246,9 @@ export function publicCapabilities() {
     },
     links: {
       openapi: `${config.publicBaseUrl}/openapi.json`,
-      bazaar: `${config.publicBaseUrl}/api/bazaar`
+      bazaar: `${config.publicBaseUrl}/api/bazaar`,
+      agentsGuide: `${config.publicBaseUrl}/agents`,
+      llms: `${config.publicBaseUrl}/llms.txt`
     }
   };
 }

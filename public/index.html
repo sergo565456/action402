@@ -22,8 +22,10 @@
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#api">API</a>
         <a href="#receipts">Receipts</a>
+        <a href="/agents">Agents</a>
         <a href="/demo">Demo</a>
         <a href="/mockups">Mockups</a>
+        <a href="/videos">Videos</a>
         <a href="/brand.html">Brand</a>
         <a href="/bazaar">Bazaar</a>
       </nav>
@@ -40,8 +42,8 @@
           </p>
           <div class="hero-actions">
             <a class="button primary" href="#api">View API</a>
+            <a class="button secondary" href="/agents">For Agents</a>
             <a class="button secondary" href="/demo.html">Run Demo</a>
-            <a class="button secondary" href="/mockups">View Mockups</a>
           </div>
         </div>
         <div class="hero-terminal" aria-label="Execution receipt preview">
@@ -87,6 +89,11 @@ proof = "request + response hashes"</code></pre>
             <span>paid</span>
             <h3>POST /api/execute/webhook</h3>
             <p>Runs one outbound HTTPS action with retries, timeout control, and idempotency.</p>
+          </article>
+          <article class="endpoint">
+            <span>agent</span>
+            <h3>GET /llms.txt</h3>
+            <p>Plain-text agent context for discovery, call flow, and verification links.</p>
           </article>
           <article class="endpoint">
             <span>public</span>

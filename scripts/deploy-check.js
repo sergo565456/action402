@@ -53,6 +53,8 @@ async function main() {
   await checkStatic("/", "Action402");
   await checkStatic("/demo.html", "Action402 Demo Console");
   await checkStatic("/brand.html", "Action402 Brand");
+  await checkStatic("/agents", "Pay for one action");
+  await checkStatic("/llms.txt", "paid webhook execution");
 
   const health = await checkJson("/health");
   const capabilities = await checkJson("/api/capabilities");
@@ -69,6 +71,16 @@ async function main() {
   if (capabilities) {
     record("capabilities expose execute.webhook", capabilities.actions?.[0]?.id === "execute.webhook");
     record(
+      "capabilities expose agent prompt",
+      typeof capabilities.agentPrompt === "string" && capabilities.agentPrompt.includes("Action402")
+    );
+    record(
+      "capabilities expose discovery keywords",
+      Array.isArray(capabilities.discoveryKeywords) &&
+        capabilities.discoveryKeywords.includes("paid webhook execution")
+    );
+    record("capabilities expose MCP hints", capabilities.mcp?.recommendedToolName === "execute_webhook");
+    record(
       "capabilities expose proof report",
       capabilities.verification?.jobReceiptVerification === "/api/verify/jobs/{id}"
     );
@@ -84,6 +96,14 @@ async function main() {
     record("bazaar extension has POST method", route?.extensions?.bazaar?.info?.input?.method === "POST");
     record("bazaar extension has JSON body schema", route?.extensions?.bazaar?.info?.input?.bodyType === "json");
     record("bazaar metadata has service tags", Array.isArray(route?.tags) && route.tags.includes("x402"));
+    record(
+      "bazaar metadata has agent discovery keywords",
+      Array.isArray(bazaar.discoveryKeywords) && bazaar.discoveryKeywords.includes("x402 paid API")
+    );
+    record(
+      "bazaar metadata has quality signals",
+      Array.isArray(bazaar.discovery?.qualitySignals) && bazaar.discovery.qualitySignals.length >= 4
+    );
     if (expectX402) {
       record("bazaar payment points to Base mainnet", bazaar.payment?.network === "eip155:8453");
       record("bazaar payment has payTo", /^0x[a-fA-F0-9]{40}$/.test(bazaar.payment?.payTo || ""));
