@@ -47,23 +47,6 @@ async function checkJson(path) {
   }
 }
 
-async function checkPostJson(path, payload) {
-  try {
-    const { response, body } = await fetchJson(path, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-    record(`${path} accepts POST JSON`, response.status === 200 && body && typeof body === "object", `status=${response.status}`);
-    return body;
-  } catch (error) {
-    record(`${path} accepts POST JSON`, false, error.message);
-    return undefined;
-  }
-}
-
 async function main() {
   console.log(`Action402 deploy check: ${baseUrl}`);
 
@@ -86,12 +69,6 @@ async function main() {
   const proofs = await checkJson("/api/proofs/recent");
   const monitoring = await checkJson("/api/monitoring/executions");
   const trust = await checkJson("/api/trust");
-  const canary = await checkPostJson("/api/canary/echo", {
-    event: "deploy.check",
-    scenario: "deploy-check",
-    runId: `deploy-check-${Date.now()}`,
-    secretProbe: "must-not-be-echoed"
-  });
   await checkJson("/openapi.json");
 
   if (health) {
@@ -129,7 +106,6 @@ async function main() {
     );
     record("capabilities expose MCP guide link", typeof capabilities.links?.mcpGuide === "string");
     record("capabilities expose trust summary", capabilities.trust?.path === "/api/trust");
-    record("capabilities expose settlement canary", capabilities.canary?.targetPath === "/api/canary/echo");
     if (expectX402) {
       record("capabilities mark action paid", capabilities.actions?.[0]?.paid === true);
     }
@@ -185,12 +161,6 @@ async function main() {
     record("trust endpoint exposes x402 settings", trust.x402?.scheme === "exact");
     record("trust endpoint exposes public surfaces", typeof trust.publicSurfaces?.useCases === "string");
     record("trust endpoint exposes trust signals", Array.isArray(trust.trustSignals) && trust.trustSignals.length >= 6);
-  }
-
-  if (canary) {
-    record("canary endpoint returns ok", canary.ok === true);
-    record("canary endpoint echoes selected fields", canary.received?.scenario === "deploy-check");
-    record("canary endpoint redacts arbitrary payload", !JSON.stringify(canary).includes("must-not-be-echoed"));
   }
 
   const failed = checks.filter((check) => !check.ok);

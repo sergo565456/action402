@@ -54,8 +54,6 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.equal(body.links.trust.endsWith("/trust"), true);
   assert.equal(body.trust.path, "/api/trust");
-  assert.equal(body.canary.targetPath, "/api/canary/echo");
-  assert.equal(body.canary.settlementScript, "npm run settlement:canary");
   assert.ok(body.discoveryKeywords.includes("pay per API call"));
   assert.ok(body.discoveryKeywords.includes("Slack webhook x402"));
   assert.ok(body.useCaseTemplates.length >= 6);
@@ -71,7 +69,6 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/verify/receipts/{id}"].get);
   assert.ok(body.paths["/api/proofs/recent"].get);
   assert.ok(body.paths["/api/monitoring/executions"].get);
-  assert.ok(body.paths["/api/canary/echo"].post);
   assert.ok(body.paths["/api/trust"].get);
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
@@ -357,32 +354,6 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
   assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);
-});
-
-test("canary echo endpoint returns selected fields without raw payload leak", async () => {
-  const { response, body } = await request("/api/canary/echo", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json"
-    },
-    body: JSON.stringify({
-      event: "action402.test",
-      scenario: "unit-test",
-      runId: "run_123",
-      source: "node-test",
-      secretProbe: "must-not-leak"
-    })
-  });
-
-  assert.equal(response.status, 200);
-  assert.equal(body.ok, true);
-  assert.equal(body.canary, "settlement-target");
-  assert.equal(body.received.event, "action402.test");
-  assert.equal(body.received.scenario, "unit-test");
-  assert.equal(body.received.runId, "run_123");
-  assert.equal(body.received.source, "node-test");
-  assert.equal(body.receivedKeys.includes("secretProbe"), true);
-  assert.equal(JSON.stringify(body).includes("must-not-leak"), false);
 });
 
 test("webhook execution rejects private network targets with structured error", async () => {

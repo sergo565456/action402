@@ -10,3 +10,8 @@ coverage/
 data/
 
 .vercel
+
+# Local-only paid settlement automation. Do not commit.
+.github/workflows/settlement-canary.yml
+docs/settlement-canary.md
+scripts/settlement-canary.js
