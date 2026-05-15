@@ -22,6 +22,7 @@
     "@coinbase/x402": "latest",
     "@x402/core": "latest",
     "@x402/evm": "latest",
+    "@x402/extensions": "latest",
     "@x402/express": "latest",
     "dotenv": "latest",
     "express": "latest",

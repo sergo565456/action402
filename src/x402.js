@@ -11,12 +11,12 @@ export async function maybeInstallX402(app) {
   const { paymentMiddleware, x402ResourceServer } = await import("@x402/express");
   const { ExactEvmScheme } = await import("@x402/evm/exact/server");
   const { HTTPFacilitatorClient } = await import("@x402/core/server");
+  const { bazaarResourceServerExtension } = await import("@x402/extensions/bazaar");
 
   const facilitatorClient = await createFacilitatorClient(HTTPFacilitatorClient);
-  const server = new x402ResourceServer(facilitatorClient).register(
-    config.x402Network,
-    new ExactEvmScheme()
-  );
+  const server = new x402ResourceServer(facilitatorClient)
+    .register(config.x402Network, new ExactEvmScheme())
+    .registerExtension(bazaarResourceServerExtension);
 
   app.use(paymentMiddleware(executeWebhookRouteConfig(), server));
   logEvent("info", "x402.middleware_installed", {

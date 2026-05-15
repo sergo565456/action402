@@ -28,7 +28,7 @@ agent-infrastructure
 
 ## Resource
 
-`POST https://YOUR_DOMAIN/api/execute/webhook`
+`POST https://action402.vercel.app/api/execute/webhook`
 
 ## Suggested x402 config
 
@@ -37,9 +37,19 @@ agent-infrastructure
   "scheme": "exact",
   "price": "$0.003",
   "network": "eip155:8453",
-  "payTo": "0xYourReceivingWallet"
+  "payTo": "0x75113dcF8Ce34f0338440D40270e420f8C1762b8"
 }
 ```
+
+## Discovery endpoints
+
+- Agent capabilities: `https://action402.vercel.app/api/capabilities`
+- Bazaar metadata: `https://action402.vercel.app/api/bazaar`
+- OpenAPI: `https://action402.vercel.app/openapi.json`
+- CDP merchant lookup: `https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant?payTo=0x75113dcF8Ce34f0338440D40270e420f8C1762b8`
+
+The x402 route config uses `@x402/extensions/bazaar` and validates the `extensions.bazaar`
+payload before publishing `/api/bazaar`.
 
 ## Bazaar input example
 
@@ -55,7 +65,8 @@ agent-infrastructure
   "retry": {
     "attempts": 2,
     "backoffMs": 300
-  }
+  },
+  "timeoutMs": 10000
 }
 ```
 
@@ -78,3 +89,14 @@ agent-infrastructure
   }
 }
 ```
+
+## AgentCash smoke command on Windows PowerShell
+
+PowerShell strips JSON quotes unless `--%` is used before the AgentCash arguments.
+
+```powershell
+npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"headers\":{\"content-type\":\"application/json\"},\"body\":{\"event\":\"agent.test\",\"message\":\"hello from AgentCash\"},\"idempotencyKey\":\"agentcash-smoke-001\",\"retry\":{\"attempts\":2,\"backoffMs\":300},\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json
+```
+
+Expected result: payment settles for `$0.003`, the returned job status is `succeeded`,
+and the receipt verifies through `/api/verify/jobs/{id}` or `/api/verify/receipts/{id}`.

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { app } from "../src/server.js";
+import { validateBazaarDiscovery } from "../src/bazaar.js";
 import { buildReceipt } from "../src/receipt.js";
 import { createJob, resetStoreForTests, saveReceipt } from "../src/store.js";
 
@@ -41,6 +42,22 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/verify/receipts/{id}"].get);
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
+});
+
+test("bazaar metadata exposes valid discovery extension", async () => {
+  const { response, body } = await request("/api/bazaar");
+  const route = body.routeConfig["POST /api/execute/webhook"];
+
+  assert.equal(response.status, 200);
+  assert.equal(body.discovery.bazaarExtensionValid, true);
+  assert.equal(validateBazaarDiscovery().valid, true);
+  assert.equal(route.serviceName, "Action402");
+  assert.equal(route.tags.includes("x402"), true);
+  assert.equal(route.extensions.bazaar.info.input.method, "POST");
+  assert.equal(route.extensions.bazaar.info.input.bodyType, "json");
+  assert.equal(route.extensions.bazaar.info.input.body.url, "https://httpbin.org/anything");
+  assert.equal(route.extensions.bazaar.info.output.type, "json");
+  assert.ok(route.extensions.bazaar.schema.properties.input);
 });
 
 test("verification endpoint returns consistency report for stored job receipt", async () => {

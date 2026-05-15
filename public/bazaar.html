@@ -32,7 +32,8 @@
           <h1>Discoverable paid execution for autonomous agents.</h1>
           <p>
             Action402 exposes one x402-paid webhook execution route with Bazaar-facing metadata,
-            example input, example output, and receipt verification links.
+            official discovery extension schema, example input, example output, and receipt
+            verification links.
           </p>
           <div class="actions">
             <a class="button primary" href="/openapi">View OpenAPI</a>
@@ -51,11 +52,15 @@
             </div>
             <div>
               <dt>resource</dt>
-              <dd><code>/api/execute/webhook</code></dd>
+              <dd><code>https://action402.vercel.app/api/execute/webhook</code></dd>
             </div>
             <div>
-              <dt>raw endpoint</dt>
-              <dd><code>/api/bazaar</code></dd>
+              <dt>price</dt>
+              <dd><code>$0.003 on Base</code></dd>
+            </div>
+            <div>
+              <dt>payTo</dt>
+              <dd><code>0x75113dcF8Ce34f0338440D40270e420f8C1762b8</code></dd>
             </div>
           </dl>
         </aside>
@@ -66,8 +71,9 @@
           <p class="eyebrow">Route config</p>
           <h2>One paid route, public proof links.</h2>
           <p>
-            The raw JSON endpoint remains available for agents and x402 tooling. This page gives
-            people a browser-friendly surface that does not depend on direct JSON navigation.
+            The raw JSON endpoint remains available for agents and x402 tooling. The route config
+            is built with <code>@x402/extensions/bazaar</code> so CDP can extract method, input
+            schema, output example, service tags, and receipt verification paths after settlement.
           </p>
         </div>
         <div class="endpoint-list">
@@ -99,30 +105,61 @@
         <pre><code>{
   "name": "Action402",
   "tagline": "Pay. Execute. Prove.",
-  "resource": "http://localhost:4021/api/execute/webhook",
-  "x402Enabled": false,
+  "resource": "https://action402.vercel.app/api/execute/webhook",
+  "x402Enabled": true,
+  "payment": {
+    "scheme": "exact",
+    "price": "$0.003",
+    "network": "eip155:8453",
+    "payTo": "0x75113dcF8Ce34f0338440D40270e420f8C1762b8"
+  },
+  "discovery": {
+    "bazaarExtensionValid": true,
+    "verification": {
+      "job": "/api/verify/jobs/{id}",
+      "receipt": "/api/verify/receipts/{id}"
+    }
+  },
   "routeConfig": {
     "POST /api/execute/webhook": {
       "accepts": [
         {
           "scheme": "exact",
           "price": "$0.003",
-          "network": "eip155:84532",
-          "payTo": "0xYourReceivingWallet"
+          "network": "eip155:8453",
+          "payTo": "0x75113dcF8Ce34f0338440D40270e420f8C1762b8"
         }
       ],
       "description": "Paid webhook/API execution for autonomous agents.",
       "mimeType": "application/json",
+      "serviceName": "Action402",
+      "tags": ["x402", "webhook", "execution", "receipts"],
       "extensions": {
         "bazaar": {
-          "discoverable": true,
-          "category": "agent-infrastructure",
-          "tags": ["x402", "webhook", "execution", "receipts"]
+          "info": {
+            "input": {
+              "type": "http",
+              "method": "POST",
+              "bodyType": "json"
+            }
+          },
+          "schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema"
+          }
         }
       }
     }
   }
 }</code></pre>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">AgentCash smoke</p>
+        <h2>Known-good paid call.</h2>
+        <p>
+          On Windows PowerShell, use <code>--%</code> so JSON quotes survive the CLI boundary.
+        </p>
+        <pre><code>npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"headers\":{\"content-type\":\"application/json\"},\"body\":{\"event\":\"agent.test\",\"message\":\"hello from AgentCash\"},\"idempotencyKey\":\"agentcash-smoke-001\",\"retry\":{\"attempts\":2,\"backoffMs\":300},\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json</code></pre>
       </section>
     </main>
 

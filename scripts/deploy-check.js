@@ -56,7 +56,7 @@ async function main() {
 
   const health = await checkJson("/health");
   const capabilities = await checkJson("/api/capabilities");
-  await checkJson("/api/bazaar");
+  const bazaar = await checkJson("/api/bazaar");
   await checkJson("/openapi.json");
 
   if (health) {
@@ -74,6 +74,19 @@ async function main() {
     );
     if (expectX402) {
       record("capabilities mark action paid", capabilities.actions?.[0]?.paid === true);
+    }
+  }
+
+  if (bazaar) {
+    const route = bazaar.routeConfig?.["POST /api/execute/webhook"];
+    record("bazaar route exists", Boolean(route));
+    record("bazaar discovery extension is valid", bazaar.discovery?.bazaarExtensionValid === true);
+    record("bazaar extension has POST method", route?.extensions?.bazaar?.info?.input?.method === "POST");
+    record("bazaar extension has JSON body schema", route?.extensions?.bazaar?.info?.input?.bodyType === "json");
+    record("bazaar metadata has service tags", Array.isArray(route?.tags) && route.tags.includes("x402"));
+    if (expectX402) {
+      record("bazaar payment points to Base mainnet", bazaar.payment?.network === "eip155:8453");
+      record("bazaar payment has payTo", /^0x[a-fA-F0-9]{40}$/.test(bazaar.payment?.payTo || ""));
     }
   }
 
