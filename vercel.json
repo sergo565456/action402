@@ -78,7 +78,7 @@
     },
     {
       "source": "/proof/:id",
-      "destination": "/api/index?__action402_path=/proof/:id"
+      "destination": "/proof.html"
     },
     {
       "source": "/monitoring",
