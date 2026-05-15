@@ -173,6 +173,9 @@ export function publicBazaarMetadata() {
         "Action402 integration snippets",
         "x402 verification snippets",
         "x402 action templates",
+        "browser action handoff",
+        "x402 schedule preview",
+        "secret storage policy",
         "public proof badge",
         "Slack webhook x402",
         "Discord webhook x402",
@@ -198,7 +201,9 @@ export function publicBazaarMetadata() {
         "Public execution monitoring summary is available",
         "Use-case templates are published for agent task matching",
         "Policy modes are described for open, blocklist/quota, and allowlist operation",
-        "Scheduled-action capability is marked design-ready, not falsely advertised as active",
+        "Scheduled-action preview is available and not falsely advertised as durable paid scheduling",
+        "Browser/action handoff package endpoint is available without claiming browser execution",
+        "Secret storage policy is published so agents know what not to send",
         "MCP guide is published for discovery-first clients",
         "Public trust summary is available",
         "Receipts sign request and response hashes instead of exposing raw payloads"
@@ -247,6 +252,30 @@ export function publicBazaarMetadata() {
       description:
         "Free preflight check for request shape, target safety, policy, retry, timeout, and warnings before paying."
     },
+    handoff: {
+      method: "POST",
+      path: "/api/handoff/browser",
+      paid: false,
+      status: "active-handoff-only",
+      description:
+        "Free browser/action handoff package for external browser-capable agents. It does not execute browser steps."
+    },
+    schedules: {
+      method: "POST",
+      path: "/api/schedules/preview",
+      paid: false,
+      status: "preview-only",
+      description:
+        "Free schedule shape and target-policy preview. It does not persist, wake up, execute, or charge."
+    },
+    secretStorage: {
+      method: "GET",
+      path: "/api/secrets/policy",
+      paid: false,
+      status: "policy-only",
+      description:
+        "Public secret handling policy for authenticated targets. The public MVP does not store target-side secrets."
+    },
     mcp: {
       recommendedToolName: "execute_webhook",
       discoveryHint:
@@ -270,10 +299,18 @@ export function publicBazaarMetadata() {
       proofs: `${config.publicBaseUrl}/proofs`,
       proofBadge: `${config.publicBaseUrl}/proof/{jobOrReceiptId}`,
       monitoring: `${config.publicBaseUrl}/monitoring`,
+      handoff: `${config.publicBaseUrl}/handoff`,
+      schedules: `${config.publicBaseUrl}/schedules`,
+      secrets: `${config.publicBaseUrl}/secrets`,
       llms: `${config.publicBaseUrl}/llms.txt`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
+      handoffCapabilities: `${config.publicBaseUrl}/api/handoff/capabilities`,
+      handoffEndpoint: `${config.publicBaseUrl}/api/handoff/browser`,
+      scheduleCapabilities: `${config.publicBaseUrl}/api/schedules/capabilities`,
+      schedulePreview: `${config.publicBaseUrl}/api/schedules/preview`,
+      secretPolicy: `${config.publicBaseUrl}/api/secrets/policy`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       capabilities: `${config.publicBaseUrl}/api/capabilities`,
       openapi: `${config.publicBaseUrl}/openapi.json`,

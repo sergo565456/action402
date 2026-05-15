@@ -59,6 +59,9 @@ async function main() {
   await checkStatic("/use-cases", "Use-case templates");
   await checkStatic("/actions", "Action catalog");
   await checkStatic("/snippets", "Integration snippets");
+  await checkStatic("/handoff", "Browser handoff");
+  await checkStatic("/schedules", "Schedule preview");
+  await checkStatic("/secrets", "Secret storage policy");
   await checkStatic("/mcp", "Discovery-first instructions");
   await checkStatic("/trust", "Trust summary");
   await checkStatic("/proofs", "Verified proof examples");
@@ -81,6 +84,46 @@ async function main() {
       idempotencyKey: "deploy-check-policy"
     })
   });
+  const handoffCapabilities = await checkJson("/api/handoff/capabilities");
+  const handoff = await checkJson("/api/handoff/browser", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      targetUrl: "https://1.1.1.1/",
+      actions: [
+        {
+          type: "navigate",
+          description: "Open the target page."
+        }
+      ],
+      idempotencyKey: "deploy-check-handoff"
+    })
+  });
+  const scheduleCapabilities = await checkJson("/api/schedules/capabilities");
+  const schedulePreview = await checkJson("/api/schedules/preview", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      webhook: {
+        url: "https://1.1.1.1/webhook",
+        method: "POST",
+        body: {
+          event: "deploy.schedule-preview"
+        },
+        idempotencyKey: "deploy-check-schedule-preview"
+      },
+      schedule: {
+        type: "daily",
+        timeOfDay: "09:30",
+        timezone: "UTC"
+      }
+    })
+  });
+  const secretPolicy = await checkJson("/api/secrets/policy");
   const snippets = await checkJson("/api/snippets");
   const bazaar = await checkJson("/api/bazaar");
   const proofs = await checkJson("/api/proofs/recent");
@@ -128,6 +171,9 @@ async function main() {
     record("capabilities expose quickstart", capabilities.quickstart?.path === "/api/quickstart");
     record("capabilities expose policy check", capabilities.policyCheck?.path === "/api/policy/check");
     record("capabilities expose snippets", capabilities.snippets?.path === "/api/snippets");
+    record("capabilities expose browser handoff", capabilities.handoff?.path === "/api/handoff/browser");
+    record("capabilities expose schedule preview", capabilities.schedules?.previewPath === "/api/schedules/preview");
+    record("capabilities expose secret policy", capabilities.secretStorage?.status === "not-supported-in-public-mvp");
     record("capabilities expose action catalog", capabilities.actionCatalog?.path === "/api/actions");
     record("capabilities expose proof badge", capabilities.verification?.proofBadge === "/proof/{jobOrReceiptId}");
     record("capabilities expose MCP guide link", typeof capabilities.links?.mcpGuide === "string");
@@ -144,7 +190,9 @@ async function main() {
       "actions endpoint exposes policy modes",
       Array.isArray(actions.policyModes) && actions.policyModes.some((mode) => mode.id === "open-public-https")
     );
-    record("actions endpoint marks schedules honestly", actions.scheduledActions?.status === "design-ready");
+    record("actions endpoint marks schedules honestly", actions.scheduledActions?.status === "preview-only");
+    record("actions endpoint exposes handoff pattern", actions.browserHandoff?.endpoint?.path === "/api/handoff/browser");
+    record("actions endpoint exposes secret policy", actions.secretStorage?.endpoint?.path === "/api/secrets/policy");
     record("actions endpoint exposes snippets", Array.isArray(actions.snippets) && actions.snippets.length >= 3);
   }
 
@@ -161,9 +209,35 @@ async function main() {
     record("policy check points to paid action", policyCheck.action?.path === "/api/execute/webhook");
   }
 
+  if (handoffCapabilities) {
+    record("handoff capabilities mark handoff-only", handoffCapabilities.status === "active-handoff-only");
+    record("handoff capabilities expose endpoint", handoffCapabilities.path === "/api/handoff/browser");
+  }
+
+  if (handoff) {
+    record("handoff endpoint returns package", handoff.ok === true && handoff.handoff?.executionModel === "browser-handoff-only");
+    record("handoff endpoint does not claim execution", handoff.handoff?.notExecutedByAction402 === true);
+  }
+
+  if (scheduleCapabilities) {
+    record("schedule capabilities mark preview-only", scheduleCapabilities.status === "preview-only");
+    record("schedule capabilities expose preview endpoint", scheduleCapabilities.previewPath === "/api/schedules/preview");
+  }
+
+  if (schedulePreview) {
+    record("schedule preview endpoint returns preview", schedulePreview.ok === true && schedulePreview.status === "preview-only");
+    record("schedule preview endpoint does not execute", schedulePreview.willExecute === false);
+  }
+
+  if (secretPolicy) {
+    record("secret policy endpoint is explicit", secretPolicy.status === "not-supported-in-public-mvp");
+    record("secret policy endpoint blocks private keys", secretPolicy.neverSend?.includes("wallet private keys"));
+  }
+
   if (snippets) {
     record("snippets endpoint exposes payment route", snippets.payment?.route?.endsWith("/api/execute/webhook"));
     record("snippets endpoint exposes groups", Array.isArray(snippets.groups) && snippets.groups.length >= 4);
+    record("snippets endpoint exposes advanced surfaces", snippets.groups?.some((group) => group.id === "advanced-surfaces"));
     record(
       "snippets endpoint exposes verification examples",
       snippets.groups?.some((group) => group.id === "verification" && Array.isArray(group.snippets) && group.snippets.length >= 2)
@@ -191,6 +265,9 @@ async function main() {
     record("bazaar metadata has quickstart link", typeof bazaar.links?.quickstart === "string");
     record("bazaar metadata has policy check link", typeof bazaar.links?.policyCheck === "string");
     record("bazaar metadata has snippets link", typeof bazaar.links?.snippets === "string");
+    record("bazaar metadata has handoff link", typeof bazaar.links?.handoffEndpoint === "string");
+    record("bazaar metadata has schedule preview link", typeof bazaar.links?.schedulePreview === "string");
+    record("bazaar metadata has secret policy link", typeof bazaar.links?.secretPolicy === "string");
     record("bazaar metadata has proof badge link", typeof bazaar.links?.proofBadge === "string");
     record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
     record("bazaar metadata has use-case link", typeof bazaar.links?.useCases === "string");
@@ -233,6 +310,9 @@ async function main() {
     record("trust endpoint exposes action catalog surface", typeof trust.publicSurfaces?.actionCatalog === "string");
     record("trust endpoint exposes policy check surface", typeof trust.publicSurfaces?.policyCheck === "string");
     record("trust endpoint exposes snippets surface", typeof trust.publicSurfaces?.snippets === "string");
+    record("trust endpoint exposes handoff surface", typeof trust.publicSurfaces?.handoffCapabilities === "string");
+    record("trust endpoint exposes schedule preview surface", typeof trust.publicSurfaces?.schedulePreview === "string");
+    record("trust endpoint exposes secret policy surface", typeof trust.publicSurfaces?.secretPolicy === "string");
     record("trust endpoint exposes trust signals", Array.isArray(trust.trustSignals) && trust.trustSignals.length >= 6);
   }
 

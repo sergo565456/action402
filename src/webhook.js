@@ -69,7 +69,7 @@ function privateIpReason(ip) {
   return "";
 }
 
-async function validateTarget(rawUrl) {
+export async function validateTarget(rawUrl) {
   let parsed;
   try {
     parsed = new URL(rawUrl);

@@ -1,7 +1,18 @@
 import { config } from "./config.js";
 import { effectiveTargetPolicy } from "./targetPolicy.js";
 import { AGENT_PROMPT, DISCOVERY_KEYWORDS } from "./agentDiscovery.js";
-import { POLICY_MODES, SCHEDULED_ACTION_PATTERN, publicActionTemplates } from "./actionCatalog.js";
+import {
+  BROWSER_HANDOFF_PATTERN,
+  POLICY_MODES,
+  SCHEDULED_ACTION_PATTERN,
+  SECRET_STORAGE_PATTERN,
+  publicActionTemplates
+} from "./actionCatalog.js";
+import {
+  publicHandoffCapabilities,
+  publicScheduleCapabilities,
+  publicSecretStoragePolicy
+} from "./advancedActions.js";
 import { publicUseCaseTemplates } from "./useCases.js";
 
 const webhookRequestSchema = {
@@ -224,7 +235,17 @@ const actionTemplateSchema = {
 
 const actionCatalogResponseSchema = {
   type: "object",
-  required: ["ok", "service", "activePrimitive", "categories", "templates", "policyModes", "scheduledActions"],
+  required: [
+    "ok",
+    "service",
+    "activePrimitive",
+    "categories",
+    "templates",
+    "policyModes",
+    "scheduledActions",
+    "browserHandoff",
+    "secretStorage"
+  ],
   properties: {
     ok: { type: "boolean" },
     service: { type: "string" },
@@ -242,6 +263,8 @@ const actionCatalogResponseSchema = {
       items: { type: "object" }
     },
     scheduledActions: { type: "object" },
+    browserHandoff: { type: "object" },
+    secretStorage: { type: "object" },
     snippets: {
       type: "array",
       items: { type: "object" }
@@ -345,6 +368,144 @@ const policyCheckResponseSchema = {
   }
 };
 
+const browserHandoffRequestSchema = {
+  type: "object",
+  additionalProperties: true,
+  required: ["targetUrl", "actions"],
+  properties: {
+    targetUrl: {
+      type: "string",
+      format: "uri",
+      description: "Absolute public HTTPS URL for the browser-capable agent to open."
+    },
+    actions: {
+      type: "array",
+      minItems: 1,
+      maxItems: 12,
+      items: {
+        type: "object",
+        required: ["type"],
+        properties: {
+          type: {
+            type: "string",
+            enum: [
+              "instruction",
+              "navigate",
+              "click",
+              "type",
+              "select",
+              "submit",
+              "wait_for_text",
+              "screenshot",
+              "extract",
+              "verify"
+            ]
+          },
+          selector: { type: "string" },
+          text: { type: "string" },
+          value: { type: "string" },
+          description: { type: "string" },
+          timeoutMs: { type: "integer", minimum: 1000, maximum: config.maxWebhookTimeoutMs }
+        }
+      }
+    },
+    returnUrl: {
+      type: "string",
+      format: "uri",
+      description: "Optional public HTTPS callback or result URL for the external browser agent."
+    },
+    idempotencyKey: {
+      type: "string",
+      maxLength: 160
+    }
+  }
+};
+
+const browserHandoffResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "handoff", "policy", "warnings", "next"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    handoff: {
+      type: "object",
+      required: ["id", "status", "executionModel", "paid", "notExecutedByAction402", "target", "actions"],
+      properties: {
+        id: { type: "string" },
+        status: { type: "string" },
+        executionModel: { type: "string" },
+        paid: { type: "boolean" },
+        notExecutedByAction402: { type: "boolean" },
+        target: { type: "object" },
+        actions: { type: "array" }
+      }
+    },
+    policy: { type: "object" },
+    warnings: { type: "array", items: { type: "string" } },
+    next: { type: "object" }
+  }
+};
+
+const schedulePreviewRequestSchema = {
+  type: "object",
+  additionalProperties: true,
+  required: ["webhook", "schedule"],
+  properties: {
+    webhook: webhookRequestSchema,
+    schedule: {
+      type: "object",
+      required: ["type"],
+      properties: {
+        type: { type: "string", enum: ["once", "daily"] },
+        runAt: {
+          type: "string",
+          format: "date-time",
+          description: "Required for once schedules."
+        },
+        timeOfDay: {
+          type: "string",
+          pattern: "^\\d{2}:\\d{2}$",
+          description: "Required for daily schedules, UTC by default."
+        },
+        timezone: { type: "string" }
+      }
+    }
+  }
+};
+
+const schedulePreviewResponseSchema = {
+  type: "object",
+  required: ["ok", "allowed", "status", "paid", "willExecute"],
+  properties: {
+    ok: { type: "boolean" },
+    allowed: { type: "boolean" },
+    status: { type: "string" },
+    paid: { type: "boolean" },
+    willExecute: { type: "boolean" },
+    preview: { type: "object" },
+    paymentPolicy: { type: "object" },
+    warnings: { type: "array", items: { type: "string" } },
+    error: { type: "object" },
+    next: { type: "object" }
+  }
+};
+
+const secretStoragePolicySchema = {
+  type: "object",
+  required: ["status", "activeStorageEndpoint", "safeAlternatives", "neverSend"],
+  properties: {
+    status: { type: "string" },
+    activeStorageEndpoint: { type: "boolean" },
+    paid: { type: "boolean" },
+    description: { type: "string" },
+    why: { type: "string" },
+    safeAlternatives: { type: "array", items: { type: "string" } },
+    neverSend: { type: "array", items: { type: "string" } },
+    futureShape: { type: "object" },
+    links: { type: "object" }
+  }
+};
+
 const trustResponseSchema = {
   type: "object",
   required: [
@@ -416,6 +577,9 @@ const trustResponseSchema = {
 
 export function publicCapabilities() {
   const targetPolicy = effectiveTargetPolicy(config);
+  const handoffCapabilities = publicHandoffCapabilities({ baseUrl: config.publicBaseUrl });
+  const scheduleCapabilities = publicScheduleCapabilities({ baseUrl: config.publicBaseUrl });
+  const secretStoragePolicy = publicSecretStoragePolicy({ baseUrl: config.publicBaseUrl });
 
   return {
     name: "Action402",
@@ -451,6 +615,9 @@ export function publicCapabilities() {
       description:
         "Free preflight check for method, target safety, policy, retry, timeout, and buyer warnings before paying for execution."
     },
+    handoff: handoffCapabilities,
+    schedules: scheduleCapabilities,
+    secretStorage: secretStoragePolicy,
     x402: {
       enabled: config.x402Enabled,
       scheme: "exact",
@@ -480,16 +647,61 @@ export function publicCapabilities() {
         ],
         requestSchema: webhookRequestSchema,
         responseSchema: executeWebhookResponseSchema
+      },
+      {
+        id: "browser.handoff",
+        aliases: ["browser_handoff", "action_handoff", "external_browser_agent_handoff"],
+        description:
+          "Create a free handoff package for an external browser-capable agent. Action402 does not execute these browser steps.",
+        method: "POST",
+        path: "/api/handoff/browser",
+        paid: false,
+        status: BROWSER_HANDOFF_PATTERN.status,
+        useWhen: [
+          "An agent needs to hand a browser task to another agent that already controls a browser.",
+          "The workflow needs structured browser instructions but not Action402 paid browser execution."
+        ],
+        avoidWhen: [
+          "The caller expects Action402 to click, type, or verify screenshots itself.",
+          "The browser task requires secret storage inside public Action402."
+        ],
+        requestSchema: browserHandoffRequestSchema,
+        responseSchema: browserHandoffResponseSchema
+      },
+      {
+        id: "schedule.preview",
+        aliases: ["schedule_preview", "scheduled_webhook_preview"],
+        description:
+          "Validate a schedule definition and webhook target policy without charging, storing, waking up, or executing.",
+        method: "POST",
+        path: "/api/schedules/preview",
+        paid: false,
+        status: SCHEDULED_ACTION_PATTERN.status,
+        useWhen: [
+          "An agent wants to check if a scheduled webhook definition is compatible with future Action402 scheduling.",
+          "The caller needs target policy feedback before building a scheduler around paid execution."
+        ],
+        avoidWhen: [
+          "The caller expects the schedule to persist or execute later.",
+          "The caller expects a paid execution receipt from the preview."
+        ],
+        requestSchema: schedulePreviewRequestSchema,
+        responseSchema: schedulePreviewResponseSchema
       }
     ],
     actionTemplates: publicActionTemplates(),
     policyModes: POLICY_MODES,
     scheduledActions: SCHEDULED_ACTION_PATTERN,
+    browserHandoff: BROWSER_HANDOFF_PATTERN,
+    secretStoragePolicy: SECRET_STORAGE_PATTERN,
     agentInstructions: {
       oneLine: AGENT_PROMPT,
       callFlow: [
         "Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.",
         "Optionally POST the same payload to /api/policy/check before paying.",
+        "Use /api/handoff/browser only when a separate browser-capable agent will execute the browser steps.",
+        "Use /api/schedules/preview only to validate future schedule shape; it will not execute or charge.",
+        "Read /api/secrets/policy before sending target-side authorization headers.",
         "Use /api/snippets for copy-paste buyer and proof verification examples.",
         "Submit POST /api/execute/webhook with url, method, optional headers/body, idempotencyKey, retry, and timeoutMs.",
         "In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.",
@@ -546,6 +758,9 @@ export function publicCapabilities() {
         "Action402 action catalog",
         "agent quickstart x402",
         "pay per API call",
+        "browser action handoff",
+        "schedule preview x402",
+        "secret storage policy",
         "Slack webhook x402",
         "Discord webhook x402",
         "Telegram bot x402",
@@ -602,6 +817,13 @@ export function publicCapabilities() {
       snippets: `${config.publicBaseUrl}/api/snippets`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
+      handoff: `${config.publicBaseUrl}/handoff`,
+      handoffCapabilities: `${config.publicBaseUrl}/api/handoff/capabilities`,
+      schedules: `${config.publicBaseUrl}/schedules`,
+      scheduleCapabilities: `${config.publicBaseUrl}/api/schedules/capabilities`,
+      schedulePreview: `${config.publicBaseUrl}/api/schedules/preview`,
+      secrets: `${config.publicBaseUrl}/secrets`,
+      secretPolicy: `${config.publicBaseUrl}/api/secrets/policy`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       actions: `${config.publicBaseUrl}/actions`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
@@ -987,6 +1209,113 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/handoff/capabilities": {
+        get: {
+          summary: "Fetch browser handoff capabilities",
+          description:
+            "Returns the free browser/action handoff contract. The public MVP creates handoff packages only and does not execute browser automation.",
+          responses: {
+            "200": {
+              description: "Browser handoff capabilities"
+            }
+          }
+        }
+      },
+      "/api/handoff/browser": {
+        post: {
+          summary: "Create a browser/action handoff package",
+          description:
+            "Creates a structured package for an external browser-capable agent. This route is free and does not execute browser steps.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: browserHandoffRequestSchema
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Browser handoff package",
+              content: {
+                "application/json": {
+                  schema: browserHandoffResponseSchema
+                }
+              }
+            },
+            "400": {
+              description: "Invalid handoff request",
+              content: {
+                "application/json": {
+                  schema: errorSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/schedules/capabilities": {
+        get: {
+          summary: "Fetch schedule preview capabilities",
+          description:
+            "Returns schedule preview capability metadata. Durable paid scheduling is intentionally not active yet.",
+          responses: {
+            "200": {
+              description: "Schedule preview capabilities"
+            }
+          }
+        }
+      },
+      "/api/schedules/preview": {
+        post: {
+          summary: "Preview a future scheduled webhook",
+          description:
+            "Validates schedule shape and webhook target policy without charging, storing, waking up, or executing.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: schedulePreviewRequestSchema
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Schedule preview result. Validation failures are returned as allowed=false JSON.",
+              content: {
+                "application/json": {
+                  schema: schedulePreviewResponseSchema
+                }
+              }
+            },
+            "400": {
+              description: "Invalid JSON body",
+              content: {
+                "application/json": {
+                  schema: errorSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/secrets/policy": {
+        get: {
+          summary: "Fetch public secret storage policy",
+          description:
+            "Explains why the public MVP does not store target-side secrets and lists safe alternatives for authenticated targets.",
+          responses: {
+            "200": {
+              description: "Secret storage policy",
+              content: {
+                "application/json": {
+                  schema: secretStoragePolicySchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/capabilities": {
         get: {
           summary: "Fetch agent-readable service capabilities",
@@ -1050,6 +1379,11 @@ export function openApiSpec() {
         QuickstartResponse: quickstartResponseSchema,
         SnippetsResponse: snippetsResponseSchema,
         PolicyCheckResponse: policyCheckResponseSchema,
+        BrowserHandoffRequest: browserHandoffRequestSchema,
+        BrowserHandoffResponse: browserHandoffResponseSchema,
+        SchedulePreviewRequest: schedulePreviewRequestSchema,
+        SchedulePreviewResponse: schedulePreviewResponseSchema,
+        SecretStoragePolicy: secretStoragePolicySchema,
         TrustResponse: trustResponseSchema,
         Error: errorSchema
       }

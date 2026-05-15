@@ -73,6 +73,9 @@ async function main() {
   const actions = await checkJsonEndpoint("/api/actions");
   const quickstart = await checkJsonEndpoint("/api/quickstart");
   await checkPolicyEndpoint();
+  const handoffCapabilities = await checkJsonEndpoint("/api/handoff/capabilities");
+  const scheduleCapabilities = await checkJsonEndpoint("/api/schedules/capabilities");
+  const secretPolicy = await checkJsonEndpoint("/api/secrets/policy");
   const snippets = await checkJsonEndpoint("/api/snippets");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
   await checkJsonEndpoint("/openapi.json");
@@ -100,6 +103,18 @@ async function main() {
   if (quickstart) {
     record("Quickstart route is published", quickstart.payment?.route?.endsWith("/api/execute/webhook"));
     record("Quickstart proof badge is published", quickstart.verify?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
+  }
+
+  if (handoffCapabilities) {
+    record("Browser handoff is published", handoffCapabilities.status === "active-handoff-only");
+  }
+
+  if (scheduleCapabilities) {
+    record("Schedule preview is published", scheduleCapabilities.status === "preview-only");
+  }
+
+  if (secretPolicy) {
+    record("Secret policy is published", secretPolicy.status === "not-supported-in-public-mvp");
   }
 
   if (snippets) {

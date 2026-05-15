@@ -307,17 +307,24 @@ const POLICY_MODES = [
 
 const SCHEDULED_ACTION_PATTERN = {
   id: "scheduled.webhook",
-  status: "design-ready",
+  status: "preview-only",
   category: "scheduling",
   title: "Scheduled paid webhook action",
   description:
     "A durable scheduler pattern for agents that want to pay for delayed or recurring webhook execution.",
   availability:
-    "Not active as a paid endpoint yet. The current production endpoint executes one immediate bounded action.",
+    "A free schedule preview endpoint is active. Durable paid scheduling is not active as a paid endpoint yet.",
+  previewEndpoint: {
+    method: "POST",
+    path: "/api/schedules/preview",
+    paid: false,
+    executionModel: "validate schedule shape and target policy only"
+  },
   whyNotImmediate:
     "Scheduling needs durable queue semantics and replay-safe payment policy. Exposing it before that would confuse agents and weaken proof quality.",
   compatiblePath: [
     "Keep POST /api/execute/webhook as the immediate execution primitive.",
+    "Use POST /api/schedules/preview to validate schedule shape and target policy before implementation.",
     "Add a durable schedule store and worker.",
     "Charge once per executed run, not once per schedule definition.",
     "Return schedule id plus per-run job and receipt links."
@@ -339,6 +346,48 @@ const SCHEDULED_ACTION_PATTERN = {
       idempotencyKey: "scheduled-webhook-001"
     }
   }
+};
+
+const BROWSER_HANDOFF_PATTERN = {
+  id: "browser.handoff",
+  status: "active-handoff-only",
+  category: "handoff",
+  title: "Browser/action handoff package",
+  description:
+    "Create a structured handoff package for an external browser-capable agent without claiming Action402 executes browser steps itself.",
+  availability:
+    "Active as a free handoff endpoint. It does not execute browser automation and does not produce a paid execution receipt.",
+  endpoint: {
+    method: "POST",
+    path: "/api/handoff/browser",
+    paid: false,
+    executionModel: "handoff-only"
+  },
+  bestFor: [
+    "Passing bounded browser tasks to an agent that already has browser control.",
+    "Keeping Action402 useful for mixed machine/API and browser workflows.",
+    "Avoiding false paid-settlement claims for steps Action402 did not execute."
+  ],
+  futureShape:
+    "A future paid browser executor would need sandboxing, screenshot proof, step logs, timeout policy, and per-step receipts."
+};
+
+const SECRET_STORAGE_PATTERN = {
+  id: "secrets.policy",
+  status: "policy-only",
+  category: "security",
+  title: "Secret storage policy",
+  description:
+    "Public policy for authenticated targets. The public MVP does not store long-lived target-side secrets.",
+  endpoint: {
+    method: "GET",
+    path: "/api/secrets/policy",
+    paid: false
+  },
+  safeUse:
+    "Use target-owned webhook secrets, short-lived per-request headers, or dedicated partner deployments with authentication and a managed vault.",
+  avoid:
+    "Do not send wallet private keys, seed phrases, database URLs, or long-lived admin credentials to public Action402."
 };
 
 function uniqueSorted(values) {
@@ -442,6 +491,8 @@ function publicActionCatalog({ baseUrl, price, x402Enabled, network, targetPolic
     templates,
     policyModes: POLICY_MODES,
     scheduledActions: SCHEDULED_ACTION_PATTERN,
+    browserHandoff: BROWSER_HANDOFF_PATTERN,
+    secretStorage: SECRET_STORAGE_PATTERN,
     snippets: buyerSnippets({ baseUrl, price, network }),
     discoveryKeywords,
     links: {
@@ -450,6 +501,12 @@ function publicActionCatalog({ baseUrl, price, x402Enabled, network, targetPolic
       bazaar: `${baseUrl}/api/bazaar`,
       openapi: `${baseUrl}/openapi.json`,
       actionsPage: `${baseUrl}/actions`,
+      handoffPage: `${baseUrl}/handoff`,
+      schedulesPage: `${baseUrl}/schedules`,
+      secretsPage: `${baseUrl}/secrets`,
+      handoffCapabilities: `${baseUrl}/api/handoff/capabilities`,
+      scheduleCapabilities: `${baseUrl}/api/schedules/capabilities`,
+      secretPolicy: `${baseUrl}/api/secrets/policy`,
       agentsGuide: `${baseUrl}/agents`,
       trust: `${baseUrl}/api/trust`,
       recentProofs: `${baseUrl}/api/proofs/recent`
@@ -529,6 +586,9 @@ function publicQuickstart({ baseUrl, price, x402Enabled, network, maxRetryAttemp
     },
     nextDiscoverySteps: [
       `${baseUrl}/api/actions`,
+      `${baseUrl}/api/handoff/capabilities`,
+      `${baseUrl}/api/schedules/capabilities`,
+      `${baseUrl}/api/secrets/policy`,
       `${baseUrl}/api/policy/check`,
       `${baseUrl}/api/capabilities`,
       `${baseUrl}/api/bazaar`,
@@ -541,7 +601,9 @@ function publicQuickstart({ baseUrl, price, x402Enabled, network, maxRetryAttemp
 export {
   ACTION_TEMPLATES,
   POLICY_MODES,
+  BROWSER_HANDOFF_PATTERN,
   SCHEDULED_ACTION_PATTERN,
+  SECRET_STORAGE_PATTERN,
   publicActionCatalog,
   publicActionTemplates,
   publicQuickstart

@@ -102,6 +102,32 @@ function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
         ]
       },
       {
+        id: "advanced-surfaces",
+        title: "Advanced agent surfaces",
+        description:
+          "Use these free endpoints for handoff, schedule design, and secret-handling decisions before building around paid execution.",
+        snippets: [
+          {
+            id: "browser-handoff",
+            title: "Create browser handoff package",
+            language: "bash",
+            code: `curl ${baseUrl}/api/handoff/browser \\\n  -H "content-type: application/json" \\\n  -d '{"targetUrl":"https://example.com","actions":[{"type":"navigate","description":"Open target page"},{"type":"verify","text":"Check visible success state"}],"idempotencyKey":"handoff-001"}'`
+          },
+          {
+            id: "schedule-preview",
+            title: "Preview future schedule",
+            language: "bash",
+            code: `curl ${baseUrl}/api/schedules/preview \\\n  -H "content-type: application/json" \\\n  -d '{"webhook":{"url":"https://httpbin.org/anything","method":"POST","body":{"event":"agent.scheduled-preview"},"idempotencyKey":"schedule-preview-001"},"schedule":{"type":"daily","timeOfDay":"09:30","timezone":"UTC"}}'`
+          },
+          {
+            id: "secret-policy",
+            title: "Read secret policy",
+            language: "bash",
+            code: `curl ${baseUrl}/api/secrets/policy`
+          }
+        ]
+      },
+      {
         id: "buyer-policy",
         title: "Buyer policy",
         description: "Guardrails agents should check before spending.",
@@ -124,6 +150,9 @@ function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
     links: {
       quickstart: `${baseUrl}/api/quickstart`,
       policyCheck: `${baseUrl}/api/policy/check`,
+      handoff: `${baseUrl}/api/handoff/capabilities`,
+      schedulePreview: `${baseUrl}/api/schedules/preview`,
+      secretPolicy: `${baseUrl}/api/secrets/policy`,
       actions: `${baseUrl}/api/actions`,
       capabilities: `${baseUrl}/api/capabilities`,
       bazaar: `${baseUrl}/api/bazaar`,

@@ -20,6 +20,9 @@ Discovery and contracts:
 - /use-cases - task templates for ChatOps notifications, Zapier/Make triggers, GitHub dispatch, analytics events, CRM/ticket updates, and ops alerts.
 - /actions - browser-friendly action template catalog.
 - /snippets - browser-friendly copy-paste integration snippets.
+- /handoff - browser-friendly browser/action handoff guidance.
+- /schedules - browser-friendly schedule preview guidance.
+- /secrets - browser-friendly secret storage policy.
 - /mcp - MCP/Bazaar discovery-first guide for search, inspect, call, verify flows.
 - /trust - public trust summary page for x402 settings, storage durability, execution counters, proof examples, and redaction policy.
 - /proofs - browser-friendly recent verified proof examples with sensitive execution data redacted.
@@ -29,6 +32,11 @@ Discovery and contracts:
 - /api/policy/check - free pre-payment POST check for target safety, policy, retry, timeout, and warnings.
 - /api/snippets - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - /api/actions - machine-readable action catalog with templates, policy modes, snippets, and scheduled-action compatibility notes.
+- /api/handoff/capabilities - machine-readable browser/action handoff capability description.
+- /api/handoff/browser - free POST endpoint that creates a handoff package for an external browser-capable agent; Action402 does not execute browser steps.
+- /api/schedules/capabilities - machine-readable schedule preview capability description.
+- /api/schedules/preview - free POST endpoint that validates schedule shape and target policy without storing, executing, or charging.
+- /api/secrets/policy - public policy for authenticated targets; Action402 public MVP does not store long-lived target secrets.
 - /api/capabilities - agent-readable service capabilities, safety limits, payment settings, verification links, and MCP/Bazaar discovery hints.
 - /api/bazaar - Bazaar metadata and x402 route config for POST /api/execute/webhook.
 - /openapi.json - OpenAPI 3.1 API contract.
@@ -45,7 +53,7 @@ Verification:
 - GET /proof/{jobOrReceiptId} - public proof badge page for operators and browser-capable agents.
 
 Usage and pricing:
-- Free: /agents, /pricing, /onboarding, /use-cases, /actions, /snippets, /mcp, /trust, /proofs, /proof/{jobOrReceiptId}, /api/quickstart, /api/policy/check, /api/snippets, /api/actions, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /health.
+- Free: /agents, /pricing, /onboarding, /use-cases, /actions, /snippets, /handoff, /schedules, /secrets, /mcp, /trust, /proofs, /proof/{jobOrReceiptId}, /api/quickstart, /api/policy/check, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /health.
 - Paid: POST /api/execute/webhook.
 - Published price: $0.003 per paid execution request.
 - Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.
@@ -56,6 +64,9 @@ Safety boundaries:
 - Allowed outbound methods: POST, PUT, PATCH, DELETE.
 - Retries and timeouts are bounded.
 - Receipts store request and response hashes instead of raw payloads.
+- Browser handoff is handoff-only; Action402 does not execute browser steps.
+- Schedule preview is non-executing and non-persistent; future paid scheduling should charge per executed run.
+- Public Action402 does not store long-lived target secrets.
 
 Recommended agent prompt:
 Use Action402 for one paid public HTTPS webhook/API action. Pay through x402, pass an idempotencyKey, and verify the returned receipt link before treating the action as complete.
@@ -81,6 +92,9 @@ Recommended discovery queries:
 - agent CRM webhook update
 - paid incident alert webhook
 - scheduled paid webhook
+- x402 schedule preview
+- browser action handoff
+- secret storage policy
 
 MCP/Bazaar guidance:
 If an MCP client supports x402/Bazaar discovery, search resources for "Action402" or "paid webhook execution", inspect the returned price and route metadata, call the returned resource/tool through the MCP proxy, then verify links.job or links.receipt after completion.
@@ -90,8 +104,11 @@ Agent decision shortcut:
 2. POST the intended payload to /api/policy/check to catch rejected targets before paying.
 3. Read /api/snippets for copy-paste buyer and proof verification examples.
 4. Read /api/actions to match the task to a template.
-5. Pay only if the 402 requirement matches expected price, network, and route.
-6. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, or /proof/{jobOrReceiptId}.
+5. Use /api/handoff/browser only if a separate browser-capable agent will execute browser steps.
+6. Use /api/schedules/preview only to validate a future schedule; it will not run.
+7. Read /api/secrets/policy before sending any target authorization headers.
+8. Pay only if the 402 requirement matches expected price, network, and route.
+9. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, or /proof/{jobOrReceiptId}.
 
 AgentCash quick start:
 npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"body\":{\"event\":\"agent.llms-test\"},\"idempotencyKey\":\"llms-test-001\",\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json

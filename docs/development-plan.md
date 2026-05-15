@@ -28,6 +28,11 @@ The first useful product is intentionally narrow:
 | `POST /api/policy/check` | free | Pre-payment policy and safety check |
 | `GET /api/snippets` | free | Copy-paste buyer and verification snippets |
 | `GET /api/actions` | free | Action template catalog |
+| `GET /api/handoff/capabilities` | free | Browser/action handoff capability metadata |
+| `POST /api/handoff/browser` | free | Create a handoff package for an external browser-capable agent |
+| `GET /api/schedules/capabilities` | free | Schedule preview capability metadata |
+| `POST /api/schedules/preview` | free | Validate schedule shape and target policy without execution |
+| `GET /api/secrets/policy` | free | Public credential/secret handling policy |
 | `GET /api/trust` | free | Public buyer trust summary |
 | `GET /proof/:id` | free | Browser-friendly proof badge |
 | `GET /health` | free | Runtime health |
@@ -67,9 +72,9 @@ The first useful product is intentionally narrow:
 
 ### Milestone 4: Expanded Actions
 
-- [ ] Scheduled actions. Current status: design-ready metadata only; not active as a paid endpoint.
-- [ ] Browser/action handoff.
-- [ ] Secret storage for authenticated targets.
+- [x] Scheduled actions preview. Current status: free preview only; durable paid scheduling is not active as a paid endpoint.
+- [x] Browser/action handoff. Current status: free handoff package only; Action402 does not execute browser steps.
+- [x] Secret storage policy for authenticated targets. Current status: explicit no-storage public MVP policy with safe alternatives.
 - [x] Policy checks before execution through target policy presets, allowlist/blocklist, per-target quotas, and free `/api/policy/check` preflight.
 - [x] Receipt verification snippets through `/api/snippets` and `/snippets`.
 

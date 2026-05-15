@@ -62,7 +62,14 @@ async function loadActions() {
         ? '<div class="empty-state">No policy modes returned.</div>'
         : policies.map(renderPolicy).join("");
     scheduleNote.textContent = `${scheduled.title || "Scheduled actions"}: ${scheduled.availability || "status unknown"} ${scheduled.whyNotImmediate || ""}`;
-    scheduleShape.textContent = JSON.stringify(scheduled.futureShape || {}, null, 2);
+    scheduleShape.textContent = JSON.stringify(
+      {
+        previewEndpoint: scheduled.previewEndpoint,
+        futureShape: scheduled.futureShape
+      },
+      null,
+      2
+    );
   } catch (error) {
     actionsSummary.textContent = "Could not load action catalog.";
     actionsGrid.innerHTML = `<div class="empty-state">Catalog error: ${escapeHtml(error.message)}</div>`;

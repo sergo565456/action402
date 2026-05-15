@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { app } from "../src/server.js";
 import { applyVercelRewritePath } from "../api/index.js";
 import { validateBazaarDiscovery } from "../src/bazaar.js";
@@ -64,6 +65,11 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.policyCheck.path, "/api/policy/check");
   assert.equal(body.policyCheck.paid, false);
   assert.equal(body.snippets.path, "/api/snippets");
+  assert.equal(body.handoff.path, "/api/handoff/browser");
+  assert.equal(body.handoff.paid, false);
+  assert.equal(body.schedules.previewPath, "/api/schedules/preview");
+  assert.equal(body.schedules.status, "preview-only");
+  assert.equal(body.secretStorage.status, "not-supported-in-public-mvp");
   assert.equal(body.actionCatalog.path, "/api/actions");
   assert.equal(body.verification.proofBadge, "/proof/{jobOrReceiptId}");
   assert.equal(body.verification.integrationSnippets, "/api/snippets");
@@ -73,8 +79,10 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.ok(body.discoveryKeywords.includes("Slack webhook x402"));
   assert.ok(body.useCaseTemplates.length >= 6);
   assert.ok(body.actionTemplates.length >= 9);
+  assert.ok(body.actions.some((action) => action.id === "browser.handoff"));
+  assert.ok(body.actions.some((action) => action.id === "schedule.preview"));
   assert.ok(body.policyModes.some((mode) => mode.id === "open-public-https"));
-  assert.equal(body.scheduledActions.status, "design-ready");
+  assert.equal(body.scheduledActions.status, "preview-only");
 });
 
 test("openapi document exposes execute webhook path", async () => {
@@ -92,6 +100,11 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/quickstart"].get);
   assert.ok(body.paths["/api/policy/check"].post);
   assert.ok(body.paths["/api/snippets"].get);
+  assert.ok(body.paths["/api/handoff/capabilities"].get);
+  assert.ok(body.paths["/api/handoff/browser"].post);
+  assert.ok(body.paths["/api/schedules/capabilities"].get);
+  assert.ok(body.paths["/api/schedules/preview"].post);
+  assert.ok(body.paths["/api/secrets/policy"].get);
   assert.ok(body.paths["/proof/{id}"].get);
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
@@ -101,6 +114,11 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.QuickstartResponse);
   assert.ok(body.components.schemas.PolicyCheckResponse);
   assert.ok(body.components.schemas.SnippetsResponse);
+  assert.ok(body.components.schemas.BrowserHandoffRequest);
+  assert.ok(body.components.schemas.BrowserHandoffResponse);
+  assert.ok(body.components.schemas.SchedulePreviewRequest);
+  assert.ok(body.components.schemas.SchedulePreviewResponse);
+  assert.ok(body.components.schemas.SecretStoragePolicy);
   assert.ok(body.components.schemas.TrustResponse);
 });
 
@@ -117,9 +135,15 @@ test("action catalog exposes ready templates and safe future scheduling", async 
   assert.ok(body.templates.some((template) => template.id === "dev.github_repository_dispatch"));
   assert.ok(body.discoveryKeywords.includes("Discord webhook x402"));
   assert.ok(body.policyModes.some((mode) => mode.id === "blocklist-quota"));
-  assert.equal(body.scheduledActions.status, "design-ready");
+  assert.equal(body.scheduledActions.status, "preview-only");
+  assert.equal(body.scheduledActions.previewEndpoint.path, "/api/schedules/preview");
   assert.equal(body.scheduledActions.futureShape.path, "/api/schedules/webhook");
+  assert.equal(body.browserHandoff.endpoint.path, "/api/handoff/browser");
+  assert.equal(body.secretStorage.endpoint.path, "/api/secrets/policy");
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.handoffCapabilities.endsWith("/api/handoff/capabilities"), true);
+  assert.equal(body.links.scheduleCapabilities.endsWith("/api/schedules/capabilities"), true);
+  assert.equal(body.links.secretPolicy.endsWith("/api/secrets/policy"), true);
 });
 
 test("quickstart endpoint gives compact agent call flow", async () => {
@@ -134,6 +158,9 @@ test("quickstart endpoint gives compact agent call flow", async () => {
   assert.ok(body.decisionRules.useWhen.some((step) => step.includes("public HTTPS")));
   assert.equal(body.verify.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/actions")));
+  assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/handoff/capabilities")));
+  assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/schedules/capabilities")));
+  assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/secrets/policy")));
   assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/policy/check")));
 });
 
@@ -167,12 +194,87 @@ test("snippets endpoint exposes buyer and verification examples", async () => {
   assert.ok(body.groups.length >= 4);
   assert.ok(body.groups.some((group) => group.id === "discovery"));
   assert.ok(body.groups.some((group) => group.id === "paid-call"));
+  assert.ok(body.groups.some((group) => group.id === "advanced-surfaces"));
   assert.ok(body.groups.some((group) => group.snippets.some((snippet) => snippet.id === "preflight-policy-check")));
   const verification = body.groups.find((group) => group.id === "verification");
   assert.ok(verification);
   assert.ok(verification.snippets.some((snippet) => snippet.id === "verify-job-javascript"));
   assert.equal(body.links.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
+  assert.equal(body.links.handoff.endsWith("/api/handoff/capabilities"), true);
+  assert.equal(body.links.schedulePreview.endsWith("/api/schedules/preview"), true);
+  assert.equal(body.links.secretPolicy.endsWith("/api/secrets/policy"), true);
+});
+
+test("advanced agent surfaces expose handoff, schedule preview, and secret policy", async () => {
+  const handoffCapabilities = await request("/api/handoff/capabilities");
+  assert.equal(handoffCapabilities.response.status, 200);
+  assert.equal(handoffCapabilities.body.status, "active-handoff-only");
+  assert.equal(handoffCapabilities.body.path, "/api/handoff/browser");
+
+  const handoff = await request("/api/handoff/browser", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      targetUrl: "https://1.1.1.1/",
+      actions: [
+        {
+          type: "navigate",
+          description: "Open the target page."
+        },
+        {
+          type: "verify",
+          text: "Confirm the expected visible state."
+        }
+      ],
+      idempotencyKey: "handoff-test-001"
+    })
+  });
+  assert.equal(handoff.response.status, 200);
+  assert.equal(handoff.body.ok, true);
+  assert.equal(handoff.body.handoff.executionModel, "browser-handoff-only");
+  assert.equal(handoff.body.handoff.notExecutedByAction402, true);
+  assert.equal(handoff.body.handoff.actions.length, 2);
+
+  const scheduleCapabilities = await request("/api/schedules/capabilities");
+  assert.equal(scheduleCapabilities.response.status, 200);
+  assert.equal(scheduleCapabilities.body.status, "preview-only");
+  assert.equal(scheduleCapabilities.body.previewPath, "/api/schedules/preview");
+
+  const schedule = await request("/api/schedules/preview", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      webhook: {
+        url: "https://1.1.1.1/webhook",
+        method: "POST",
+        body: {
+          event: "agent.schedule-preview"
+        },
+        idempotencyKey: "schedule-preview-test-001"
+      },
+      schedule: {
+        type: "daily",
+        timeOfDay: "09:30",
+        timezone: "UTC"
+      }
+    })
+  });
+  assert.equal(schedule.response.status, 200);
+  assert.equal(schedule.body.ok, true);
+  assert.equal(schedule.body.status, "preview-only");
+  assert.equal(schedule.body.willExecute, false);
+  assert.equal(schedule.body.preview.schedule.type, "daily");
+
+  const secretPolicy = await request("/api/secrets/policy");
+  assert.equal(secretPolicy.response.status, 200);
+  assert.equal(secretPolicy.body.status, "not-supported-in-public-mvp");
+  assert.equal(secretPolicy.body.activeStorageEndpoint, false);
+  assert.ok(secretPolicy.body.neverSend.includes("wallet private keys"));
 });
 
 test("bazaar metadata exposes valid discovery extension", async () => {
@@ -195,12 +297,18 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
+  assert.equal(body.links.handoffEndpoint.endsWith("/api/handoff/browser"), true);
+  assert.equal(body.links.schedulePreview.endsWith("/api/schedules/preview"), true);
+  assert.equal(body.links.secretPolicy.endsWith("/api/secrets/policy"), true);
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.ok(body.useCaseTemplates.length >= 6);
   assert.ok(body.actionCatalog.templateCount >= 9);
   assert.equal(body.quickstart.path, "/api/quickstart");
   assert.equal(body.policyCheck.path, "/api/policy/check");
+  assert.equal(body.handoff.path, "/api/handoff/browser");
+  assert.equal(body.schedules.path, "/api/schedules/preview");
+  assert.equal(body.secretStorage.path, "/api/secrets/policy");
   assert.equal(body.snippets.path, "/api/snippets");
   assert.equal(route.extensions.bazaar.info.input.method, "POST");
   assert.equal(route.extensions.bazaar.info.input.bodyType, "json");
@@ -224,6 +332,12 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/api/policy/check"), true);
   assert.equal(body.includes("/api/snippets"), true);
   assert.equal(body.includes("/snippets"), true);
+  assert.equal(body.includes("/handoff"), true);
+  assert.equal(body.includes("/schedules"), true);
+  assert.equal(body.includes("/secrets"), true);
+  assert.equal(body.includes("/api/handoff/browser"), true);
+  assert.equal(body.includes("/api/schedules/preview"), true);
+  assert.equal(body.includes("/api/secrets/policy"), true);
   assert.equal(body.includes("/mcp"), true);
   assert.equal(body.includes("/api/trust"), true);
   assert.equal(body.includes("/proof/{jobOrReceiptId}"), true);
@@ -241,6 +355,9 @@ test("public product pages load", async () => {
     ["/use-cases", "Use-case templates"],
     ["/actions", "Action catalog"],
     ["/snippets", "Integration snippets"],
+    ["/handoff", "Browser handoff"],
+    ["/schedules", "Schedule preview"],
+    ["/secrets", "Secret storage policy"],
     ["/mcp", "Discovery-first instructions"],
     ["/trust", "Trust summary"],
     ["/proofs", "Verified proof examples"],
@@ -253,6 +370,15 @@ test("public product pages load", async () => {
     assert.equal(response.status, 200);
     assert.equal(body.includes(expectedText), true);
   }
+});
+
+test("vercel rewrites expose extensionless product pages", () => {
+  const vercelConfig = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
+  const rewrites = new Map(vercelConfig.rewrites.map((rewrite) => [rewrite.source, rewrite.destination]));
+
+  assert.equal(rewrites.get("/handoff"), "/handoff.html");
+  assert.equal(rewrites.get("/schedules"), "/schedules.html");
+  assert.equal(rewrites.get("/secrets"), "/secrets.html");
 });
 
 test("vercel rewrite strips internal catch-all path query", () => {
@@ -474,6 +600,9 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.publicSurfaces.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.publicSurfaces.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.publicSurfaces.actionCatalog.endsWith("/api/actions"), true);
+  assert.equal(body.publicSurfaces.handoffCapabilities.endsWith("/api/handoff/capabilities"), true);
+  assert.equal(body.publicSurfaces.schedulePreview.endsWith("/api/schedules/preview"), true);
+  assert.equal(body.publicSurfaces.secretPolicy.endsWith("/api/secrets/policy"), true);
   assert.equal(body.publicSurfaces.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.publicSurfaces.useCases.endsWith("/use-cases"), true);
   assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
@@ -481,6 +610,9 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.trustSignals.includes("free preflight policy check before payment"), true);
   assert.equal(body.trustSignals.includes("copy-paste integration snippets for buyers and verifiers"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
+  assert.equal(body.trustSignals.includes("browser/action handoff package endpoint is public"), true);
+  assert.equal(body.trustSignals.includes("schedule preview endpoint is public and non-executing"), true);
+  assert.equal(body.trustSignals.includes("secret storage policy is explicit for authenticated targets"), true);
   assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);
 });
 

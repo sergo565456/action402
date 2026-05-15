@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Browser Handoff</title>
+    <meta
+      name="description"
+      content="Free browser/action handoff package endpoint for external browser-capable agents."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Browser handoff navigation">
+        <a href="/agents">Agents</a>
+        <a href="/actions">Actions</a>
+        <a href="/schedules">Schedules</a>
+        <a href="/secrets">Secrets</a>
+        <a href="/api/handoff/capabilities">JSON</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Browser handoff</p>
+          <h1>Pass browser work to the agent that can actually see it.</h1>
+          <p>
+            Action402 creates a structured handoff package for an external browser-capable
+            agent. It does not click, type, screenshot, or claim a paid receipt for browser steps.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/handoff/capabilities">Capabilities JSON</a>
+            <a class="button secondary" href="/api/capabilities">Service Capabilities</a>
+            <a class="button secondary" href="/snippets">Snippets</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Browser handoff facts">
+          <dl>
+            <div>
+              <dt>endpoint</dt>
+              <dd><code>POST /api/handoff/browser</code></dd>
+            </div>
+            <div>
+              <dt>payment</dt>
+              <dd><code>free</code></dd>
+            </div>
+            <div>
+              <dt>mode</dt>
+              <dd><code>handoff-only</code></dd>
+            </div>
+            <div>
+              <dt>receipt</dt>
+              <dd><code>no execution receipt</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Request</p>
+        <h2>Small JSON, explicit boundary.</h2>
+        <p>
+          Use the paid webhook route for machine-to-machine side effects. Use this handoff
+          route only when another agent will perform the browser work.
+        </p>
+        <pre><code>curl /api/handoff/browser \
+  -H "content-type: application/json" \
+  -d '{
+    "targetUrl": "https://example.com",
+    "actions": [
+      { "type": "navigate", "description": "Open the target page" },
+      { "type": "verify", "text": "Check the expected success state" }
+    ],
+    "idempotencyKey": "handoff-001"
+  }'</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Browser handoff: /handoff</span>
+    </footer>
+  </body>
+</html>

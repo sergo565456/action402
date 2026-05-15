@@ -24,6 +24,8 @@
         <a href="/agents">Agents</a>
         <a href="/actions">Actions</a>
         <a href="/snippets">Snippets</a>
+        <a href="/handoff">Handoff</a>
+        <a href="/schedules">Schedules</a>
         <a href="/use-cases">Use Cases</a>
         <a href="/mcp">MCP</a>
         <a href="/trust">Trust</a>
@@ -47,6 +49,7 @@
             <a class="button secondary" href="/agents">For Agents</a>
             <a class="button secondary" href="/actions">Action Catalog</a>
             <a class="button secondary" href="/snippets">Snippets</a>
+            <a class="button secondary" href="/handoff">Handoff</a>
             <a class="button secondary" href="/use-cases">Use Cases</a>
             <a class="button secondary" href="/trust">Trust</a>
             <a class="button secondary" href="/demo.html">Run Demo</a>
@@ -110,6 +113,21 @@ proof = "request + response hashes"</code></pre>
             <span>agent</span>
             <h3>GET /api/snippets</h3>
             <p>Copy-paste discovery, paid call, verification, and buyer policy examples.</p>
+          </article>
+          <article class="endpoint">
+            <span>agent</span>
+            <h3>POST /api/handoff/browser</h3>
+            <p>Creates a free browser-action handoff package for an external browser-capable agent.</p>
+          </article>
+          <article class="endpoint">
+            <span>agent</span>
+            <h3>POST /api/schedules/preview</h3>
+            <p>Checks schedule shape and target policy without storing, executing, or charging.</p>
+          </article>
+          <article class="endpoint">
+            <span>agent</span>
+            <h3>GET /api/secrets/policy</h3>
+            <p>Explains safe credential boundaries for authenticated targets.</p>
           </article>
           <article class="endpoint">
             <span>agent</span>

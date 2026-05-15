@@ -20,6 +20,9 @@
       <nav class="page-nav" aria-label="Action catalog navigation">
         <a href="/agents">Agents</a>
         <a href="/snippets">Snippets</a>
+        <a href="/handoff">Handoff</a>
+        <a href="/schedules">Schedules</a>
+        <a href="/secrets">Secrets</a>
         <a href="/onboarding">Onboarding</a>
         <a href="/use-cases">Use Cases</a>
         <a href="/trust">Trust</a>
@@ -60,7 +63,11 @@
             </div>
             <div>
               <dt>schedules</dt>
-              <dd><code>design-ready</code></dd>
+              <dd><code>preview-only</code></dd>
+            </div>
+            <div>
+              <dt>handoff</dt>
+              <dd><code>active-handoff-only</code></dd>
             </div>
           </dl>
         </aside>
@@ -104,6 +111,11 @@
         <p id="schedule-note">
           Loading scheduled-action compatibility note.
         </p>
+        <div class="actions">
+          <a class="button secondary" href="/schedules">Schedule Preview</a>
+          <a class="button secondary" href="/handoff">Browser Handoff</a>
+          <a class="button secondary" href="/secrets">Secret Policy</a>
+        </div>
         <pre><code id="schedule-shape">Loading...</code></pre>
       </section>
     </main>

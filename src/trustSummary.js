@@ -63,7 +63,8 @@ function buildTrustScore({ stats, store, proofStats }) {
       title: "Agent discovery surfaces",
       score: 15,
       maxScore: 15,
-      details: "Capabilities, Bazaar metadata, quickstart, snippets, policy check, action catalog, llms.txt, and OpenAPI are public."
+      details:
+        "Capabilities, Bazaar metadata, quickstart, snippets, policy check, action catalog, handoff, schedule preview, secret policy, llms.txt, and OpenAPI are public."
     },
     {
       id: "safety",
@@ -155,7 +156,14 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       mcp: `${config.publicBaseUrl}/mcp`,
       proofs: `${config.publicBaseUrl}/proofs`,
       proofBadge: `${config.publicBaseUrl}/proof/{jobOrReceiptId}`,
-      monitoring: `${config.publicBaseUrl}/monitoring`
+      monitoring: `${config.publicBaseUrl}/monitoring`,
+      handoff: `${config.publicBaseUrl}/handoff`,
+      handoffCapabilities: `${config.publicBaseUrl}/api/handoff/capabilities`,
+      schedules: `${config.publicBaseUrl}/schedules`,
+      scheduleCapabilities: `${config.publicBaseUrl}/api/schedules/capabilities`,
+      schedulePreview: `${config.publicBaseUrl}/api/schedules/preview`,
+      secrets: `${config.publicBaseUrl}/secrets`,
+      secretPolicy: `${config.publicBaseUrl}/api/secrets/policy`
     },
     trustSignals: [
       "x402 exact payments on Base",
@@ -170,7 +178,10 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       "durable execution counters",
       "idempotency and bounded retries",
       "private network targets blocked",
-      "policy modes documented for open and restricted deployments"
+      "policy modes documented for open and restricted deployments",
+      "browser/action handoff package endpoint is public",
+      "schedule preview endpoint is public and non-executing",
+      "secret storage policy is explicit for authenticated targets"
     ],
     redaction:
       "Public trust summaries never include target URLs, request headers, request bodies, response bodies, hashes, or receipt signatures."

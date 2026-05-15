@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Schedule Preview</title>
+    <meta
+      name="description"
+      content="Free schedule preview endpoint for future paid webhook scheduling."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Schedule preview navigation">
+        <a href="/agents">Agents</a>
+        <a href="/actions">Actions</a>
+        <a href="/handoff">Handoff</a>
+        <a href="/secrets">Secrets</a>
+        <a href="/api/schedules/capabilities">JSON</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Schedule preview</p>
+          <h1>Validate scheduled actions before they become paid runs.</h1>
+          <p>
+            The preview endpoint checks schedule shape and target policy, but it does not persist,
+            wake up, execute, or charge. Paid scheduling stays honest until a durable worker exists.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/schedules/capabilities">Capabilities JSON</a>
+            <a class="button secondary" href="/api/actions">Action Catalog</a>
+            <a class="button secondary" href="/api/quickstart">Quickstart</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Schedule preview facts">
+          <dl>
+            <div>
+              <dt>endpoint</dt>
+              <dd><code>POST /api/schedules/preview</code></dd>
+            </div>
+            <div>
+              <dt>payment</dt>
+              <dd><code>free</code></dd>
+            </div>
+            <div>
+              <dt>status</dt>
+              <dd><code>preview-only</code></dd>
+            </div>
+            <div>
+              <dt>future charge</dt>
+              <dd><code>per executed run</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Request</p>
+        <h2>Schedule shape plus webhook preflight.</h2>
+        <p>
+          A valid preview says the schedule definition is compatible. It does not mean Action402
+          will execute it later.
+        </p>
+        <pre><code>curl /api/schedules/preview \
+  -H "content-type: application/json" \
+  -d '{
+    "webhook": {
+      "url": "https://httpbin.org/anything",
+      "method": "POST",
+      "body": { "event": "agent.scheduled-preview" },
+      "idempotencyKey": "schedule-preview-001"
+    },
+    "schedule": {
+      "type": "daily",
+      "timeOfDay": "09:30",
+      "timezone": "UTC"
+    }
+  }'</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Schedule preview: /schedules</span>
+    </footer>
+  </body>
+</html>

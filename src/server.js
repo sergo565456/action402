@@ -1,6 +1,13 @@
 import express from "express";
 import { config, assertProductionConfig, runtimeSummary } from "./config.js";
 import { publicActionCatalog, publicQuickstart } from "./actionCatalog.js";
+import {
+  createBrowserHandoff,
+  createSchedulePreview,
+  publicHandoffCapabilities,
+  publicScheduleCapabilities,
+  publicSecretStoragePolicy
+} from "./advancedActions.js";
 import { publicBazaarMetadata } from "./bazaar.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
 import { publicIntegrationSnippets } from "./snippets.js";
@@ -98,6 +105,18 @@ app.get("/api/snippets", (req, res) => {
       network: config.x402Network
     })
   );
+});
+
+app.get("/api/handoff/capabilities", (req, res) => {
+  res.json(publicHandoffCapabilities({ baseUrl: config.publicBaseUrl }));
+});
+
+app.get("/api/schedules/capabilities", (req, res) => {
+  res.json(publicScheduleCapabilities({ baseUrl: config.publicBaseUrl }));
+});
+
+app.get("/api/secrets/policy", (req, res) => {
+  res.json(publicSecretStoragePolicy({ baseUrl: config.publicBaseUrl }));
 });
 
 app.get("/openapi.json", (req, res) => {
@@ -213,6 +232,44 @@ app.post("/api/policy/check", async (req, res, next) => {
         next: {
           quickstart: "/api/quickstart",
           snippets: "/api/snippets",
+          capabilities: "/api/capabilities"
+        }
+      });
+      return;
+    }
+
+    next(error);
+  }
+});
+
+app.post("/api/handoff/browser", async (req, res, next) => {
+  try {
+    res.json(await createBrowserHandoff(req.body || {}));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/schedules/preview", async (req, res, next) => {
+  try {
+    res.json(await createSchedulePreview(req.body || {}));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.json({
+        ok: false,
+        allowed: false,
+        status: "preview-only",
+        paid: false,
+        willExecute: false,
+        error: {
+          code: error.code,
+          message: error.message,
+          ...(error.details === undefined ? {} : { details: error.details })
+        },
+        next: {
+          immediatePaidExecution: "/api/execute/webhook",
+          schedulesPage: "/schedules",
+          quickstart: "/api/quickstart",
           capabilities: "/api/capabilities"
         }
       });

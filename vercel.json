@@ -69,6 +69,18 @@
       "destination": "/snippets.html"
     },
     {
+      "source": "/handoff",
+      "destination": "/handoff.html"
+    },
+    {
+      "source": "/schedules",
+      "destination": "/schedules.html"
+    },
+    {
+      "source": "/secrets",
+      "destination": "/secrets.html"
+    },
+    {
       "source": "/mcp",
       "destination": "/mcp.html"
     },
