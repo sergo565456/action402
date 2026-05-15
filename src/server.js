@@ -17,6 +17,7 @@ await initStore();
 logEvent("info", "service.starting", runtimeSummary());
 
 const app = express();
+app.set("trust proxy", true);
 
 app.use(requestLogger);
 app.use(express.static("public", { extensions: ["html"] }));

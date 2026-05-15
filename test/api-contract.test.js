@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { app } from "../src/server.js";
+import { applyVercelRewritePath } from "../api/index.js";
 import { validateBazaarDiscovery } from "../src/bazaar.js";
 import { buildReceipt } from "../src/receipt.js";
 import { createJob, resetStoreForTests, saveReceipt } from "../src/store.js";
@@ -58,6 +59,16 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(route.extensions.bazaar.info.input.body.url, "https://httpbin.org/anything");
   assert.equal(route.extensions.bazaar.info.output.type, "json");
   assert.ok(route.extensions.bazaar.schema.properties.input);
+});
+
+test("vercel rewrite strips internal catch-all path query", () => {
+  const req = {
+    url: "/api/index?__action402_path=/api/execute/webhook&path=execute%2Fwebhook&trace=1"
+  };
+
+  applyVercelRewritePath(req);
+
+  assert.equal(req.url, "/api/execute/webhook?trace=1");
 });
 
 test("verification endpoint returns consistency report for stored job receipt", async () => {
