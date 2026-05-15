@@ -325,6 +325,12 @@ export function publicCapabilities() {
         "Durable execution counters and recent failed executions, redacted for public agent/operator checks.",
       defaultWindowMs: 24 * 60 * 60 * 1000
     },
+    canary: {
+      targetPath: "/api/canary/echo",
+      settlementScript: "npm run settlement:canary",
+      description:
+        "Free public target used by scheduled paid settlement canaries. The paid route calls this target and then verifies the returned receipt."
+    },
     trust: {
       path: "/api/trust",
       description:
@@ -664,6 +670,34 @@ export function openApiSpec() {
                   schema: monitoringResponseSchema
                 }
               }
+            }
+          }
+        }
+      },
+      "/api/canary/echo": {
+        post: {
+          summary: "Canary echo target",
+          description:
+            "Free public endpoint used as a safe target for Action402 paid settlement canaries. It only echoes selected non-sensitive canary fields.",
+          requestBody: {
+            required: false,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    event: { type: "string" },
+                    scenario: { type: "string" },
+                    runId: { type: "string" },
+                    source: { type: "string" }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Canary response"
             }
           }
         }

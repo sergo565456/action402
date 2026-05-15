@@ -27,6 +27,7 @@ Agent entry points:
 - `GET /api/proofs/recent` - redacted public verified proof examples.
 - `GET /api/monitoring/executions` - durable execution counters and recent failure categories.
 - `GET /api/trust` - redacted public trust summary for buyer-side inspection.
+- `POST /api/canary/echo` - free canary target for scheduled paid settlement checks.
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
 - `GET /api/capabilities` - agent-readable service capabilities.
 - `GET /openapi.json` - OpenAPI 3.1 contract for integrations.
@@ -162,6 +163,17 @@ npm run smoke:x402 -- http://127.0.0.1:4021
 ```
 
 The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi.json`, agent discovery fields, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header.
+
+## Settlement canary
+
+The paid settlement canary keeps the real x402 purchase path warm without depending on a third-party target:
+
+```bash
+npm run settlement:canary -- --dry-run
+npm run settlement:canary
+```
+
+It pays for `POST /api/execute/webhook`, targets the free `POST /api/canary/echo`, then verifies `/api/verify/jobs/{id}`. The GitHub Actions workflow in `.github/workflows/settlement-canary.yml` runs on a rare cron schedule and requires the `AGENTCASH_WALLET_JSON_B64` repository secret. See `docs/settlement-canary.md`.
 
 ## Agent discovery
 

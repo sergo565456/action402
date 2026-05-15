@@ -146,6 +146,25 @@ app.get("/api/trust", async (req, res, next) => {
 await maybeInstallX402(app);
 
 app.use(express.json({ limit: "128kb" }));
+
+app.post("/api/canary/echo", (req, res) => {
+  const body = req.body && typeof req.body === "object" && !Array.isArray(req.body) ? req.body : {};
+  res.json({
+    ok: true,
+    service: "Action402",
+    canary: "settlement-target",
+    generatedAt: new Date().toISOString(),
+    requestId: req.requestId || null,
+    received: {
+      event: typeof body.event === "string" ? body.event : null,
+      scenario: typeof body.scenario === "string" ? body.scenario : null,
+      runId: typeof body.runId === "string" ? body.runId : null,
+      source: typeof body.source === "string" ? body.source : null
+    },
+    receivedKeys: Object.keys(body).slice(0, 20)
+  });
+});
+
 app.use("/api/execute", createRateLimiter());
 
 app.post("/api/execute/webhook", async (req, res) => {
