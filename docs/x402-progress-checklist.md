@@ -17,6 +17,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Structured execution observability exists.
 - [x] Agent-readable `/api/capabilities` exists.
 - [x] Agent-readable `/api/quickstart` exists.
+- [x] Free pre-payment policy check `/api/policy/check` exists.
 - [x] Copy-paste integration snippets `/api/snippets` exist.
 - [x] Action catalog `/api/actions` exists.
 - [x] OpenAPI `/openapi.json` exists.
@@ -126,6 +127,7 @@ Latest production proof:
 - [x] Add observability/logging for settlements and failed executions.
 - [x] Add per-target quotas.
 - [x] Add target policy presets for customers.
+- [x] Add pre-payment policy check for agents.
 - [x] Add public action catalog and quickstart surfaces.
 - [x] Add proof badge pages for job/receipt ids.
 - [x] Add public trust score summary.

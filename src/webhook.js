@@ -289,3 +289,76 @@ export async function executeWebhookAction(input, context = {}) {
 
   return { job: finalJob, receipt, idempotentReplay: false };
 }
+
+export async function preflightWebhookAction(input) {
+  if (input === null || typeof input !== "object" || Array.isArray(input)) {
+    throw new ApiError(400, "invalid_request", "request body must be a JSON object.");
+  }
+
+  const method = String(input.method || "POST").toUpperCase();
+  if (!ALLOWED_METHODS.has(method)) {
+    throw new ApiError(400, "invalid_method", "method must be one of POST, PUT, PATCH, DELETE.");
+  }
+
+  const target = await validateTarget(input.url);
+  const retry = normalizeRetry(input.retry);
+  const timeoutMs = Math.max(
+    1000,
+    Math.min(Number(input.timeoutMs || config.maxWebhookTimeoutMs), config.maxWebhookTimeoutMs)
+  );
+  const idempotencyKey = input.idempotencyKey ? String(input.idempotencyKey) : "";
+  if (idempotencyKey.length > 160) {
+    throw new ApiError(400, "invalid_idempotency_key", "idempotencyKey must be 160 characters or fewer.");
+  }
+
+  const outboundHeaders = normalizeHeaders(input.headers);
+
+  return {
+    ok: true,
+    allowed: true,
+    action: {
+      id: "execute.webhook",
+      method,
+      path: "/api/execute/webhook",
+      paid: config.x402Enabled,
+      price: config.x402Price,
+      network: config.x402Network
+    },
+    target: {
+      protocol: target.protocol.replace(":", ""),
+      hostname: target.hostname,
+      origin: target.origin,
+      pathname: target.pathname || "/",
+      privateNetworkBlocked: true
+    },
+    normalized: {
+      method,
+      retry,
+      timeoutMs,
+      idempotencyKeyPresent: Boolean(idempotencyKey),
+      forwardedHeaderCount: Object.keys(outboundHeaders).length,
+      bodyPresent: input.body !== undefined
+    },
+    policy: {
+      targetPolicyPreset: config.targetPolicyPreset,
+      requireTargetAllowlist: config.requireTargetAllowlist,
+      targetQuotaEnabled: config.targetQuotaEnabled,
+      targetQuotaWindowMs: config.targetQuotaWindowMs,
+      targetQuotaMaxRequests: config.targetQuotaMaxRequests,
+      rateLimitEnabled: config.rateLimitEnabled,
+      rateLimitWindowMs: config.rateLimitWindowMs,
+      rateLimitMaxRequests: config.rateLimitMaxRequests
+    },
+    warnings: [
+      ...(idempotencyKey ? [] : ["Send idempotencyKey for paid execution retries and agent restarts."]),
+      ...(input.headers && Object.keys(input.headers).some((key) => BLOCKED_HEADER_NAMES.has(key.toLowerCase()))
+        ? ["Hop-by-hop or proxy headers will be stripped before forwarding."]
+        : [])
+    ],
+    next: {
+      paidExecution: "/api/execute/webhook",
+      quickstart: "/api/quickstart",
+      snippets: "/api/snippets"
+    }
+  };
+}

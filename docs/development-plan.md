@@ -25,6 +25,7 @@ The first useful product is intentionally narrow:
 | `GET /api/receipts/:id` | free | Verify receipt signature |
 | `GET /api/bazaar` | free | Bazaar/discovery metadata |
 | `GET /api/quickstart` | free | Compact agent buyer flow |
+| `POST /api/policy/check` | free | Pre-payment policy and safety check |
 | `GET /api/snippets` | free | Copy-paste buyer and verification snippets |
 | `GET /api/actions` | free | Action template catalog |
 | `GET /api/trust` | free | Public buyer trust summary |
@@ -69,7 +70,7 @@ The first useful product is intentionally narrow:
 - [ ] Scheduled actions. Current status: design-ready metadata only; not active as a paid endpoint.
 - [ ] Browser/action handoff.
 - [ ] Secret storage for authenticated targets.
-- [x] Policy checks before execution through target policy presets, allowlist/blocklist, and per-target quotas.
+- [x] Policy checks before execution through target policy presets, allowlist/blocklist, per-target quotas, and free `/api/policy/check` preflight.
 - [x] Receipt verification snippets through `/api/snippets` and `/snippets`.
 
 ## Development Principles

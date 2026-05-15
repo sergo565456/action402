@@ -9,8 +9,8 @@ function record(name, ok, details = "") {
   checks.push({ name, ok, details });
 }
 
-async function fetchJson(path) {
-  const response = await fetch(`${baseUrl}${path}`);
+async function fetchJson(path, options = {}) {
+  const response = await fetch(`${baseUrl}${path}`, options);
   const text = await response.text();
   let body;
   try {
@@ -33,6 +33,31 @@ async function checkJsonEndpoint(path) {
   }
 }
 
+async function checkPolicyEndpoint() {
+  try {
+    const { response, body } = await fetchJson("/api/policy/check", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        url: "https://127.0.0.1/internal",
+        method: "POST",
+        idempotencyKey: "x402-smoke-policy"
+      })
+    });
+    record(
+      "/api/policy/check returns structured result",
+      response.status === 200 && body?.allowed === false && body?.error?.code === "unsafe_target",
+      `status=${response.status}`
+    );
+    return body;
+  } catch (error) {
+    record("/api/policy/check returns structured result", false, error.message);
+    return undefined;
+  }
+}
+
 function paymentHeaders(headers) {
   return Array.from(headers.entries()).filter(([name]) => {
     const lower = name.toLowerCase();
@@ -47,6 +72,7 @@ async function main() {
   const capabilities = await checkJsonEndpoint("/api/capabilities");
   const actions = await checkJsonEndpoint("/api/actions");
   const quickstart = await checkJsonEndpoint("/api/quickstart");
+  await checkPolicyEndpoint();
   const snippets = await checkJsonEndpoint("/api/snippets");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
   await checkJsonEndpoint("/openapi.json");

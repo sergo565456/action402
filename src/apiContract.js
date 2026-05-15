@@ -319,6 +319,32 @@ const snippetsResponseSchema = {
   }
 };
 
+const policyCheckResponseSchema = {
+  type: "object",
+  required: ["ok", "allowed", "action"],
+  properties: {
+    ok: { type: "boolean" },
+    allowed: { type: "boolean" },
+    action: { type: "object" },
+    target: { type: "object" },
+    normalized: { type: "object" },
+    policy: { type: "object" },
+    warnings: {
+      type: "array",
+      items: { type: "string" }
+    },
+    error: {
+      type: "object",
+      properties: {
+        code: { type: "string" },
+        message: { type: "string" },
+        details: {}
+      }
+    },
+    next: { type: "object" }
+  }
+};
+
 const trustResponseSchema = {
   type: "object",
   required: [
@@ -418,6 +444,13 @@ export function publicCapabilities() {
       description:
         "Copy-paste snippets for discovery, paid execution, proof verification, and buyer-side payment guardrails."
     },
+    policyCheck: {
+      method: "POST",
+      path: "/api/policy/check",
+      paid: false,
+      description:
+        "Free preflight check for method, target safety, policy, retry, timeout, and buyer warnings before paying for execution."
+    },
     x402: {
       enabled: config.x402Enabled,
       scheme: "exact",
@@ -456,6 +489,7 @@ export function publicCapabilities() {
       oneLine: AGENT_PROMPT,
       callFlow: [
         "Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.",
+        "Optionally POST the same payload to /api/policy/check before paying.",
         "Use /api/snippets for copy-paste buyer and proof verification examples.",
         "Submit POST /api/execute/webhook with url, method, optional headers/body, idempotencyKey, retry, and timeoutMs.",
         "In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.",
@@ -567,6 +601,7 @@ export function publicCapabilities() {
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
+      policyCheck: `${config.publicBaseUrl}/api/policy/check`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       actions: `${config.publicBaseUrl}/actions`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
@@ -919,6 +954,39 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/policy/check": {
+        post: {
+          summary: "Preflight check a webhook execution request",
+          description:
+            "Free pre-payment check for request shape, method, target safety, target policy, retry, timeout, and buyer warnings. It does not execute the target and does not consume target quota.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: webhookRequestSchema
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Policy check result. Validation failures are returned as allowed=false JSON.",
+              content: {
+                "application/json": {
+                  schema: policyCheckResponseSchema
+                }
+              }
+            },
+            "400": {
+              description: "Invalid JSON body",
+              content: {
+                "application/json": {
+                  schema: errorSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/capabilities": {
         get: {
           summary: "Fetch agent-readable service capabilities",
@@ -981,6 +1049,7 @@ export function openApiSpec() {
         ActionCatalogResponse: actionCatalogResponseSchema,
         QuickstartResponse: quickstartResponseSchema,
         SnippetsResponse: snippetsResponseSchema,
+        PolicyCheckResponse: policyCheckResponseSchema,
         TrustResponse: trustResponseSchema,
         Error: errorSchema
       }

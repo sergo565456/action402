@@ -191,6 +191,7 @@ export function publicBazaarMetadata() {
         "Machine-readable action catalog is available",
         "Compact quickstart endpoint is available",
         "Copy-paste integration snippets are available",
+        "Free preflight policy check is available before payment",
         "Public job and receipt verification endpoints are available",
         "Public proof badge pages are available for job and receipt ids",
         "Public redacted proof examples are available",
@@ -239,6 +240,13 @@ export function publicBazaarMetadata() {
       description:
         "Copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails."
     },
+    policyCheck: {
+      method: "POST",
+      path: "/api/policy/check",
+      paid: false,
+      description:
+        "Free preflight check for request shape, target safety, policy, retry, timeout, and warnings before paying."
+    },
     mcp: {
       recommendedToolName: "execute_webhook",
       discoveryHint:
@@ -265,6 +273,7 @@ export function publicBazaarMetadata() {
       llms: `${config.publicBaseUrl}/llms.txt`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
+      policyCheck: `${config.publicBaseUrl}/api/policy/check`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       capabilities: `${config.publicBaseUrl}/api/capabilities`,
       openapi: `${config.publicBaseUrl}/openapi.json`,

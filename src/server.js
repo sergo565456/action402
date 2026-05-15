@@ -4,7 +4,7 @@ import { publicActionCatalog, publicQuickstart } from "./actionCatalog.js";
 import { publicBazaarMetadata } from "./bazaar.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
 import { publicIntegrationSnippets } from "./snippets.js";
-import { executeWebhookAction } from "./webhook.js";
+import { executeWebhookAction, preflightWebhookAction } from "./webhook.js";
 import { executionStats, getJob, getReceipt, initStore, listRecentJobs, storeStats } from "./store.js";
 import { verifyReceipt } from "./receipt.js";
 import { verifyJobReceipt, verifyStoredReceipt } from "./receiptVerification.js";
@@ -188,6 +188,40 @@ app.get("/api/trust", async (req, res, next) => {
 await maybeInstallX402(app);
 
 app.use(express.json({ limit: "128kb" }));
+
+app.post("/api/policy/check", async (req, res, next) => {
+  try {
+    res.json(await preflightWebhookAction(req.body || {}));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.json({
+        ok: false,
+        allowed: false,
+        action: {
+          id: "execute.webhook",
+          method: "POST",
+          path: "/api/execute/webhook",
+          paid: config.x402Enabled,
+          price: config.x402Price,
+          network: config.x402Network
+        },
+        error: {
+          code: error.code,
+          message: error.message,
+          ...(error.details === undefined ? {} : { details: error.details })
+        },
+        next: {
+          quickstart: "/api/quickstart",
+          snippets: "/api/snippets",
+          capabilities: "/api/capabilities"
+        }
+      });
+      return;
+    }
+
+    next(error);
+  }
+});
 
 app.use("/api/execute", createRateLimiter());
 

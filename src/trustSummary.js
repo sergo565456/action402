@@ -63,7 +63,7 @@ function buildTrustScore({ stats, store, proofStats }) {
       title: "Agent discovery surfaces",
       score: 15,
       maxScore: 15,
-      details: "Capabilities, Bazaar metadata, quickstart, snippets, action catalog, llms.txt, and OpenAPI are public."
+      details: "Capabilities, Bazaar metadata, quickstart, snippets, policy check, action catalog, llms.txt, and OpenAPI are public."
     },
     {
       id: "safety",
@@ -144,6 +144,7 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       capabilities: `${config.publicBaseUrl}/api/capabilities`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
+      policyCheck: `${config.publicBaseUrl}/api/policy/check`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
@@ -161,6 +162,7 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       "public capabilities and OpenAPI contracts",
       "public action catalog and quickstart endpoints",
       "copy-paste integration snippets for buyers and verifiers",
+      "free preflight policy check before payment",
       "official Bazaar discovery extension metadata",
       "public proof verification endpoints",
       "public proof badge pages",

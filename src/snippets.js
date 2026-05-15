@@ -54,8 +54,14 @@ function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
       {
         id: "paid-call",
         title: "Paid execution",
-        description: "Buy one bounded public HTTPS action through x402.",
+        description: "Preflight the payload, then buy one bounded public HTTPS action through x402.",
         snippets: [
+          {
+            id: "preflight-policy-check",
+            title: "Free preflight policy check",
+            language: "bash",
+            code: `curl ${baseUrl}/api/policy/check \\\n  -H "content-type: application/json" \\\n  -d '{"url":"https://httpbin.org/anything","method":"POST","body":{"event":"agent.preflight"},"idempotencyKey":"preflight-001","timeoutMs":10000}'`
+          },
           {
             id: "agentcash-powershell",
             title: "AgentCash from Windows PowerShell",
@@ -117,6 +123,7 @@ function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
     ],
     links: {
       quickstart: `${baseUrl}/api/quickstart`,
+      policyCheck: `${baseUrl}/api/policy/check`,
       actions: `${baseUrl}/api/actions`,
       capabilities: `${baseUrl}/api/capabilities`,
       bazaar: `${baseUrl}/api/bazaar`,

@@ -113,11 +113,12 @@ before treating the action as complete.</code></pre>
         <p class="eyebrow">Call flow</p>
         <h2>Minimal integration path.</h2>
         <pre><code>1. Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.
-2. Use /api/snippets for copy-paste buyer and proof verification examples.
-3. POST /api/execute/webhook with url, method, body, idempotencyKey, retry, timeoutMs.
-4. In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.
-5. Read links.job or links.receipt from the response.
-6. Verify with /api/verify/jobs/{id} or /api/verify/receipts/{id}.</code></pre>
+2. Optionally POST the same JSON to /api/policy/check before paying.
+3. Use /api/snippets for copy-paste buyer and proof verification examples.
+4. POST /api/execute/webhook with url, method, body, idempotencyKey, retry, timeoutMs.
+5. In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.
+6. Read links.job or links.receipt from the response.
+7. Verify with /api/verify/jobs/{id} or /api/verify/receipts/{id}.</code></pre>
       </section>
 
       <section class="code-section">
@@ -162,6 +163,11 @@ verify /api/verify/jobs/{id}</code></pre>
             <span>machine readable</span>
             <h3>GET /api/actions</h3>
             <p>Action templates, policy modes, snippets, and scheduled-action compatibility notes.</p>
+          </article>
+          <article class="endpoint">
+            <span>machine readable</span>
+            <h3>POST /api/policy/check</h3>
+            <p>Free pre-payment check for target safety, policy, retry, timeout, and warnings.</p>
           </article>
           <article class="endpoint">
             <span>machine readable</span>

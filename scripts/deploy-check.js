@@ -36,9 +36,9 @@ async function checkStatic(path, expectedText) {
   }
 }
 
-async function checkJson(path) {
+async function checkJson(path, options = {}) {
   try {
-    const { response, body } = await fetchJson(path);
+    const { response, body } = await fetchJson(path, options);
     record(`${path} returns JSON`, response.status === 200 && body && typeof body === "object", `status=${response.status}`);
     return body;
   } catch (error) {
@@ -70,6 +70,17 @@ async function main() {
   const capabilities = await checkJson("/api/capabilities");
   const actions = await checkJson("/api/actions");
   const quickstart = await checkJson("/api/quickstart");
+  const policyCheck = await checkJson("/api/policy/check", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      url: "https://127.0.0.1/internal",
+      method: "POST",
+      idempotencyKey: "deploy-check-policy"
+    })
+  });
   const snippets = await checkJson("/api/snippets");
   const bazaar = await checkJson("/api/bazaar");
   const proofs = await checkJson("/api/proofs/recent");
@@ -115,6 +126,7 @@ async function main() {
       Array.isArray(capabilities.actionTemplates) && capabilities.actionTemplates.length >= 9
     );
     record("capabilities expose quickstart", capabilities.quickstart?.path === "/api/quickstart");
+    record("capabilities expose policy check", capabilities.policyCheck?.path === "/api/policy/check");
     record("capabilities expose snippets", capabilities.snippets?.path === "/api/snippets");
     record("capabilities expose action catalog", capabilities.actionCatalog?.path === "/api/actions");
     record("capabilities expose proof badge", capabilities.verification?.proofBadge === "/proof/{jobOrReceiptId}");
@@ -141,6 +153,12 @@ async function main() {
     record("quickstart endpoint exposes minimal request", quickstart.minimalRequest?.url === "https://httpbin.org/anything");
     record("quickstart endpoint exposes proof badge", quickstart.verify?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
     record("quickstart endpoint exposes call flow", Array.isArray(quickstart.callFlow) && quickstart.callFlow.length >= 5);
+  }
+
+  if (policyCheck) {
+    record("policy check endpoint returns structured result", policyCheck.allowed === false && policyCheck.ok === false);
+    record("policy check rejects private targets", policyCheck.error?.code === "unsafe_target");
+    record("policy check points to paid action", policyCheck.action?.path === "/api/execute/webhook");
   }
 
   if (snippets) {
@@ -171,6 +189,7 @@ async function main() {
     record("bazaar metadata has proof link", typeof bazaar.links?.proofs === "string");
     record("bazaar metadata has action catalog link", typeof bazaar.links?.actionCatalog === "string");
     record("bazaar metadata has quickstart link", typeof bazaar.links?.quickstart === "string");
+    record("bazaar metadata has policy check link", typeof bazaar.links?.policyCheck === "string");
     record("bazaar metadata has snippets link", typeof bazaar.links?.snippets === "string");
     record("bazaar metadata has proof badge link", typeof bazaar.links?.proofBadge === "string");
     record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
@@ -212,6 +231,7 @@ async function main() {
     record("trust endpoint exposes public surfaces", typeof trust.publicSurfaces?.useCases === "string");
     record("trust endpoint exposes score", typeof trust.trustScore?.score === "number");
     record("trust endpoint exposes action catalog surface", typeof trust.publicSurfaces?.actionCatalog === "string");
+    record("trust endpoint exposes policy check surface", typeof trust.publicSurfaces?.policyCheck === "string");
     record("trust endpoint exposes snippets surface", typeof trust.publicSurfaces?.snippets === "string");
     record("trust endpoint exposes trust signals", Array.isArray(trust.trustSignals) && trust.trustSignals.length >= 6);
   }

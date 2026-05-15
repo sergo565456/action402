@@ -53,6 +53,7 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.links.snippetsGuide.endsWith("/snippets"), true);
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
@@ -60,6 +61,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.trust.endsWith("/trust"), true);
   assert.equal(body.trust.path, "/api/trust");
   assert.equal(body.quickstart.path, "/api/quickstart");
+  assert.equal(body.policyCheck.path, "/api/policy/check");
+  assert.equal(body.policyCheck.paid, false);
   assert.equal(body.snippets.path, "/api/snippets");
   assert.equal(body.actionCatalog.path, "/api/actions");
   assert.equal(body.verification.proofBadge, "/proof/{jobOrReceiptId}");
@@ -87,6 +90,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/trust"].get);
   assert.ok(body.paths["/api/actions"].get);
   assert.ok(body.paths["/api/quickstart"].get);
+  assert.ok(body.paths["/api/policy/check"].post);
   assert.ok(body.paths["/api/snippets"].get);
   assert.ok(body.paths["/proof/{id}"].get);
   assert.ok(body.components.schemas.WebhookRequest);
@@ -95,6 +99,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.MonitoringResponse);
   assert.ok(body.components.schemas.ActionCatalogResponse);
   assert.ok(body.components.schemas.QuickstartResponse);
+  assert.ok(body.components.schemas.PolicyCheckResponse);
   assert.ok(body.components.schemas.SnippetsResponse);
   assert.ok(body.components.schemas.TrustResponse);
 });
@@ -129,6 +134,28 @@ test("quickstart endpoint gives compact agent call flow", async () => {
   assert.ok(body.decisionRules.useWhen.some((step) => step.includes("public HTTPS")));
   assert.equal(body.verify.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/actions")));
+  assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/policy/check")));
+});
+
+test("policy check rejects unsafe payload before payment without executing", async () => {
+  const { response, body } = await request("/api/policy/check", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      url: "https://127.0.0.1/internal",
+      method: "POST",
+      idempotencyKey: "policy-check-private"
+    })
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, false);
+  assert.equal(body.allowed, false);
+  assert.equal(body.error.code, "unsafe_target");
+  assert.equal(body.action.path, "/api/execute/webhook");
+  assert.equal(body.next.snippets, "/api/snippets");
 });
 
 test("snippets endpoint exposes buyer and verification examples", async () => {
@@ -140,10 +167,12 @@ test("snippets endpoint exposes buyer and verification examples", async () => {
   assert.ok(body.groups.length >= 4);
   assert.ok(body.groups.some((group) => group.id === "discovery"));
   assert.ok(body.groups.some((group) => group.id === "paid-call"));
+  assert.ok(body.groups.some((group) => group.snippets.some((snippet) => snippet.id === "preflight-policy-check")));
   const verification = body.groups.find((group) => group.id === "verification");
   assert.ok(verification);
   assert.ok(verification.snippets.some((snippet) => snippet.id === "verify-job-javascript"));
   assert.equal(body.links.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
+  assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
 });
 
 test("bazaar metadata exposes valid discovery extension", async () => {
@@ -164,12 +193,14 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.ok(body.useCaseTemplates.length >= 6);
   assert.ok(body.actionCatalog.templateCount >= 9);
   assert.equal(body.quickstart.path, "/api/quickstart");
+  assert.equal(body.policyCheck.path, "/api/policy/check");
   assert.equal(body.snippets.path, "/api/snippets");
   assert.equal(route.extensions.bazaar.info.input.method, "POST");
   assert.equal(route.extensions.bazaar.info.input.bodyType, "json");
@@ -190,6 +221,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/actions"), true);
   assert.equal(body.includes("/api/actions"), true);
   assert.equal(body.includes("/api/quickstart"), true);
+  assert.equal(body.includes("/api/policy/check"), true);
   assert.equal(body.includes("/api/snippets"), true);
   assert.equal(body.includes("/snippets"), true);
   assert.equal(body.includes("/mcp"), true);
@@ -439,12 +471,14 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(typeof body.trustScore.score, "number");
   assert.ok(body.trustScore.components.some((component) => component.id === "agent_surfaces"));
   assert.equal(body.publicSurfaces.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.publicSurfaces.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.publicSurfaces.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.publicSurfaces.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.publicSurfaces.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.publicSurfaces.useCases.endsWith("/use-cases"), true);
   assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
   assert.equal(body.trustSignals.includes("public action catalog and quickstart endpoints"), true);
+  assert.equal(body.trustSignals.includes("free preflight policy check before payment"), true);
   assert.equal(body.trustSignals.includes("copy-paste integration snippets for buyers and verifiers"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
   assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);

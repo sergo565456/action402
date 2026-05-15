@@ -26,6 +26,7 @@ Discovery and contracts:
 - /proof/{jobOrReceiptId} - browser-friendly proof badge for a single job or receipt.
 - /monitoring - browser-friendly execution monitoring page.
 - /api/quickstart - compact agent quickstart with payment guardrails, minimal request, snippets, and verification flow.
+- /api/policy/check - free pre-payment POST check for target safety, policy, retry, timeout, and warnings.
 - /api/snippets - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - /api/actions - machine-readable action catalog with templates, policy modes, snippets, and scheduled-action compatibility notes.
 - /api/capabilities - agent-readable service capabilities, safety limits, payment settings, verification links, and MCP/Bazaar discovery hints.
@@ -44,7 +45,7 @@ Verification:
 - GET /proof/{jobOrReceiptId} - public proof badge page for operators and browser-capable agents.
 
 Usage and pricing:
-- Free: /agents, /pricing, /onboarding, /use-cases, /actions, /snippets, /mcp, /trust, /proofs, /proof/{jobOrReceiptId}, /api/quickstart, /api/snippets, /api/actions, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /health.
+- Free: /agents, /pricing, /onboarding, /use-cases, /actions, /snippets, /mcp, /trust, /proofs, /proof/{jobOrReceiptId}, /api/quickstart, /api/policy/check, /api/snippets, /api/actions, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /health.
 - Paid: POST /api/execute/webhook.
 - Published price: $0.003 per paid execution request.
 - Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.
@@ -86,10 +87,11 @@ If an MCP client supports x402/Bazaar discovery, search resources for "Action402
 
 Agent decision shortcut:
 1. Read /api/quickstart for the smallest safe call flow.
-2. Read /api/snippets for copy-paste buyer and proof verification examples.
-3. Read /api/actions to match the task to a template.
-4. Pay only if the 402 requirement matches expected price, network, and route.
-5. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, or /proof/{jobOrReceiptId}.
+2. POST the intended payload to /api/policy/check to catch rejected targets before paying.
+3. Read /api/snippets for copy-paste buyer and proof verification examples.
+4. Read /api/actions to match the task to a template.
+5. Pay only if the 402 requirement matches expected price, network, and route.
+6. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, or /proof/{jobOrReceiptId}.
 
 AgentCash quick start:
 npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"body\":{\"event\":\"agent.llms-test\"},\"idempotencyKey\":\"llms-test-001\",\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json
