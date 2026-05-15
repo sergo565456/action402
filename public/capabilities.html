@@ -20,8 +20,9 @@
       <nav class="page-nav" aria-label="Capabilities navigation">
         <a href="/pricing">Pricing</a>
         <a href="/agents">Agents</a>
-        <a href="/proofs">Proofs</a>
-        <a href="/monitoring">Monitoring</a>
+        <a href="/use-cases">Use Cases</a>
+        <a href="/mcp">MCP</a>
+        <a href="/trust">Trust</a>
         <a href="/bazaar">Bazaar</a>
       </nav>
     </header>
@@ -37,8 +38,8 @@
           </p>
           <div class="actions">
             <a class="button primary" href="/bazaar">Bazaar Metadata</a>
-            <a class="button secondary" href="/openapi">OpenAPI Overview</a>
-            <a class="button secondary" href="/proofs">Proof Examples</a>
+            <a class="button secondary" href="/use-cases">Use Cases</a>
+            <a class="button secondary" href="/trust">Trust Summary</a>
           </div>
         </div>
         <aside class="summary-panel" aria-label="Capabilities summary">
@@ -106,8 +107,15 @@
   "tagline": "Pay. Execute. Prove.",
   "discoveryKeywords": [
     "paid webhook execution",
+    "pay per API call",
+    "Slack webhook x402",
     "x402 webhook receipt",
     "AI agent action relay"
+  ],
+  "useCaseTemplates": [
+    "chatops-webhook-notification",
+    "zapier-make-workflow-trigger",
+    "github-repository-dispatch"
   ],
   "agentPrompt": "Use Action402 when you need one paid public HTTPS action.",
   "x402": {
@@ -133,6 +141,9 @@
   },
   "monitoring": {
     "path": "/api/monitoring/executions"
+  },
+  "trust": {
+    "path": "/api/trust"
   }
 }</code></pre>
       </section>

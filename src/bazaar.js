@@ -1,6 +1,7 @@
 import { config } from "./config.js";
 import { executeWebhookResponseSchema } from "./apiContract.js";
 import { AGENT_PROMPT, DISCOVERY_KEYWORDS, SERVICE_TAGS } from "./agentDiscovery.js";
+import { publicUseCaseTemplates } from "./useCases.js";
 import { declareDiscoveryExtension, validateDiscoveryExtension } from "@x402/extensions/bazaar";
 
 const EXAMPLE_REQUEST = {
@@ -164,7 +165,12 @@ export function publicBazaarMetadata() {
         "paid webhook execution",
         "x402 webhook receipt",
         "AI agent action relay",
-        "verifiable execution"
+        "verifiable execution",
+        "pay per API call",
+        "Slack webhook x402",
+        "Zapier webhook x402",
+        "GitHub Actions dispatch x402",
+        "agent-safe webhook execution"
       ],
       qualitySignals: [
         "Valid @x402/extensions/bazaar discovery extension",
@@ -174,6 +180,9 @@ export function publicBazaarMetadata() {
         "Public job and receipt verification endpoints are available",
         "Public redacted proof examples are available",
         "Public execution monitoring summary is available",
+        "Use-case templates are published for agent task matching",
+        "MCP guide is published for discovery-first clients",
+        "Public trust summary is available",
         "Receipts sign request and response hashes instead of exposing raw payloads"
       ],
       bazaarExtensionValid: validation.valid,
@@ -189,6 +198,7 @@ export function publicBazaarMetadata() {
         executions: "/api/monitoring/executions"
       }
     },
+    useCaseTemplates: publicUseCaseTemplates(),
     mcp: {
       recommendedToolName: "execute_webhook",
       discoveryHint:
@@ -204,6 +214,9 @@ export function publicBazaarMetadata() {
       agentsGuide: `${config.publicBaseUrl}/agents`,
       pricing: `${config.publicBaseUrl}/pricing`,
       onboarding: `${config.publicBaseUrl}/onboarding`,
+      useCases: `${config.publicBaseUrl}/use-cases`,
+      mcpGuide: `${config.publicBaseUrl}/mcp`,
+      trust: `${config.publicBaseUrl}/trust`,
       proofs: `${config.publicBaseUrl}/proofs`,
       monitoring: `${config.publicBaseUrl}/monitoring`,
       llms: `${config.publicBaseUrl}/llms.txt`,

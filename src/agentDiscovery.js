@@ -1,3 +1,5 @@
+import { USE_CASE_KEYWORDS } from "./useCases.js";
+
 const SERVICE_TAGS = [
   "x402",
   "webhook",
@@ -15,6 +17,13 @@ const SERVICE_TAGS = [
   "verifiable-execution",
   "public-proof-examples",
   "execution-monitoring",
+  "use-case-templates",
+  "mcp-discovery",
+  "slack-webhook",
+  "zapier-webhook",
+  "github-actions",
+  "crm-webhook",
+  "incident-alert",
   "idempotency",
   "retries"
 ];
@@ -34,7 +43,15 @@ const DISCOVERY_KEYWORDS = [
   "verifiable webhook relay",
   "idempotent agent tool calls",
   "agent-safe side effects",
-  "request response hash proof"
+  "request response hash proof",
+  "HTTP action with receipt",
+  "pay per API call",
+  "agent webhook marketplace",
+  "agent-safe webhook execution",
+  "Slack webhook x402",
+  "Zapier webhook x402",
+  "GitHub Actions dispatch x402",
+  ...USE_CASE_KEYWORDS
 ];
 
 export { AGENT_PROMPT, DISCOVERY_KEYWORDS, SERVICE_TAGS };

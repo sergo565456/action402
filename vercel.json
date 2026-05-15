@@ -57,6 +57,18 @@
       "destination": "/onboarding.html"
     },
     {
+      "source": "/use-cases",
+      "destination": "/use-cases.html"
+    },
+    {
+      "source": "/mcp",
+      "destination": "/mcp.html"
+    },
+    {
+      "source": "/trust",
+      "destination": "/trust.html"
+    },
+    {
       "source": "/proofs",
       "destination": "/proofs.html"
     },

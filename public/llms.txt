@@ -17,6 +17,9 @@ Discovery and contracts:
 - /agents - human-readable agent integration guide.
 - /pricing - usage and pricing page. Current paid action price: $0.003.
 - /onboarding - copy-paste buyer examples for AgentCash and generic x402/CDP-style signer integrations.
+- /use-cases - task templates for ChatOps notifications, Zapier/Make triggers, GitHub dispatch, analytics events, CRM/ticket updates, and ops alerts.
+- /mcp - MCP/Bazaar discovery-first guide for search, inspect, call, verify flows.
+- /trust - public trust summary page for x402 settings, storage durability, execution counters, proof examples, and redaction policy.
 - /proofs - browser-friendly recent verified proof examples with sensitive execution data redacted.
 - /monitoring - browser-friendly execution monitoring page.
 - /api/capabilities - agent-readable service capabilities, safety limits, payment settings, verification links, and MCP/Bazaar discovery hints.
@@ -31,9 +34,10 @@ Verification:
 - GET /api/verify/receipts/{id} - proof report by receipt id.
 - GET /api/proofs/recent - latest verified proof summaries; target URL, headers, bodies, hashes, and signatures are intentionally redacted.
 - GET /api/monitoring/executions - durable execution counters and recent failure categories without sensitive payload details.
+- GET /api/trust - public trust summary for buyer-side inspection before payment.
 
 Usage and pricing:
-- Free: /agents, /pricing, /onboarding, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /openapi.json, /health.
+- Free: /agents, /pricing, /onboarding, /use-cases, /mcp, /trust, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /health.
 - Paid: POST /api/execute/webhook.
 - Published price: $0.003 per paid execution request.
 - Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.
@@ -51,9 +55,17 @@ Use Action402 for one paid public HTTPS webhook/API action. Pay through x402, pa
 Recommended discovery queries:
 - Action402
 - paid webhook execution
+- agent action relay
+- pay per API call
+- HTTP action with receipt
 - x402 webhook receipt
 - AI agent action relay
 - verifiable execution
+- Slack webhook x402
+- Zapier webhook x402
+- GitHub Actions dispatch x402
+- agent CRM webhook update
+- paid incident alert webhook
 
 MCP/Bazaar guidance:
 If an MCP client supports x402/Bazaar discovery, search resources for "Action402" or "paid webhook execution", inspect the returned price and route metadata, call the returned resource/tool through the MCP proxy, then verify links.job or links.receipt after completion.

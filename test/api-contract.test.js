@@ -50,6 +50,13 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/verify")), true);
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
   assert.equal(body.links.llms.endsWith("/llms.txt"), true);
+  assert.equal(body.links.useCases.endsWith("/use-cases"), true);
+  assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
+  assert.equal(body.links.trust.endsWith("/trust"), true);
+  assert.equal(body.trust.path, "/api/trust");
+  assert.ok(body.discoveryKeywords.includes("pay per API call"));
+  assert.ok(body.discoveryKeywords.includes("Slack webhook x402"));
+  assert.ok(body.useCaseTemplates.length >= 6);
 });
 
 test("openapi document exposes execute webhook path", async () => {
@@ -62,10 +69,12 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/verify/receipts/{id}"].get);
   assert.ok(body.paths["/api/proofs/recent"].get);
   assert.ok(body.paths["/api/monitoring/executions"].get);
+  assert.ok(body.paths["/api/trust"].get);
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
   assert.ok(body.components.schemas.PublicProofSummary);
   assert.ok(body.components.schemas.MonitoringResponse);
+  assert.ok(body.components.schemas.TrustResponse);
 });
 
 test("bazaar metadata exposes valid discovery extension", async () => {
@@ -83,6 +92,9 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.discovery.searchQueries.includes("Action402"), true);
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
   assert.equal(body.links.llms.endsWith("/llms.txt"), true);
+  assert.equal(body.links.useCases.endsWith("/use-cases"), true);
+  assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
+  assert.ok(body.useCaseTemplates.length >= 6);
   assert.equal(route.extensions.bazaar.info.input.method, "POST");
   assert.equal(route.extensions.bazaar.info.input.bodyType, "json");
   assert.equal(route.extensions.bazaar.info.input.body.url, "https://httpbin.org/anything");
@@ -98,6 +110,10 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("paid webhook execution"), true);
   assert.equal(body.includes("/api/capabilities"), true);
   assert.equal(body.includes("/pricing"), true);
+  assert.equal(body.includes("/use-cases"), true);
+  assert.equal(body.includes("/mcp"), true);
+  assert.equal(body.includes("/api/trust"), true);
+  assert.equal(body.includes("pay per API call"), true);
   assert.equal(body.includes("/api/proofs/recent"), true);
   assert.equal(body.includes("/api/monitoring/executions"), true);
   assert.equal(body.includes("MCP/Bazaar guidance"), true);
@@ -107,6 +123,9 @@ test("public product pages load", async () => {
   const pages = [
     ["/pricing", "Usage and pricing"],
     ["/onboarding", "Agent onboarding"],
+    ["/use-cases", "Use-case templates"],
+    ["/mcp", "Discovery-first instructions"],
+    ["/trust", "Trust summary"],
     ["/proofs", "Verified proof examples"],
     ["/monitoring", "Execution monitoring"]
   ];
@@ -283,6 +302,58 @@ test("execution monitoring endpoint returns durable counters and redacted failur
   assert.equal(body.recentFailures[0].target, undefined);
   assert.equal(body.recentFailures[0].requestHash, undefined);
   assert.equal(body.redactionPolicy.redactedFields.includes("responseBody"), true);
+});
+
+test("trust endpoint returns redacted public buyer signals", async () => {
+  await resetStoreForTests();
+
+  const job = {
+    id: "job_trust_1",
+    type: "webhook",
+    status: "succeeded",
+    target: "https://sensitive.example.com/trust-webhook",
+    method: "POST",
+    idempotencyKey: "trust-key-1",
+    attempts: [
+      {
+        attempt: 1,
+        startedAt: "2026-05-14T00:00:00.000Z",
+        completedAt: "2026-05-14T00:00:01.000Z",
+        status: 200,
+        ok: true
+      }
+    ],
+    receiptId: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  const receipt = buildReceipt({
+    job,
+    requestHash: "e".repeat(64),
+    responseHash: "f".repeat(64),
+    target: {
+      url: job.target,
+      method: job.method
+    },
+    response: {
+      ok: true,
+      status: 200
+    }
+  });
+  await createJob({ ...job, receiptId: receipt.id });
+  await saveReceipt(receipt);
+
+  const { response, body } = await request("/api/trust");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.x402.scheme, "exact");
+  assert.equal(body.execution.stats.total, 1);
+  assert.equal(body.proofExamples.recentVerifiedProofs, 1);
+  assert.equal(body.publicSurfaces.useCases.endsWith("/use-cases"), true);
+  assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
+  assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
+  assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);
 });
 
 test("webhook execution rejects private network targets with structured error", async () => {

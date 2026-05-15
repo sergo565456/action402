@@ -13,6 +13,7 @@ import {
   publicProofSummary,
   redactionPolicy
 } from "./publicSummaries.js";
+import { buildTrustSummary } from "./trustSummary.js";
 import { maybeInstallX402 } from "./x402.js";
 import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
@@ -122,6 +123,21 @@ app.get("/api/monitoring/executions", async (req, res, next) => {
       processMetrics: observabilitySummary(),
       targetQuota: targetQuotaStats()
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/trust", async (req, res, next) => {
+  try {
+    res.json(
+      await buildTrustSummary({
+        executionStats,
+        storeStats,
+        listRecentJobs,
+        getReceipt
+      })
+    );
   } catch (error) {
     next(error);
   }

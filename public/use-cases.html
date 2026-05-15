@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Use Cases</title>
+    <meta
+      name="description"
+      content="Task templates for agents that need paid, verifiable webhook execution through Action402."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Use case navigation">
+        <a href="/agents">Agents</a>
+        <a href="/mcp">MCP</a>
+        <a href="/trust">Trust</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/api/capabilities">Capabilities</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Use-case templates</p>
+          <h1>Agent actions that fit a paid webhook relay.</h1>
+          <p>
+            Action402 is most useful when an agent needs one bounded public HTTPS side effect,
+            a buyer-side spend cap, idempotency, and a receipt it can verify later.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/onboarding">Run a Paid Call</a>
+            <a class="button secondary" href="/mcp">MCP Discovery</a>
+            <a class="button secondary" href="/api/capabilities">Capabilities JSON</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Use case summary">
+          <dl>
+            <div>
+              <dt>good fit</dt>
+              <dd>one public HTTPS side effect</dd>
+            </div>
+            <div>
+              <dt>proof</dt>
+              <dd><code>signed receipt</code></dd>
+            </div>
+            <div>
+              <dt>buyer guard</dt>
+              <dd><code>max amount + idempotency</code></dd>
+            </div>
+            <div>
+              <dt>paid route</dt>
+              <dd><code>/api/execute/webhook</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Templates</p>
+          <h2>Match by task, not brand name.</h2>
+          <p>
+            These examples are included in the agent-readable capabilities metadata so discovery
+            clients can map natural language tasks to the paid Action402 route.
+          </p>
+        </div>
+        <div class="template-grid">
+          <article class="template-card">
+            <span>chatops</span>
+            <h3>Slack, Discord, or Telegram webhook notification</h3>
+            <p>Notify a channel after an agent completes a task, detects risk, or needs human review.</p>
+            <div class="tag-list">
+              <code>slack-webhook</code><code>discord-webhook</code><code>agent-notification</code>
+            </div>
+            <pre><code>{
+  "url": "https://hooks.slack.com/services/WORKSPACE/CHANNEL/SECRET",
+  "method": "POST",
+  "body": { "text": "Agent task completed." },
+  "idempotencyKey": "chatops-alert-001",
+  "timeoutMs": 10000
+}</code></pre>
+          </article>
+
+          <article class="template-card">
+            <span>automation</span>
+            <h3>Zapier or Make workflow trigger</h3>
+            <p>Start a no-code workflow without creating an Action402 account or sharing broad API credentials.</p>
+            <div class="tag-list">
+              <code>zapier-webhook</code><code>make-webhook</code><code>automation-trigger</code>
+            </div>
+            <pre><code>{
+  "url": "https://hooks.zapier.com/hooks/catch/ACCOUNT/HOOK",
+  "method": "POST",
+  "body": { "event": "agent.workflow.triggered" },
+  "idempotencyKey": "zapier-trigger-001",
+  "retry": { "attempts": 2, "backoffMs": 500 }
+}</code></pre>
+          </article>
+
+          <article class="template-card">
+            <span>developer</span>
+            <h3>GitHub repository dispatch</h3>
+            <p>Trigger a build, refresh job, or integration workflow and keep a receipt for the attempt.</p>
+            <div class="tag-list">
+              <code>github-actions</code><code>repository-dispatch</code><code>ci-trigger</code>
+            </div>
+            <pre><code>{
+  "url": "https://api.github.com/repos/OWNER/REPO/dispatches",
+  "method": "POST",
+  "headers": { "authorization": "Bearer TARGET_SIDE_TOKEN" },
+  "body": { "event_type": "agent.action402" },
+  "idempotencyKey": "github-dispatch-001"
+}</code></pre>
+          </article>
+
+          <article class="template-card">
+            <span>analytics</span>
+            <h3>Analytics or audit event ingest</h3>
+            <p>Send a machine-paid event to an analytics, audit, or evidence collection endpoint.</p>
+            <div class="tag-list">
+              <code>analytics</code><code>audit-event</code><code>event-ingest</code>
+            </div>
+            <pre><code>{
+  "url": "https://analytics.example.com/events",
+  "method": "POST",
+  "body": {
+    "event": "agent.action.executed",
+    "properties": { "billable": true }
+  },
+  "idempotencyKey": "analytics-event-001"
+}</code></pre>
+          </article>
+
+          <article class="template-card">
+            <span>business ops</span>
+            <h3>CRM lead or support ticket update</h3>
+            <p>Move a lead, ticket, or customer workflow to the next state with a verifiable execution trail.</p>
+            <div class="tag-list">
+              <code>crm</code><code>support-ticket</code><code>customer-success</code>
+            </div>
+            <pre><code>{
+  "url": "https://crm.example.com/webhooks/action402",
+  "method": "POST",
+  "body": {
+    "event": "agent.crm.update",
+    "status": "ready_for_review"
+  },
+  "idempotencyKey": "crm-update-001"
+}</code></pre>
+          </article>
+
+          <article class="template-card">
+            <span>reliability</span>
+            <h3>Incident or ops alert</h3>
+            <p>Escalate an agent-detected issue to an incident webhook or alert manager.</p>
+            <div class="tag-list">
+              <code>incident-alert</code><code>ops-webhook</code><code>alertmanager</code>
+            </div>
+            <pre><code>{
+  "url": "https://alerts.example.com/incidents",
+  "method": "POST",
+  "body": {
+    "event": "agent.incident.detected",
+    "severity": "warning"
+  },
+  "idempotencyKey": "incident-alert-001",
+  "retry": { "attempts": 3, "backoffMs": 750 }
+}</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Agent search phrases</p>
+        <h2>Discovery phrases this service should answer.</h2>
+        <pre><code>paid webhook execution
+agent action relay
+pay per API call
+HTTP action with receipt
+Slack webhook x402
+Zapier webhook x402
+GitHub Actions dispatch x402
+verifiable customer workflow action
+paid incident alert webhook</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Use-case templates: /use-cases</span>
+    </footer>
+  </body>
+</html>

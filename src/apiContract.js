@@ -1,6 +1,7 @@
 import { config } from "./config.js";
 import { effectiveTargetPolicy } from "./targetPolicy.js";
 import { AGENT_PROMPT, DISCOVERY_KEYWORDS } from "./agentDiscovery.js";
+import { publicUseCaseTemplates } from "./useCases.js";
 
 const webhookRequestSchema = {
   type: "object",
@@ -191,6 +192,52 @@ const monitoringResponseSchema = {
   }
 };
 
+const trustResponseSchema = {
+  type: "object",
+  required: ["ok", "status", "x402", "storage", "execution", "proofExamples", "trustSignals"],
+  properties: {
+    ok: { type: "boolean" },
+    status: { type: "string", enum: ["ok", "attention"] },
+    x402: {
+      type: "object",
+      properties: {
+        enabled: { type: "boolean" },
+        scheme: { type: "string" },
+        network: { type: "string" },
+        price: { type: "string" }
+      }
+    },
+    storage: {
+      type: "object",
+      properties: {
+        driver: { type: "string" },
+        durable: { type: "boolean" },
+        jobs: { type: "integer" },
+        receipts: { type: "integer" }
+      }
+    },
+    execution: {
+      type: "object",
+      properties: {
+        windowMs: { type: "integer" },
+        recentFailureRate: { type: "number" },
+        stats: { type: "object" }
+      }
+    },
+    proofExamples: {
+      type: "object",
+      properties: {
+        recentVerifiedProofs: { type: "integer" },
+        latestVerifiedProofAt: { type: ["string", "null"] }
+      }
+    },
+    trustSignals: {
+      type: "array",
+      items: { type: "string" }
+    }
+  }
+};
+
 export function publicCapabilities() {
   const targetPolicy = effectiveTargetPolicy(config);
 
@@ -204,6 +251,7 @@ export function publicCapabilities() {
     discoveryKeywords: DISCOVERY_KEYWORDS,
     agentPrompt: AGENT_PROMPT,
     publicBaseUrl: config.publicBaseUrl,
+    useCaseTemplates: publicUseCaseTemplates(),
     x402: {
       enabled: config.x402Enabled,
       scheme: "exact",
@@ -277,9 +325,23 @@ export function publicCapabilities() {
         "Durable execution counters and recent failed executions, redacted for public agent/operator checks.",
       defaultWindowMs: 24 * 60 * 60 * 1000
     },
+    trust: {
+      path: "/api/trust",
+      description:
+        "Public trust summary combining x402 settings, storage durability, execution counters, proof example counts, and redaction policy."
+    },
     mcp: {
       recommendedToolName: "execute_webhook",
-      discoveryQueries: ["Action402", "paid webhook execution", "x402 webhook receipt"],
+      discoveryQueries: [
+        "Action402",
+        "paid webhook execution",
+        "x402 webhook receipt",
+        "agent action relay",
+        "pay per API call",
+        "Slack webhook x402",
+        "Zapier webhook x402",
+        "GitHub Actions dispatch x402"
+      ],
       bazaarFlow: [
         "search_resources query=Action402",
         "inspect the returned resource metadata and price",
@@ -329,6 +391,9 @@ export function publicCapabilities() {
       agentsGuide: `${config.publicBaseUrl}/agents`,
       pricing: `${config.publicBaseUrl}/pricing`,
       onboarding: `${config.publicBaseUrl}/onboarding`,
+      useCases: `${config.publicBaseUrl}/use-cases`,
+      mcpGuide: `${config.publicBaseUrl}/mcp`,
+      trust: `${config.publicBaseUrl}/trust`,
       proofs: `${config.publicBaseUrl}/proofs`,
       monitoring: `${config.publicBaseUrl}/monitoring`,
       llms: `${config.publicBaseUrl}/llms.txt`
@@ -603,6 +668,23 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/trust": {
+        get: {
+          summary: "Fetch public trust summary",
+          description:
+            "Returns redacted public trust signals for agents evaluating whether to use the paid execution route.",
+          responses: {
+            "200": {
+              description: "Trust summary",
+              content: {
+                "application/json": {
+                  schema: trustResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/capabilities": {
         get: {
           summary: "Fetch agent-readable service capabilities",
@@ -641,6 +723,7 @@ export function openApiSpec() {
         VerificationReport: verificationReportSchema,
         PublicProofSummary: publicProofSummarySchema,
         MonitoringResponse: monitoringResponseSchema,
+        TrustResponse: trustResponseSchema,
         Error: errorSchema
       }
     }

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Trust Summary</title>
+    <meta
+      name="description"
+      content="Public trust summary for Action402 x402 paid execution."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Trust navigation">
+        <a href="/use-cases">Use Cases</a>
+        <a href="/mcp">MCP</a>
+        <a href="/proofs">Proofs</a>
+        <a href="/monitoring">Monitoring</a>
+        <a href="/api/trust">Trust JSON</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Trust summary</p>
+          <h1>Signals an agent can check before paying.</h1>
+          <p>
+            Action402 exposes public status, storage, proof, discovery, and monitoring signals
+            without leaking target URLs, payloads, hashes, or signatures in broad summaries.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/trust">Open Trust JSON</a>
+            <a class="button secondary" href="/proofs">Proof Examples</a>
+            <a class="button secondary" href="/monitoring">Monitoring</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Trust quick facts">
+          <dl>
+            <div>
+              <dt>payments</dt>
+              <dd><code>x402 exact on Base</code></dd>
+            </div>
+            <div>
+              <dt>storage</dt>
+              <dd><code>durable in production</code></dd>
+            </div>
+            <div>
+              <dt>proof</dt>
+              <dd><code>receipt + verify endpoints</code></dd>
+            </div>
+            <div>
+              <dt>raw endpoint</dt>
+              <dd><code>/api/trust</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Live trust block</p>
+          <h2>Current public service signals.</h2>
+          <p id="trust-summary">
+            Loading trust signals from the Action402 API.
+          </p>
+        </div>
+        <div class="metric-grid" id="trust-metrics" aria-live="polite">
+          <article class="metric-card">
+            <span>status</span>
+            <strong>...</strong>
+            <small>Loading</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Trust signals</p>
+          <h2>What agents can independently inspect.</h2>
+          <p>
+            These surfaces are public and machine-readable. A buyer should inspect them before
+            spending and verify proof links after completion.
+          </p>
+        </div>
+        <div class="endpoint-list" id="trust-signals">
+          <article class="endpoint">
+            <span>loading</span>
+            <h3>Trust signals</h3>
+            <p>Loading from <code>/api/trust</code>.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Trust summary: /trust</span>
+    </footer>
+
+    <script src="/trust.js"></script>
+  </body>
+</html>

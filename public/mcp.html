@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 MCP Guide</title>
+    <meta
+      name="description"
+      content="MCP and Bazaar discovery guide for agents that want to buy Action402 paid webhook execution."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="MCP navigation">
+        <a href="/use-cases">Use Cases</a>
+        <a href="/agents">Agents</a>
+        <a href="/trust">Trust</a>
+        <a href="/api/bazaar">Bazaar JSON</a>
+        <a href="/llms.txt">llms.txt</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">MCP and Bazaar</p>
+          <h1>Discovery-first instructions for agents.</h1>
+          <p>
+            Action402 publishes enough metadata for MCP/Bazaar clients to find the paid route,
+            inspect price and schema, call through x402, then verify the receipt.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/bazaar">Open Bazaar JSON</a>
+            <a class="button secondary" href="/api/capabilities">Capabilities JSON</a>
+            <a class="button secondary" href="/use-cases">Use Cases</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="MCP summary">
+          <dl>
+            <div>
+              <dt>tool name</dt>
+              <dd><code>execute_webhook</code></dd>
+            </div>
+            <div>
+              <dt>search</dt>
+              <dd><code>Action402</code></dd>
+            </div>
+            <div>
+              <dt>price source</dt>
+              <dd><code>/api/bazaar</code></dd>
+            </div>
+            <div>
+              <dt>proof</dt>
+              <dd><code>/api/verify/jobs/{id}</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Agent flow</p>
+          <h2>Search, inspect, call, verify.</h2>
+          <p>
+            Do not hard-code a hidden route if your client supports discovery. Search by
+            task phrase, inspect the returned x402 metadata, then use the returned route.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>1 search</span>
+            <h3>Action402 or paid webhook execution</h3>
+            <p>Also try pay per API call, agent action relay, x402 webhook receipt, Slack webhook x402, or Zapier webhook x402.</p>
+          </article>
+          <article class="endpoint">
+            <span>2 inspect</span>
+            <h3>Read price, network, schema, tags</h3>
+            <p>Use <code>/api/bazaar</code>, <code>/api/capabilities</code>, and <code>/openapi.json</code> to check contract and budget.</p>
+          </article>
+          <article class="endpoint">
+            <span>3 call</span>
+            <h3>Pay once through x402</h3>
+            <p>Send <code>url</code>, <code>method</code>, optional headers/body, <code>idempotencyKey</code>, retry, and timeout.</p>
+          </article>
+          <article class="endpoint">
+            <span>4 verify</span>
+            <h3>Check the proof report</h3>
+            <p>Use returned <code>links.job</code>, <code>links.receipt</code>, or the verify endpoints before marking the action complete.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">MCP pseudo-call</p>
+        <h2>Tool-discovery shape.</h2>
+        <pre><code>search_resources query="paid webhook execution"
+inspect resource.name == "Action402"
+inspect resource.price == "$0.003"
+inspect resource.network == "eip155:8453"
+proxy_tool_call resource="Action402 execute webhook" input={
+  "url": "https://hooks.zapier.com/hooks/catch/ACCOUNT/HOOK",
+  "method": "POST",
+  "body": { "event": "agent.workflow.triggered" },
+  "idempotencyKey": "agent-action-001",
+  "timeoutMs": 10000
+}
+fetch result.links.job or result.links.receipt
+verify /api/verify/jobs/{id}</code></pre>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">CDP Agentic Wallet</p>
+        <h2>Direct CLI discovery.</h2>
+        <pre><code>npx awal@latest x402 bazaar search "Action402" -k 5 --json
+npx awal@latest x402 bazaar search "paid webhook execution" -k 5 --json
+npx awal@latest x402 details https://action402.vercel.app/api/execute/webhook --json</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>MCP guide: /mcp</span>
+    </footer>
+  </body>
+</html>

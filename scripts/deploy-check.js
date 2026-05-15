@@ -56,6 +56,9 @@ async function main() {
   await checkStatic("/agents", "Pay for one action");
   await checkStatic("/pricing", "Usage and pricing");
   await checkStatic("/onboarding", "Agent onboarding");
+  await checkStatic("/use-cases", "Use-case templates");
+  await checkStatic("/mcp", "Discovery-first instructions");
+  await checkStatic("/trust", "Trust summary");
   await checkStatic("/proofs", "Verified proof examples");
   await checkStatic("/monitoring", "Execution monitoring");
   await checkStatic("/llms.txt", "paid webhook execution");
@@ -65,6 +68,7 @@ async function main() {
   const bazaar = await checkJson("/api/bazaar");
   const proofs = await checkJson("/api/proofs/recent");
   const monitoring = await checkJson("/api/monitoring/executions");
+  const trust = await checkJson("/api/trust");
   await checkJson("/openapi.json");
 
   if (health) {
@@ -96,6 +100,12 @@ async function main() {
       capabilities.monitoring?.path === "/api/monitoring/executions"
     );
     record("capabilities expose pricing link", typeof capabilities.links?.pricing === "string");
+    record(
+      "capabilities expose use-case templates",
+      Array.isArray(capabilities.useCaseTemplates) && capabilities.useCaseTemplates.length >= 6
+    );
+    record("capabilities expose MCP guide link", typeof capabilities.links?.mcpGuide === "string");
+    record("capabilities expose trust summary", capabilities.trust?.path === "/api/trust");
     if (expectX402) {
       record("capabilities mark action paid", capabilities.actions?.[0]?.paid === true);
     }
@@ -118,6 +128,11 @@ async function main() {
     );
     record("bazaar metadata has proof link", typeof bazaar.links?.proofs === "string");
     record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
+    record("bazaar metadata has use-case link", typeof bazaar.links?.useCases === "string");
+    record(
+      "bazaar metadata has use-case templates",
+      Array.isArray(bazaar.useCaseTemplates) && bazaar.useCaseTemplates.length >= 6
+    );
     if (expectX402) {
       record("bazaar payment points to Base mainnet", bazaar.payment?.network === "eip155:8453");
       record("bazaar payment has payTo", /^0x[a-fA-F0-9]{40}$/.test(bazaar.payment?.payTo || ""));
@@ -139,6 +154,13 @@ async function main() {
     record("monitoring endpoint exposes status", ["ok", "attention"].includes(monitoring.status));
     record("monitoring endpoint exposes durable stats", typeof monitoring.stats?.total === "number");
     record("monitoring endpoint exposes recent failures array", Array.isArray(monitoring.recentFailures));
+  }
+
+  if (trust) {
+    record("trust endpoint exposes status", ["ok", "attention"].includes(trust.status));
+    record("trust endpoint exposes x402 settings", trust.x402?.scheme === "exact");
+    record("trust endpoint exposes public surfaces", typeof trust.publicSurfaces?.useCases === "string");
+    record("trust endpoint exposes trust signals", Array.isArray(trust.trustSignals) && trust.trustSignals.length >= 6);
   }
 
   const failed = checks.filter((check) => !check.ok);

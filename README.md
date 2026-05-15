@@ -4,6 +4,19 @@ Pay. Execute. Prove.
 
 Action402 is a small x402-native execution relay for autonomous agents. Agents pay per action, submit a webhook/API call, and receive a signed receipt that records what was attempted, when it happened, and what the target returned.
 
+Production: https://action402.vercel.app
+
+Agent entry points:
+
+- https://action402.vercel.app/agents - human-readable agent guide.
+- https://action402.vercel.app/use-cases - task templates agents can match against.
+- https://action402.vercel.app/mcp - MCP and Bazaar discovery-first flow.
+- https://action402.vercel.app/trust - public trust summary.
+- https://action402.vercel.app/pricing - current price and free surfaces.
+- https://action402.vercel.app/api/capabilities - machine-readable service contract.
+- https://action402.vercel.app/api/bazaar - x402/Bazaar route metadata.
+- https://action402.vercel.app/llms.txt - compact LLM context.
+
 ## MVP
 
 - `POST /api/execute/webhook` - paid action endpoint in x402 mode.
@@ -11,13 +24,63 @@ Action402 is a small x402-native execution relay for autonomous agents. Agents p
 - `GET /api/receipts/:id` - public receipt verification.
 - `GET /api/verify/jobs/:id` - proof report linking job, receipt, signature, target, method, status, and attempts.
 - `GET /api/verify/receipts/:id` - proof report by receipt id.
+- `GET /api/proofs/recent` - redacted public verified proof examples.
+- `GET /api/monitoring/executions` - durable execution counters and recent failure categories.
+- `GET /api/trust` - redacted public trust summary for buyer-side inspection.
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
 - `GET /api/capabilities` - agent-readable service capabilities.
 - `GET /openapi.json` - OpenAPI 3.1 contract for integrations.
 - `GET /llms.txt` - plain-text agent discovery and usage guide.
 - `/agents` - browser-readable guide for autonomous agents.
+- `/use-cases` - task templates for agent discovery.
+- `/mcp` - MCP/Bazaar discovery guide.
+- `/trust` - browser-readable trust summary.
 - Landing page served from `/`.
 - Demo console served from `/demo.html`.
+
+## What agents should use it for
+
+Action402 is best when an agent needs one bounded public HTTPS side effect and wants to pay per execution instead of creating an account or holding a long-lived API key for Action402 itself.
+
+Good-fit templates:
+
+- ChatOps notifications through Slack, Discord, Telegram bridge services, or internal webhooks.
+- Zapier or Make webhook triggers for no-code workflows.
+- GitHub repository dispatch or other developer automation triggers.
+- Analytics, audit, or evidence event ingest.
+- CRM lead, support ticket, or customer workflow updates.
+- Incident, reliability, or ops alert escalation.
+
+Search phrases intentionally present in capabilities, Bazaar metadata, and `llms.txt`:
+
+- `paid webhook execution`
+- `agent action relay`
+- `pay per API call`
+- `HTTP action with receipt`
+- `x402 webhook receipt`
+- `Slack webhook x402`
+- `Zapier webhook x402`
+- `GitHub Actions dispatch x402`
+- `agent-safe webhook execution`
+
+## MCP and Bazaar discovery
+
+Discovery-first agents should not hard-code a hidden route. The intended flow is:
+
+```text
+search_resources query="paid webhook execution"
+inspect Action402 price, network, schema, tags, and examples
+proxy_tool_call with the returned x402 resource
+read links.job or links.receipt
+verify /api/verify/jobs/{id} or /api/verify/receipts/{id}
+```
+
+Useful public surfaces for discovery clients:
+
+- `GET /api/capabilities` - canonical agent-readable contract, use-case templates, safety limits, and MCP hints.
+- `GET /api/bazaar` - x402/Bazaar route config, price, payTo, tags, examples, and quality signals.
+- `GET /api/trust` - current public trust signals with sensitive execution data redacted.
+- `GET /api/proofs/recent` - verified proof examples without target URLs, bodies, hashes, or signatures.
 
 ## Run locally
 

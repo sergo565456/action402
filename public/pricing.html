@@ -19,10 +19,9 @@
       </a>
       <nav class="page-nav" aria-label="Pricing navigation">
         <a href="/agents">Agents</a>
+        <a href="/use-cases">Use Cases</a>
+        <a href="/trust">Trust</a>
         <a href="/onboarding">Onboarding</a>
-        <a href="/proofs">Proofs</a>
-        <a href="/monitoring">Monitoring</a>
-        <a href="/api/capabilities">Capabilities</a>
       </nav>
     </header>
 
@@ -37,7 +36,8 @@
           </p>
           <div class="actions">
             <a class="button primary" href="/onboarding">Start Integration</a>
-            <a class="button secondary" href="/api/capabilities">Capabilities JSON</a>
+            <a class="button secondary" href="/use-cases">Use Cases</a>
+            <a class="button secondary" href="/trust">Trust Summary</a>
             <a class="button secondary" href="/proofs">View Proofs</a>
           </div>
         </div>
@@ -77,6 +77,16 @@
             <span>free</span>
             <h3>GET /api/capabilities</h3>
             <p>Action schema, x402 settings, safety limits, verification links, and discovery hints.</p>
+          </article>
+          <article class="endpoint">
+            <span>free</span>
+            <h3>GET /api/trust</h3>
+            <p>Public buyer-side trust signals with sensitive execution data redacted.</p>
+          </article>
+          <article class="endpoint">
+            <span>free</span>
+            <h3>GET /use-cases</h3>
+            <p>Task templates for matching agent jobs to Action402's paid route.</p>
           </article>
           <article class="endpoint">
             <span>free</span>
