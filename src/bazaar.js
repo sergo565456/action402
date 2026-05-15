@@ -172,6 +172,8 @@ export function publicBazaarMetadata() {
         "OpenAPI 3.1 contract is available",
         "Agent-readable capabilities document is available",
         "Public job and receipt verification endpoints are available",
+        "Public redacted proof examples are available",
+        "Public execution monitoring summary is available",
         "Receipts sign request and response hashes instead of exposing raw payloads"
       ],
       bazaarExtensionValid: validation.valid,
@@ -180,7 +182,11 @@ export function publicBazaarMetadata() {
       outputExample: EXAMPLE_RESPONSE,
       verification: {
         job: "/api/verify/jobs/{id}",
-        receipt: "/api/verify/receipts/{id}"
+        receipt: "/api/verify/receipts/{id}",
+        recentProofs: "/api/proofs/recent"
+      },
+      monitoring: {
+        executions: "/api/monitoring/executions"
       }
     },
     mcp: {
@@ -196,6 +202,10 @@ export function publicBazaarMetadata() {
     },
     links: {
       agentsGuide: `${config.publicBaseUrl}/agents`,
+      pricing: `${config.publicBaseUrl}/pricing`,
+      onboarding: `${config.publicBaseUrl}/onboarding`,
+      proofs: `${config.publicBaseUrl}/proofs`,
+      monitoring: `${config.publicBaseUrl}/monitoring`,
       llms: `${config.publicBaseUrl}/llms.txt`,
       capabilities: `${config.publicBaseUrl}/api/capabilities`,
       openapi: `${config.publicBaseUrl}/openapi.json`,

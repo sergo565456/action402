@@ -18,10 +18,11 @@
         <span>Action402</span>
       </a>
       <nav class="page-nav" aria-label="Agent navigation">
+        <a href="/pricing">Pricing</a>
+        <a href="/onboarding">Onboarding</a>
+        <a href="/proofs">Proofs</a>
         <a href="/api/capabilities">Capabilities</a>
         <a href="/api/bazaar">Bazaar JSON</a>
-        <a href="/openapi.json">OpenAPI</a>
-        <a href="/llms.txt">llms.txt</a>
       </nav>
     </header>
 
@@ -35,8 +36,8 @@
             verifiable side effects without long-lived API keys or account setup.
           </p>
           <div class="actions">
-            <a class="button primary" href="/api/capabilities">Capabilities JSON</a>
-            <a class="button secondary" href="/openapi.json">OpenAPI</a>
+            <a class="button primary" href="/onboarding">Copy-Paste Onboarding</a>
+            <a class="button secondary" href="/api/capabilities">Capabilities JSON</a>
             <a class="button secondary" href="/api/bazaar">Bazaar Metadata</a>
           </div>
         </div>
@@ -106,6 +107,23 @@ before treating the action as complete.</code></pre>
 3. In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.
 4. Read links.job or links.receipt from the response.
 5. Verify with /api/verify/jobs/{id} or /api/verify/receipts/{id}.</code></pre>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Buyer examples</p>
+        <h2>Copy-paste examples live on the onboarding page.</h2>
+        <p>
+          Use AgentCash for the fastest paid smoke test, or wire an x402 buyer client to a
+          CDP/EVM signer for production agent code.
+        </p>
+        <pre><code>AgentCash:
+npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook ... --payment-protocol x402 --payment-network base --max-amount 0.01 -y
+
+CDP:
+npx awal@latest x402 bazaar search "Action402" -k 5 --json
+npx awal@latest x402 details https://action402.vercel.app/api/execute/webhook --json
+or call it with fetchWithX402 from @coinbase/cdp-core
+verify /api/verify/jobs/{id}</code></pre>
       </section>
 
       <section class="content-band">

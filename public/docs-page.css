@@ -274,6 +274,120 @@ h1 {
   line-height: 1.48;
 }
 
+.metric-grid,
+.proof-list {
+  display: grid;
+  gap: 14px;
+}
+
+.metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric-card,
+.proof-card {
+  border: 1px solid rgba(17, 21, 16, 0.14);
+  border-radius: 8px;
+  padding: 20px;
+  background: #fffaf0;
+}
+
+.metric-card span,
+.proof-card span {
+  display: block;
+  margin-bottom: 10px;
+  color: #087f5b;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.metric-card strong {
+  display: block;
+  color: var(--paper-ink);
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1;
+}
+
+.metric-card small,
+.proof-card small {
+  display: block;
+  margin-top: 8px;
+  color: #555b50;
+  line-height: 1.45;
+}
+
+.proof-card {
+  display: grid;
+  gap: 14px;
+}
+
+.proof-card h3 {
+  margin-bottom: 0;
+  font-family:
+    "Geist Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+
+.proof-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.proof-meta div {
+  border: 1px solid rgba(17, 21, 16, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(17, 21, 16, 0.04);
+}
+
+.proof-meta dt {
+  margin-bottom: 4px;
+  color: #62685e;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.proof-meta dd {
+  margin: 0;
+  font-family:
+    "Geist Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.status-pill {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 28px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: rgba(32, 201, 151, 0.14);
+  color: #087f5b;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.status-pill.warn {
+  background: rgba(245, 159, 0, 0.16);
+  color: #8a5900;
+}
+
+.empty-state {
+  border: 1px dashed rgba(17, 21, 16, 0.25);
+  border-radius: 8px;
+  padding: 24px;
+  background: rgba(255, 250, 240, 0.72);
+  color: #555b50;
+}
+
 .code-section {
   padding: clamp(68px, 9vw, 112px) clamp(18px, 5vw, 76px);
 }
@@ -323,6 +437,11 @@ pre {
     grid-template-columns: 1fr;
   }
 
+  .metric-grid,
+  .proof-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .summary-panel div {
     grid-template-columns: 1fr;
     gap: 4px;
@@ -340,5 +459,10 @@ pre {
 
   .button {
     width: 100%;
+  }
+
+  .metric-grid,
+  .proof-meta {
+    grid-template-columns: 1fr;
   }
 }

@@ -60,8 +60,12 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/execute/webhook"].post);
   assert.ok(body.paths["/api/verify/jobs/{id}"].get);
   assert.ok(body.paths["/api/verify/receipts/{id}"].get);
+  assert.ok(body.paths["/api/proofs/recent"].get);
+  assert.ok(body.paths["/api/monitoring/executions"].get);
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
+  assert.ok(body.components.schemas.PublicProofSummary);
+  assert.ok(body.components.schemas.MonitoringResponse);
 });
 
 test("bazaar metadata exposes valid discovery extension", async () => {
@@ -93,7 +97,25 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("Action402"), true);
   assert.equal(body.includes("paid webhook execution"), true);
   assert.equal(body.includes("/api/capabilities"), true);
+  assert.equal(body.includes("/pricing"), true);
+  assert.equal(body.includes("/api/proofs/recent"), true);
+  assert.equal(body.includes("/api/monitoring/executions"), true);
   assert.equal(body.includes("MCP/Bazaar guidance"), true);
+});
+
+test("public product pages load", async () => {
+  const pages = [
+    ["/pricing", "Usage and pricing"],
+    ["/onboarding", "Agent onboarding"],
+    ["/proofs", "Verified proof examples"],
+    ["/monitoring", "Execution monitoring"]
+  ];
+
+  for (const [path, expectedText] of pages) {
+    const { response, body } = await requestText(path);
+    assert.equal(response.status, 200);
+    assert.equal(body.includes(expectedText), true);
+  }
 });
 
 test("vercel rewrite strips internal catch-all path query", () => {
@@ -153,6 +175,114 @@ test("verification endpoint returns consistency report for stored job receipt", 
   assert.equal(body.receiptId, receipt.id);
   assert.equal(body.signatureVerified, true);
   assert.equal(body.checks.every((item) => item.ok), true);
+});
+
+test("recent proofs endpoint returns redacted verified examples", async () => {
+  await resetStoreForTests();
+
+  const job = {
+    id: "job_public_proof_1",
+    type: "webhook",
+    status: "succeeded",
+    target: "https://sensitive.example.com/private-webhook",
+    method: "POST",
+    idempotencyKey: "public-proof-key-1",
+    attempts: [
+      {
+        attempt: 1,
+        startedAt: "2026-05-14T00:00:00.000Z",
+        completedAt: "2026-05-14T00:00:01.000Z",
+        status: 200,
+        ok: true
+      }
+    ],
+    receiptId: null,
+    createdAt: "2026-05-14T00:00:00.000Z",
+    updatedAt: "2026-05-14T00:00:01.000Z"
+  };
+  const receipt = buildReceipt({
+    job,
+    requestHash: "a".repeat(64),
+    responseHash: "b".repeat(64),
+    target: {
+      url: job.target,
+      method: job.method
+    },
+    response: {
+      ok: true,
+      status: 200
+    }
+  });
+  await createJob({ ...job, receiptId: receipt.id });
+  await saveReceipt(receipt);
+
+  const { response, body } = await request("/api/proofs/recent?limit=5");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.proofs.length, 1);
+  assert.equal(body.redactionPolicy.redactedFields.includes("targetUrl"), true);
+  assert.equal(body.proofs[0].receiptVerified, true);
+  assert.equal(body.proofs[0].target, undefined);
+  assert.equal(body.proofs[0].targetUrl, undefined);
+  assert.equal(body.proofs[0].requestHash, undefined);
+  assert.equal(body.proofs[0].responseHash, undefined);
+  assert.equal(body.proofs[0].signature, undefined);
+  assert.equal(body.proofs[0].links.verifyJob.endsWith(`/api/verify/jobs/${job.id}`), true);
+});
+
+test("execution monitoring endpoint returns durable counters and redacted failures", async () => {
+  await resetStoreForTests();
+
+  const job = {
+    id: "job_monitoring_failed_1",
+    type: "webhook",
+    status: "failed",
+    target: "https://sensitive.example.com/failing-webhook",
+    method: "POST",
+    idempotencyKey: "monitoring-key-1",
+    attempts: [
+      {
+        attempt: 1,
+        startedAt: "2026-05-14T00:00:00.000Z",
+        completedAt: "2026-05-14T00:00:01.000Z",
+        status: 502,
+        ok: false
+      }
+    ],
+    error: "target returned 502",
+    receiptId: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  const receipt = buildReceipt({
+    job,
+    requestHash: "c".repeat(64),
+    responseHash: "d".repeat(64),
+    target: {
+      url: job.target,
+      method: job.method
+    },
+    response: {
+      ok: false,
+      status: 502
+    }
+  });
+  await createJob({ ...job, receiptId: receipt.id });
+  await saveReceipt(receipt);
+
+  const { response, body } = await request("/api/monitoring/executions?windowMs=86400000");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.status, "attention");
+  assert.equal(body.stats.total, 1);
+  assert.equal(body.stats.failed, 1);
+  assert.equal(body.stats.recentFailed, 1);
+  assert.equal(body.recentFailures.length, 1);
+  assert.equal(body.recentFailures[0].errorCategory, "target_server_error");
+  assert.equal(body.recentFailures[0].target, undefined);
+  assert.equal(body.recentFailures[0].requestHash, undefined);
+  assert.equal(body.redactionPolicy.redactedFields.includes("responseBody"), true);
 });
 
 test("webhook execution rejects private network targets with structured error", async () => {

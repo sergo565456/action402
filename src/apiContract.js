@@ -134,6 +134,63 @@ const verificationReportSchema = {
   }
 };
 
+const publicProofSummarySchema = {
+  type: "object",
+  required: ["jobId", "receiptId", "status", "method", "attempts", "receiptVerified", "links"],
+  properties: {
+    jobId: { type: "string" },
+    receiptId: { type: ["string", "null"] },
+    status: { type: "string", enum: ["running", "succeeded", "failed"] },
+    method: { type: "string" },
+    attempts: { type: "integer" },
+    responseStatus: { type: ["integer", "null"] },
+    responseOk: { type: "boolean" },
+    receiptVerified: { type: "boolean" },
+    errorCategory: { type: ["string", "null"] },
+    createdAt: { type: "string" },
+    updatedAt: { type: "string" },
+    publicFieldsOnly: { type: "boolean" },
+    links: {
+      type: "object",
+      properties: {
+        job: { type: "string" },
+        receipt: { type: ["string", "null"] },
+        verifyJob: { type: "string" },
+        verifyReceipt: { type: ["string", "null"] }
+      }
+    }
+  }
+};
+
+const monitoringResponseSchema = {
+  type: "object",
+  required: ["ok", "status", "windowMs", "failureRate", "stats", "recentFailures"],
+  properties: {
+    ok: { type: "boolean" },
+    status: { type: "string", enum: ["ok", "attention"] },
+    windowMs: { type: "integer" },
+    failureRate: { type: "number" },
+    stats: {
+      type: "object",
+      properties: {
+        total: { type: "integer" },
+        succeeded: { type: "integer" },
+        failed: { type: "integer" },
+        running: { type: "integer" },
+        recentTotal: { type: "integer" },
+        recentSucceeded: { type: "integer" },
+        recentFailed: { type: "integer" },
+        recentRunning: { type: "integer" },
+        lastUpdatedAt: { type: ["string", "null"] }
+      }
+    },
+    recentFailures: {
+      type: "array",
+      items: publicProofSummarySchema
+    }
+  }
+};
+
 export function publicCapabilities() {
   const targetPolicy = effectiveTargetPolicy(config);
 
@@ -195,8 +252,30 @@ export function publicCapabilities() {
       receiptLookup: "/api/receipts/{id}",
       jobReceiptVerification: "/api/verify/jobs/{id}",
       receiptVerification: "/api/verify/receipts/{id}",
+      recentProofExamples: "/api/proofs/recent",
       receiptSignature: "hmac-sha256",
       activeReceiptKeyId: config.receiptKeyId
+    },
+    publicProofs: {
+      path: "/api/proofs/recent",
+      description:
+        "Latest verified proof examples with target URL, headers, bodies, hashes, and signatures redacted for public review.",
+      redactedFields: [
+        "targetUrl",
+        "requestHeaders",
+        "requestBody",
+        "responseHeaders",
+        "responseBody",
+        "requestHash",
+        "responseHash",
+        "receiptSignature"
+      ]
+    },
+    monitoring: {
+      path: "/api/monitoring/executions",
+      description:
+        "Durable execution counters and recent failed executions, redacted for public agent/operator checks.",
+      defaultWindowMs: 24 * 60 * 60 * 1000
     },
     mcp: {
       recommendedToolName: "execute_webhook",
@@ -248,6 +327,10 @@ export function publicCapabilities() {
       openapi: `${config.publicBaseUrl}/openapi.json`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
       agentsGuide: `${config.publicBaseUrl}/agents`,
+      pricing: `${config.publicBaseUrl}/pricing`,
+      onboarding: `${config.publicBaseUrl}/onboarding`,
+      proofs: `${config.publicBaseUrl}/proofs`,
+      monitoring: `${config.publicBaseUrl}/monitoring`,
       llms: `${config.publicBaseUrl}/llms.txt`
     }
   };
@@ -459,6 +542,67 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/proofs/recent": {
+        get: {
+          summary: "Fetch recent public verified proof examples",
+          description:
+            "Returns recent verified proof summaries with sensitive target, header, body, hash, and signature details redacted.",
+          parameters: [
+            {
+              name: "limit",
+              in: "query",
+              required: false,
+              schema: { type: "integer", minimum: 1, maximum: 50, default: 10 }
+            }
+          ],
+          responses: {
+            "200": {
+              description: "Recent public proof summaries",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["ok", "redactionPolicy", "proofs"],
+                    properties: {
+                      ok: { type: "boolean" },
+                      redactionPolicy: { type: "object" },
+                      proofs: {
+                        type: "array",
+                        items: publicProofSummarySchema
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/monitoring/executions": {
+        get: {
+          summary: "Fetch execution monitoring summary",
+          description:
+            "Returns durable execution counters, recent failure summaries, and process-level request metrics.",
+          parameters: [
+            {
+              name: "windowMs",
+              in: "query",
+              required: false,
+              schema: { type: "integer", minimum: 60000, default: 86400000 }
+            }
+          ],
+          responses: {
+            "200": {
+              description: "Execution monitoring summary",
+              content: {
+                "application/json": {
+                  schema: monitoringResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/capabilities": {
         get: {
           summary: "Fetch agent-readable service capabilities",
@@ -495,6 +639,8 @@ export function openApiSpec() {
         WebhookRequest: webhookRequestSchema,
         ExecuteWebhookResponse: executeWebhookResponseSchema,
         VerificationReport: verificationReportSchema,
+        PublicProofSummary: publicProofSummarySchema,
+        MonitoringResponse: monitoringResponseSchema,
         Error: errorSchema
       }
     }

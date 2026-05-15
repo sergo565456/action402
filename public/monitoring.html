@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Execution Monitoring</title>
+    <meta
+      name="description"
+      content="Public execution monitoring for Action402 paid webhook actions."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Monitoring navigation">
+        <a href="/pricing">Pricing</a>
+        <a href="/proofs">Proofs</a>
+        <a href="/api/monitoring/executions">Monitoring JSON</a>
+        <a href="/health">Health JSON</a>
+        <a href="/agents">Agents</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Execution monitoring</p>
+          <h1>Public signal for paid execution health.</h1>
+          <p>
+            The monitoring API reports durable job counters and redacted recent failure
+            categories so agents can make a smarter buy-or-wait decision.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/monitoring/executions">Open JSON</a>
+            <a class="button secondary" href="/proofs">Proof Examples</a>
+            <a class="button secondary" href="/health">Health JSON</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Monitoring summary">
+          <dl>
+            <div>
+              <dt>source</dt>
+              <dd><code>/api/monitoring/executions</code></dd>
+            </div>
+            <div>
+              <dt>window</dt>
+              <dd><code>24h default</code></dd>
+            </div>
+            <div>
+              <dt>failure data</dt>
+              <dd><code>category only</code></dd>
+            </div>
+            <div>
+              <dt>payloads</dt>
+              <dd><code>redacted</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Live counters</p>
+          <h2>Durable execution snapshot.</h2>
+          <p id="monitoring-summary">
+            Loading execution monitoring data from the Action402 API.
+          </p>
+        </div>
+        <div class="metric-grid" id="metric-grid" aria-live="polite">
+          <article class="metric-card">
+            <span>status</span>
+            <strong>...</strong>
+            <small>Loading</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Recent failures</p>
+          <h2>Redacted failure categories.</h2>
+          <p>
+            Failure summaries do not expose target URLs, request bodies, response bodies,
+            hashes, or signatures. They are meant for operational awareness.
+          </p>
+        </div>
+        <div class="proof-list" id="failure-list" aria-live="polite">
+          <div class="empty-state">Loading recent failures...</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Execution monitoring: /monitoring</span>
+    </footer>
+
+    <script src="/monitoring.js"></script>
+  </body>
+</html>

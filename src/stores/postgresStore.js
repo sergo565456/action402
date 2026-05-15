@@ -19,6 +19,17 @@ function receiptCreatedAt(receipt) {
   return receipt?.payload?.createdAt || receipt?.createdAt || "";
 }
 
+function clampLimit(limit, fallback = 20, max = 100) {
+  const parsed = Number.parseInt(limit, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(1, Math.min(parsed, max));
+}
+
+function statNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export function createPostgresStore(config) {
   const pool = new Pool({
     connectionString: config.databaseUrl,
@@ -179,6 +190,51 @@ export function createPostgresStore(config) {
     async getReceipt(id) {
       const result = await pool.query("SELECT body FROM action402_receipts WHERE id = $1;", [id]);
       return result.rows[0] ? asJson(result.rows[0].body) : undefined;
+    },
+
+    async listRecentJobs(limit = 20) {
+      await pruneExpired(Date.now());
+      const result = await pool.query(
+        "SELECT body FROM action402_jobs ORDER BY updated_at DESC LIMIT $1;",
+        [clampLimit(limit)]
+      );
+      return result.rows.map((row) => asJson(row.body));
+    },
+
+    async executionStats(options = {}) {
+      await pruneExpired(Date.now());
+      const now = Number.isFinite(options.now) ? options.now : Date.now();
+      const parsedWindowMs = Number.parseInt(options.windowMs || 24 * 60 * 60 * 1000, 10);
+      const windowMs = Number.isFinite(parsedWindowMs) ? Math.max(1000, parsedWindowMs) : 24 * 60 * 60 * 1000;
+      const cutoff = new Date(now - windowMs);
+      const result = await pool.query(
+        `SELECT
+           COUNT(*)::int AS total,
+           COUNT(*) FILTER (WHERE body->>'status' = 'succeeded')::int AS succeeded,
+           COUNT(*) FILTER (WHERE body->>'status' = 'failed')::int AS failed,
+           COUNT(*) FILTER (WHERE body->>'status' = 'running')::int AS running,
+           COUNT(*) FILTER (WHERE updated_at >= $1)::int AS recent_total,
+           COUNT(*) FILTER (WHERE updated_at >= $1 AND body->>'status' = 'succeeded')::int AS recent_succeeded,
+           COUNT(*) FILTER (WHERE updated_at >= $1 AND body->>'status' = 'failed')::int AS recent_failed,
+           COUNT(*) FILTER (WHERE updated_at >= $1 AND body->>'status' = 'running')::int AS recent_running,
+           MAX(updated_at) AS last_updated_at
+         FROM action402_jobs;`,
+        [cutoff]
+      );
+      const row = result.rows[0] || {};
+
+      return {
+        total: statNumber(row.total),
+        succeeded: statNumber(row.succeeded),
+        failed: statNumber(row.failed),
+        running: statNumber(row.running),
+        recentWindowMs: windowMs,
+        recentTotal: statNumber(row.recent_total),
+        recentSucceeded: statNumber(row.recent_succeeded),
+        recentFailed: statNumber(row.recent_failed),
+        recentRunning: statNumber(row.recent_running),
+        lastUpdatedAt: row.last_updated_at ? new Date(row.last_updated_at).toISOString() : null
+      };
     },
 
     async resetForTests() {

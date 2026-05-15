@@ -54,6 +54,14 @@ export async function getReceipt(id) {
   return (await activeStore()).getReceipt(id);
 }
 
+export async function listRecentJobs(limit) {
+  return (await activeStore()).listRecentJobs(limit);
+}
+
+export async function executionStats(options) {
+  return (await activeStore()).executionStats(options);
+}
+
 export async function resetStoreForTests() {
   return (await activeStore()).resetForTests();
 }

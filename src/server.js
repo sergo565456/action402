@@ -3,9 +3,16 @@ import { config, assertProductionConfig, runtimeSummary } from "./config.js";
 import { publicBazaarMetadata } from "./bazaar.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
 import { executeWebhookAction } from "./webhook.js";
-import { getJob, getReceipt, initStore, storeStats } from "./store.js";
+import { executionStats, getJob, getReceipt, initStore, listRecentJobs, storeStats } from "./store.js";
 import { verifyReceipt } from "./receipt.js";
 import { verifyJobReceipt, verifyStoredReceipt } from "./receiptVerification.js";
+import {
+  clampPublicLimit,
+  normalizeWindowMs,
+  publicFailureSummary,
+  publicProofSummary,
+  redactionPolicy
+} from "./publicSummaries.js";
 import { maybeInstallX402 } from "./x402.js";
 import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
@@ -56,6 +63,68 @@ app.get("/api/capabilities", (req, res) => {
 
 app.get("/openapi.json", (req, res) => {
   res.json(openApiSpec());
+});
+
+app.get("/api/proofs/recent", async (req, res, next) => {
+  try {
+    const limit = clampPublicLimit(req.query.limit, 10, 50);
+    const jobs = await listRecentJobs(limit * 2);
+    const proofs = [];
+
+    for (const job of jobs) {
+      if (proofs.length >= limit) break;
+      if (!job.receiptId) continue;
+
+      const receipt = await getReceipt(job.receiptId);
+      if (!receipt || !verifyReceipt(receipt)) continue;
+      proofs.push(publicProofSummary({ job, receipt, baseUrl: config.publicBaseUrl }));
+    }
+
+    res.json({
+      ok: true,
+      generatedAt: new Date().toISOString(),
+      service: "Action402",
+      limit,
+      redactionPolicy: redactionPolicy(),
+      proofs
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/monitoring/executions", async (req, res, next) => {
+  try {
+    const windowMs = normalizeWindowMs(req.query.windowMs);
+    const stats = await executionStats({ windowMs });
+    const jobs = await listRecentJobs(30);
+    const recentFailures = [];
+
+    for (const job of jobs) {
+      if (job.status !== "failed") continue;
+      const receipt = job.receiptId ? await getReceipt(job.receiptId) : undefined;
+      recentFailures.push(publicFailureSummary({ job, receipt, baseUrl: config.publicBaseUrl }));
+      if (recentFailures.length >= 10) break;
+    }
+
+    const failureRate = stats.recentTotal > 0 ? stats.recentFailed / stats.recentTotal : 0;
+
+    res.json({
+      ok: stats.recentFailed === 0,
+      status: stats.recentFailed === 0 ? "ok" : "attention",
+      generatedAt: new Date().toISOString(),
+      service: "Action402",
+      windowMs,
+      failureRate,
+      stats,
+      recentFailures,
+      redactionPolicy: redactionPolicy(),
+      processMetrics: observabilitySummary(),
+      targetQuota: targetQuotaStats()
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 await maybeInstallX402(app);

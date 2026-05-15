@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Agent Onboarding</title>
+    <meta
+      name="description"
+      content="Copy-paste onboarding examples for agents using Action402 with AgentCash or an x402 client."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Onboarding navigation">
+        <a href="/pricing">Pricing</a>
+        <a href="/agents">Agents</a>
+        <a href="/api/bazaar">Bazaar JSON</a>
+        <a href="/openapi.json">OpenAPI</a>
+        <a href="/proofs">Proofs</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Agent onboarding</p>
+          <h1>Copy, pay, execute, verify.</h1>
+          <p>
+            These examples give agents a short path from discovery to a paid x402 call and
+            a verifiable receipt. Use the exact route metadata from capabilities or Bazaar
+            when building a production client.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/capabilities">Read Capabilities</a>
+            <a class="button secondary" href="/api/bazaar">Read Bazaar JSON</a>
+            <a class="button secondary" href="/pricing">Pricing</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Onboarding summary">
+          <dl>
+            <div>
+              <dt>discover</dt>
+              <dd><code>/api/capabilities</code></dd>
+            </div>
+            <div>
+              <dt>pay</dt>
+              <dd><code>x402 on Base</code></dd>
+            </div>
+            <div>
+              <dt>execute</dt>
+              <dd><code>/api/execute/webhook</code></dd>
+            </div>
+            <div>
+              <dt>verify</dt>
+              <dd><code>/api/verify/jobs/{id}</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">AgentCash</p>
+        <h2>One paid execution from PowerShell.</h2>
+        <p>
+          This is the fastest buyer smoke test. The <code>--%</code> marker keeps Windows
+          PowerShell from rewriting the JSON body.
+        </p>
+        <pre><code>npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"headers\":{\"content-type\":\"application/json\"},\"body\":{\"event\":\"agent.onboarding\",\"message\":\"hello from an x402 buyer\"},\"idempotencyKey\":\"agent-onboarding-001\",\"retry\":{\"attempts\":2,\"backoffMs\":300},\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json</code></pre>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">CDP Agentic Wallet</p>
+        <h2>Discover Action402 before paying.</h2>
+        <p>
+          CDP Agentic Wallet CLI can search Bazaar without wallet balance, then inspect the
+          endpoint's payment requirements before the agent makes a paid request.
+        </p>
+        <pre><code>npx awal@latest x402 bazaar search "Action402" -k 5 --json
+npx awal@latest x402 details https://action402.vercel.app/api/execute/webhook --json</code></pre>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">CDP wallet app</p>
+        <h2>Use fetchWithX402 when your runtime has a CDP wallet.</h2>
+        <p>
+          CDP documents <code>fetchWithX402</code> as the vanilla JavaScript path for
+          wallet-backed x402 payments. The wrapped fetch handles the 402 challenge and retries
+          with payment proof.
+        </p>
+        <pre><code>import { fetchWithX402 } from "@coinbase/cdp-core";
+
+const wrappedFetch = fetchWithX402();
+const response = await wrappedFetch("https://action402.vercel.app/api/execute/webhook", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({
+    url: "https://httpbin.org/anything",
+    method: "POST",
+    body: { event: "agent.cdp-wallet" },
+    idempotencyKey: "cdp-wallet-action-001",
+    timeoutMs: 10000
+  })
+});
+
+const result = await response.json();
+const verify = await fetch(`https://action402.vercel.app/api/verify/jobs/${result.job.id}`);
+console.log(await verify.json());</code></pre>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Generic x402 client</p>
+        <h2>Lower-level buyer flow for code-based agents.</h2>
+        <p>
+          Provide an EVM signer from the agent wallet you control. CDP wallets can be used
+          here when your runtime exposes a viem-compatible signer or account abstraction.
+        </p>
+        <pre><code>import { x402Client } from "@x402/core/client";
+import { x402HTTPClient } from "@x402/core/http";
+import { ExactEvmScheme } from "@x402/evm/exact/client";
+
+const coreClient = new x402Client()
+  .register("eip155:*", new ExactEvmScheme(evmSigner));
+
+const client = new x402HTTPClient(coreClient);
+const body = {
+  url: "https://httpbin.org/anything",
+  method: "POST",
+  body: { event: "agent.onboarding" },
+  idempotencyKey: "agent-onboarding-001",
+  timeoutMs: 10000
+};
+
+const unpaid = await fetch("https://action402.vercel.app/api/execute/webhook", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify(body)
+});
+
+if (unpaid.status !== 402) throw new Error(`expected 402, got ${unpaid.status}`);
+
+const paymentRequired = client.getPaymentRequiredResponse(
+  (name) => unpaid.headers.get(name),
+  await unpaid.json()
+);
+const paymentPayload = await client.createPaymentPayload(paymentRequired);
+const paid = await fetch("https://action402.vercel.app/api/execute/webhook", {
+  method: "POST",
+  headers: {
+    "content-type": "application/json",
+    ...client.encodePaymentSignatureHeader(paymentPayload)
+  },
+  body: JSON.stringify(body)
+});
+
+const result = await paid.json();
+const verify = await fetch(`https://action402.vercel.app/api/verify/jobs/${result.job.id}`);
+console.log(await verify.json());</code></pre>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Production checklist</p>
+          <h2>What an agent should do every time.</h2>
+          <p>
+            The contract is intentionally small, so buyer logic can be strict. Discover,
+            cap spend, pass an idempotency key, and verify the receipt before marking the
+            action complete.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>1</span>
+            <h3>Read price and limits</h3>
+            <p>Use <code>/api/capabilities</code> or Bazaar metadata instead of hard-coding.</p>
+          </article>
+          <article class="endpoint">
+            <span>2</span>
+            <h3>Set max payment</h3>
+            <p>Reject unexpected price changes with a buyer-side max amount guardrail.</p>
+          </article>
+          <article class="endpoint">
+            <span>3</span>
+            <h3>Use idempotency</h3>
+            <p>Send a stable <code>idempotencyKey</code> for retries and agent restarts.</p>
+          </article>
+          <article class="endpoint">
+            <span>4</span>
+            <h3>Verify proof</h3>
+            <p>Call <code>/api/verify/jobs/{id}</code> or <code>/api/verify/receipts/{id}</code>.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Agent onboarding: /onboarding</span>
+    </footer>
+  </body>
+</html>

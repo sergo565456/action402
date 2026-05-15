@@ -23,10 +23,10 @@
         <a href="#api">API</a>
         <a href="#receipts">Receipts</a>
         <a href="/agents">Agents</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/proofs">Proofs</a>
+        <a href="/monitoring">Monitoring</a>
         <a href="/demo">Demo</a>
-        <a href="/mockups">Mockups</a>
-        <a href="/videos">Videos</a>
-        <a href="/brand.html">Brand</a>
         <a href="/bazaar">Bazaar</a>
       </nav>
     </header>
@@ -43,6 +43,7 @@
           <div class="hero-actions">
             <a class="button primary" href="#api">View API</a>
             <a class="button secondary" href="/agents">For Agents</a>
+            <a class="button secondary" href="/pricing">Pricing</a>
             <a class="button secondary" href="/demo.html">Run Demo</a>
           </div>
         </div>
@@ -94,6 +95,16 @@ proof = "request + response hashes"</code></pre>
             <span>agent</span>
             <h3>GET /llms.txt</h3>
             <p>Plain-text agent context for discovery, call flow, and verification links.</p>
+          </article>
+          <article class="endpoint">
+            <span>public</span>
+            <h3>GET /api/proofs/recent</h3>
+            <p>Recent verified proof examples with sensitive execution data redacted.</p>
+          </article>
+          <article class="endpoint">
+            <span>public</span>
+            <h3>GET /api/monitoring/executions</h3>
+            <p>Durable counters and redacted failure categories for agent/operator checks.</p>
           </article>
           <article class="endpoint">
             <span>public</span>

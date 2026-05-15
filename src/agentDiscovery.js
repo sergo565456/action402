@@ -13,6 +13,8 @@ const SERVICE_TAGS = [
   "signed-receipts",
   "proof-report",
   "verifiable-execution",
+  "public-proof-examples",
+  "execution-monitoring",
   "idempotency",
   "retries"
 ];
@@ -27,6 +29,8 @@ const DISCOVERY_KEYWORDS = [
   "Base USDC agent payments",
   "402 Payment Required API",
   "signed execution receipts",
+  "public proof examples",
+  "paid execution monitoring",
   "verifiable webhook relay",
   "idempotent agent tool calls",
   "agent-safe side effects",

@@ -49,6 +49,22 @@
       "destination": "/agents.html"
     },
     {
+      "source": "/pricing",
+      "destination": "/pricing.html"
+    },
+    {
+      "source": "/onboarding",
+      "destination": "/onboarding.html"
+    },
+    {
+      "source": "/proofs",
+      "destination": "/proofs.html"
+    },
+    {
+      "source": "/monitoring",
+      "destination": "/monitoring.html"
+    },
+    {
       "source": "/mockups",
       "destination": "/mockups.html"
     }

@@ -15,6 +15,10 @@ Primary paid action:
 
 Discovery and contracts:
 - /agents - human-readable agent integration guide.
+- /pricing - usage and pricing page. Current paid action price: $0.003.
+- /onboarding - copy-paste buyer examples for AgentCash and generic x402/CDP-style signer integrations.
+- /proofs - browser-friendly recent verified proof examples with sensitive execution data redacted.
+- /monitoring - browser-friendly execution monitoring page.
 - /api/capabilities - agent-readable service capabilities, safety limits, payment settings, verification links, and MCP/Bazaar discovery hints.
 - /api/bazaar - Bazaar metadata and x402 route config for POST /api/execute/webhook.
 - /openapi.json - OpenAPI 3.1 API contract.
@@ -25,6 +29,14 @@ Verification:
 - GET /api/receipts/{id} - public receipt lookup with signature verification flag.
 - GET /api/verify/jobs/{id} - proof report for job and linked receipt.
 - GET /api/verify/receipts/{id} - proof report by receipt id.
+- GET /api/proofs/recent - latest verified proof summaries; target URL, headers, bodies, hashes, and signatures are intentionally redacted.
+- GET /api/monitoring/executions - durable execution counters and recent failure categories without sensitive payload details.
+
+Usage and pricing:
+- Free: /agents, /pricing, /onboarding, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /openapi.json, /health.
+- Paid: POST /api/execute/webhook.
+- Published price: $0.003 per paid execution request.
+- Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.
 
 Safety boundaries:
 - Only public HTTP(S) targets are intended; production should use HTTPS-only targets.
@@ -45,6 +57,16 @@ Recommended discovery queries:
 
 MCP/Bazaar guidance:
 If an MCP client supports x402/Bazaar discovery, search resources for "Action402" or "paid webhook execution", inspect the returned price and route metadata, call the returned resource/tool through the MCP proxy, then verify links.job or links.receipt after completion.
+
+AgentCash quick start:
+npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"body\":{\"event\":\"agent.llms-test\"},\"idempotencyKey\":\"llms-test-001\",\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json
+
+Generic x402/CDP-style buyer flow:
+Use CDP Agentic Wallet CLI to discover and inspect first:
+npx awal@latest x402 bazaar search "Action402" -k 5 --json
+npx awal@latest x402 details https://action402.vercel.app/api/execute/webhook --json
+For wallet-backed app code, use fetchWithX402 from @coinbase/cdp-core, then verify the returned job or receipt link.
+For lower-level x402 clients, use an agent-controlled EVM signer, register ExactEvmScheme for eip155:*, make the first POST, parse the 402 payment requirement, create the payment payload, retry with the encoded payment header, then verify the returned job or receipt link.
 
 Canonical production URL:
 https://action402.vercel.app

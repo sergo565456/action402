@@ -10,6 +10,16 @@ function receiptCreatedAt(receipt) {
   return receipt?.payload?.createdAt || receipt?.createdAt || "";
 }
 
+function clampLimit(limit, fallback = 20, max = 100) {
+  const parsed = Number.parseInt(limit, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(1, Math.min(parsed, max));
+}
+
+function jobUpdatedAtMs(job) {
+  return timestampMs(job?.updatedAt || job?.createdAt);
+}
+
 export function createJsonStore(config) {
   const jobs = new Map();
   const receipts = new Map();
@@ -155,6 +165,55 @@ export function createJsonStore(config) {
 
     async getReceipt(id) {
       return receipts.get(id);
+    },
+
+    async listRecentJobs(limit = 20) {
+      await pruneExpired(Date.now(), { persist: false });
+      return Array.from(jobs.values())
+        .sort((a, b) => jobUpdatedAtMs(b) - jobUpdatedAtMs(a))
+        .slice(0, clampLimit(limit));
+    },
+
+    async executionStats(options = {}) {
+      await pruneExpired(Date.now(), { persist: false });
+      const now = Number.isFinite(options.now) ? options.now : Date.now();
+      const parsedWindowMs = Number.parseInt(options.windowMs || 24 * 60 * 60 * 1000, 10);
+      const windowMs = Number.isFinite(parsedWindowMs) ? Math.max(1000, parsedWindowMs) : 24 * 60 * 60 * 1000;
+      const cutoff = now - windowMs;
+      const stats = {
+        total: 0,
+        succeeded: 0,
+        failed: 0,
+        running: 0,
+        recentWindowMs: windowMs,
+        recentTotal: 0,
+        recentSucceeded: 0,
+        recentFailed: 0,
+        recentRunning: 0,
+        lastUpdatedAt: null
+      };
+
+      for (const job of jobs.values()) {
+        const status = job.status || "unknown";
+        const updatedAt = jobUpdatedAtMs(job);
+        stats.total += 1;
+        if (status === "succeeded") stats.succeeded += 1;
+        if (status === "failed") stats.failed += 1;
+        if (status === "running") stats.running += 1;
+
+        if (updatedAt >= cutoff) {
+          stats.recentTotal += 1;
+          if (status === "succeeded") stats.recentSucceeded += 1;
+          if (status === "failed") stats.recentFailed += 1;
+          if (status === "running") stats.recentRunning += 1;
+        }
+
+        if (updatedAt > timestampMs(stats.lastUpdatedAt)) {
+          stats.lastUpdatedAt = new Date(updatedAt).toISOString();
+        }
+      }
+
+      return stats;
     },
 
     async resetForTests() {

@@ -54,11 +54,17 @@ async function main() {
   await checkStatic("/demo.html", "Action402 Demo Console");
   await checkStatic("/brand.html", "Action402 Brand");
   await checkStatic("/agents", "Pay for one action");
+  await checkStatic("/pricing", "Usage and pricing");
+  await checkStatic("/onboarding", "Agent onboarding");
+  await checkStatic("/proofs", "Verified proof examples");
+  await checkStatic("/monitoring", "Execution monitoring");
   await checkStatic("/llms.txt", "paid webhook execution");
 
   const health = await checkJson("/health");
   const capabilities = await checkJson("/api/capabilities");
   const bazaar = await checkJson("/api/bazaar");
+  const proofs = await checkJson("/api/proofs/recent");
+  const monitoring = await checkJson("/api/monitoring/executions");
   await checkJson("/openapi.json");
 
   if (health) {
@@ -84,6 +90,12 @@ async function main() {
       "capabilities expose proof report",
       capabilities.verification?.jobReceiptVerification === "/api/verify/jobs/{id}"
     );
+    record("capabilities expose public proofs", capabilities.publicProofs?.path === "/api/proofs/recent");
+    record(
+      "capabilities expose execution monitoring",
+      capabilities.monitoring?.path === "/api/monitoring/executions"
+    );
+    record("capabilities expose pricing link", typeof capabilities.links?.pricing === "string");
     if (expectX402) {
       record("capabilities mark action paid", capabilities.actions?.[0]?.paid === true);
     }
@@ -104,10 +116,29 @@ async function main() {
       "bazaar metadata has quality signals",
       Array.isArray(bazaar.discovery?.qualitySignals) && bazaar.discovery.qualitySignals.length >= 4
     );
+    record("bazaar metadata has proof link", typeof bazaar.links?.proofs === "string");
+    record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
     if (expectX402) {
       record("bazaar payment points to Base mainnet", bazaar.payment?.network === "eip155:8453");
       record("bazaar payment has payTo", /^0x[a-fA-F0-9]{40}$/.test(bazaar.payment?.payTo || ""));
     }
+  }
+
+  if (proofs) {
+    const firstProof = Array.isArray(proofs.proofs) ? proofs.proofs[0] : undefined;
+    record("proofs endpoint exposes redaction policy", Array.isArray(proofs.redactionPolicy?.redactedFields));
+    record("proofs endpoint returns an array", Array.isArray(proofs.proofs));
+    if (firstProof) {
+      record("proof summaries omit target URL", firstProof.target === undefined && firstProof.targetUrl === undefined);
+      record("proof summaries omit hashes", firstProof.requestHash === undefined && firstProof.responseHash === undefined);
+      record("proof summaries include verify link", typeof firstProof.links?.verifyJob === "string");
+    }
+  }
+
+  if (monitoring) {
+    record("monitoring endpoint exposes status", ["ok", "attention"].includes(monitoring.status));
+    record("monitoring endpoint exposes durable stats", typeof monitoring.stats?.total === "number");
+    record("monitoring endpoint exposes recent failures array", Array.isArray(monitoring.recentFailures));
   }
 
   const failed = checks.filter((check) => !check.ok);

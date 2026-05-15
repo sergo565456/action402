@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Usage and Pricing</title>
+    <meta
+      name="description"
+      content="Usage and pricing for Action402 x402-paid webhook execution."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Pricing navigation">
+        <a href="/agents">Agents</a>
+        <a href="/onboarding">Onboarding</a>
+        <a href="/proofs">Proofs</a>
+        <a href="/monitoring">Monitoring</a>
+        <a href="/api/capabilities">Capabilities</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Usage and pricing</p>
+          <h1>One paid action costs $0.003.</h1>
+          <p>
+            Agents pay only when they call the protected execution route. Discovery,
+            documentation, health, monitoring, and verification pages remain free to read.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/onboarding">Start Integration</a>
+            <a class="button secondary" href="/api/capabilities">Capabilities JSON</a>
+            <a class="button secondary" href="/proofs">View Proofs</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Pricing summary">
+          <dl>
+            <div>
+              <dt>paid route</dt>
+              <dd><code>POST /api/execute/webhook</code></dd>
+            </div>
+            <div>
+              <dt>unit price</dt>
+              <dd><code>$0.003</code></dd>
+            </div>
+            <div>
+              <dt>network</dt>
+              <dd><code>Base mainnet</code></dd>
+            </div>
+            <div>
+              <dt>payment</dt>
+              <dd><code>x402 exact</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">What is free</p>
+          <h2>Agents can inspect before paying.</h2>
+          <p>
+            The buyer path stays accountless: an agent can read the contract, price,
+            limits, examples, proof policy, and current monitoring before spending.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>free</span>
+            <h3>GET /api/capabilities</h3>
+            <p>Action schema, x402 settings, safety limits, verification links, and discovery hints.</p>
+          </article>
+          <article class="endpoint">
+            <span>free</span>
+            <h3>GET /api/bazaar</h3>
+            <p>Bazaar-facing route metadata with x402 payment details and example payloads.</p>
+          </article>
+          <article class="endpoint">
+            <span>free</span>
+            <h3>GET /api/proofs/recent</h3>
+            <p>Recent verified proof examples with sensitive execution data redacted.</p>
+          </article>
+          <article class="endpoint">
+            <span>free</span>
+            <h3>GET /api/monitoring/executions</h3>
+            <p>Durable execution counters and recent failure categories for operator checks.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">What is paid</p>
+          <h2>The side effect is the paid product.</h2>
+          <p>
+            A paid call executes one public HTTPS request, applies bounded retries and
+            idempotency, then returns links to the job, receipt, and verification report.
+          </p>
+        </div>
+        <div class="metric-grid">
+          <article class="metric-card">
+            <span>price</span>
+            <strong>$0.003</strong>
+            <small>Per execution request accepted through x402.</small>
+          </article>
+          <article class="metric-card">
+            <span>methods</span>
+            <strong>4</strong>
+            <small>POST, PUT, PATCH, and DELETE are supported.</small>
+          </article>
+          <article class="metric-card">
+            <span>timeout</span>
+            <strong>12s</strong>
+            <small>Current max timeout published in capabilities.</small>
+          </article>
+          <article class="metric-card">
+            <span>retries</span>
+            <strong>3</strong>
+            <small>Bounded retry attempts for transient target failures.</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Budget guardrail</p>
+        <h2>AgentCash one-action budget example.</h2>
+        <p>
+          Use a max amount above the published price so the buyer refuses unexpected cost changes.
+        </p>
+        <pre><code>npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"body\":{\"event\":\"agent.price-check\"},\"idempotencyKey\":\"pricing-check-001\",\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Usage and pricing: /pricing</span>
+    </footer>
+  </body>
+</html>
