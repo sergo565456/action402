@@ -75,6 +75,7 @@ Check readiness without printing secrets:
 ```bash
 npm run readiness -- testnet
 npm run readiness -- mainnet
+npm run db:migrate -- mainnet
 ```
 
 ## Deploy Verification

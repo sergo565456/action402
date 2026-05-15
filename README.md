@@ -110,7 +110,7 @@ User-owned values before testnet/mainnet:
 
 Local profiles bind to `HOST=127.0.0.1` so Windows/Chrome does not depend on `localhost` resolution. Open `http://127.0.0.1:4021/` for local checks. Production profiles should use `HOST=0.0.0.0` behind a real public `PUBLIC_BASE_URL`.
 
-The local MVP can persist jobs and receipts to `STORE_FILE` as a small JSON store. For production or managed hosting, set `STORE_DRIVER=postgres`, `DATABASE_URL`, and usually `POSTGRES_SSL=true`. On startup, Action402 creates the `action402_jobs` and `action402_receipts` tables automatically. You can also run `npm run db:migrate` to validate the connection and create tables before starting the server.
+The local MVP can persist jobs and receipts to `STORE_FILE` as a small JSON store. For production or managed hosting, set `STORE_DRIVER=postgres`, `DATABASE_URL`, and usually `POSTGRES_SSL=true`. On startup, Action402 creates the `action402_jobs` and `action402_receipts` tables automatically. You can also run `npm run db:migrate -- mainnet` to validate the production profile connection and create tables before starting the server.
 
 Use `TARGET_ALLOWLIST`, `TARGET_BLOCKLIST`, and `REQUIRE_TARGET_ALLOWLIST=true` to constrain where agents can send outbound actions. The service still blocks localhost and private network targets by default.
 
