@@ -22,6 +22,7 @@
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#api">API</a>
         <a href="/agents">Agents</a>
+        <a href="/discovery">Discovery</a>
         <a href="/actions">Actions</a>
         <a href="/snippets">Snippets</a>
         <a href="/handoff">Handoff</a>
@@ -47,6 +48,7 @@
           <div class="hero-actions">
             <a class="button primary" href="#api">View API</a>
             <a class="button secondary" href="/agents">For Agents</a>
+            <a class="button secondary" href="/discovery">Discovery Pack</a>
             <a class="button secondary" href="/actions">Action Catalog</a>
             <a class="button secondary" href="/snippets">Snippets</a>
             <a class="button secondary" href="/handoff">Handoff</a>
@@ -98,6 +100,11 @@ proof = "request + response hashes"</code></pre>
             <span>paid</span>
             <h3>POST /api/execute/webhook</h3>
             <p>Runs one outbound HTTPS action with retries, timeout control, and idempotency.</p>
+          </article>
+          <article class="endpoint">
+            <span>agent</span>
+            <h3>GET /api/agent-manifest</h3>
+            <p>Canonical discovery card for agents, crawlers, Bazaar clients, and directories.</p>
           </article>
           <article class="endpoint">
             <span>agent</span>

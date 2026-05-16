@@ -69,6 +69,8 @@ async function main() {
   console.log(`Action402 x402 smoke: ${baseUrl}`);
 
   const health = await checkJsonEndpoint("/health");
+  const agentManifest = await checkJsonEndpoint("/api/agent-manifest");
+  const wellKnownAgent = await checkJsonEndpoint("/.well-known/agent.json");
   const capabilities = await checkJsonEndpoint("/api/capabilities");
   const actions = await checkJsonEndpoint("/api/actions");
   const quickstart = await checkJsonEndpoint("/api/quickstart");
@@ -82,6 +84,15 @@ async function main() {
 
   if (health) {
     record("x402 is enabled", health.x402Enabled === true, `x402Enabled=${health.x402Enabled}`);
+  }
+
+  if (agentManifest) {
+    record("Agent manifest is published", agentManifest.schemaVersion === "action402.agent-manifest.v1");
+    record("Agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
+  }
+
+  if (wellKnownAgent) {
+    record("Well-known agent manifest is published", wellKnownAgent.schemaVersion === "action402.agent-manifest.v1");
   }
 
   if (capabilities) {

@@ -51,6 +51,11 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/verify")), true);
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
   assert.equal(body.links.llms.endsWith("/llms.txt"), true);
+  assert.equal(body.links.discovery.endsWith("/discovery"), true);
+  assert.equal(body.links.agentManifest.endsWith("/api/agent-manifest"), true);
+  assert.equal(body.links.wellKnownAgent.endsWith("/.well-known/agent.json"), true);
+  assert.equal(body.links.robots.endsWith("/robots.txt"), true);
+  assert.equal(body.links.sitemap.endsWith("/sitemap.xml"), true);
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
@@ -61,6 +66,9 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.equal(body.links.trust.endsWith("/trust"), true);
   assert.equal(body.trust.path, "/api/trust");
+  assert.equal(body.discoveryPack.status, "active");
+  assert.equal(body.discoveryPack.agentManifest.endsWith("/api/agent-manifest"), true);
+  assert.ok(body.discoveryPack.wellKnown.some((url) => url.endsWith("/.well-known/agent.json")));
   assert.equal(body.quickstart.path, "/api/quickstart");
   assert.equal(body.policyCheck.path, "/api/policy/check");
   assert.equal(body.policyCheck.paid, false);
@@ -98,6 +106,8 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/trust"].get);
   assert.ok(body.paths["/api/actions"].get);
   assert.ok(body.paths["/api/quickstart"].get);
+  assert.ok(body.paths["/api/agent-manifest"].get);
+  assert.ok(body.paths["/.well-known/agent.json"].get);
   assert.ok(body.paths["/api/policy/check"].post);
   assert.ok(body.paths["/api/snippets"].get);
   assert.ok(body.paths["/api/handoff/capabilities"].get);
@@ -106,6 +116,8 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/schedules/preview"].post);
   assert.ok(body.paths["/api/secrets/policy"].get);
   assert.ok(body.paths["/proof/{id}"].get);
+  assert.ok(body.paths["/robots.txt"].get);
+  assert.ok(body.paths["/sitemap.xml"].get);
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
   assert.ok(body.components.schemas.PublicProofSummary);
@@ -119,6 +131,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.SchedulePreviewRequest);
   assert.ok(body.components.schemas.SchedulePreviewResponse);
   assert.ok(body.components.schemas.SecretStoragePolicy);
+  assert.ok(body.components.schemas.AgentManifest);
   assert.ok(body.components.schemas.TrustResponse);
 });
 
@@ -204,6 +217,41 @@ test("snippets endpoint exposes buyer and verification examples", async () => {
   assert.equal(body.links.handoff.endsWith("/api/handoff/capabilities"), true);
   assert.equal(body.links.schedulePreview.endsWith("/api/schedules/preview"), true);
   assert.equal(body.links.secretPolicy.endsWith("/api/secrets/policy"), true);
+});
+
+test("agent discovery pack exposes well-known manifests, robots, and sitemap", async () => {
+  const manifest = await request("/api/agent-manifest");
+  assert.equal(manifest.response.status, 200);
+  assert.equal(manifest.body.schemaVersion, "action402.agent-manifest.v1");
+  assert.equal(manifest.body.name, "Action402");
+  assert.ok(manifest.body.protocols.includes("x402"));
+  assert.ok(manifest.body.paidActions.some((action) => action.path === "/api/execute/webhook"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/capabilities"));
+  assert.ok(manifest.body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
+
+  const wellKnownAgent = await request("/.well-known/agent.json");
+  assert.equal(wellKnownAgent.response.status, 200);
+  assert.equal(wellKnownAgent.body.schemaVersion, manifest.body.schemaVersion);
+  assert.equal(wellKnownAgent.body.links.apiManifest.endsWith("/api/agent-manifest"), true);
+
+  const wellKnownAction402 = await request("/.well-known/action402.json");
+  assert.equal(wellKnownAction402.response.status, 200);
+  assert.equal(wellKnownAction402.body.name, "Action402");
+
+  const wellKnownX402 = await request("/.well-known/x402.json");
+  assert.equal(wellKnownX402.response.status, 200);
+  assert.equal(wellKnownX402.body.paidActions[0].payment.scheme, "exact");
+
+  const robots = await requestText("/robots.txt");
+  assert.equal(robots.response.status, 200);
+  assert.equal(robots.body.includes("Allow: /api/agent-manifest"), true);
+  assert.equal(robots.body.includes("Sitemap:"), true);
+
+  const sitemap = await requestText("/sitemap.xml");
+  assert.equal(sitemap.response.status, 200);
+  assert.equal(sitemap.body.includes("<urlset"), true);
+  assert.equal(sitemap.body.includes("/discovery"), true);
+  assert.equal(sitemap.body.includes("/api/agent-manifest"), true);
 });
 
 test("advanced agent surfaces expose handoff, schedule preview, and secret policy", async () => {
@@ -292,6 +340,11 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.discovery.searchQueries.includes("Action402"), true);
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
   assert.equal(body.links.llms.endsWith("/llms.txt"), true);
+  assert.equal(body.links.discovery.endsWith("/discovery"), true);
+  assert.equal(body.links.agentManifest.endsWith("/api/agent-manifest"), true);
+  assert.equal(body.links.wellKnownAgent.endsWith("/.well-known/agent.json"), true);
+  assert.equal(body.links.robots.endsWith("/robots.txt"), true);
+  assert.equal(body.links.sitemap.endsWith("/sitemap.xml"), true);
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
@@ -324,6 +377,11 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("Action402"), true);
   assert.equal(body.includes("paid webhook execution"), true);
   assert.equal(body.includes("/api/capabilities"), true);
+  assert.equal(body.includes("/discovery"), true);
+  assert.equal(body.includes("/api/agent-manifest"), true);
+  assert.equal(body.includes("/.well-known/agent.json"), true);
+  assert.equal(body.includes("/robots.txt"), true);
+  assert.equal(body.includes("/sitemap.xml"), true);
   assert.equal(body.includes("/pricing"), true);
   assert.equal(body.includes("/use-cases"), true);
   assert.equal(body.includes("/actions"), true);
@@ -351,6 +409,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
 test("public product pages load", async () => {
   const pages = [
     ["/pricing", "Usage and pricing"],
+    ["/discovery", "Discovery pack"],
     ["/onboarding", "Agent onboarding"],
     ["/use-cases", "Use-case templates"],
     ["/actions", "Action catalog"],
@@ -377,8 +436,12 @@ test("vercel rewrites expose extensionless product pages", () => {
   const rewrites = new Map(vercelConfig.rewrites.map((rewrite) => [rewrite.source, rewrite.destination]));
 
   assert.equal(rewrites.get("/handoff"), "/handoff.html");
+  assert.equal(rewrites.get("/discovery"), "/discovery.html");
   assert.equal(rewrites.get("/schedules"), "/schedules.html");
   assert.equal(rewrites.get("/secrets"), "/secrets.html");
+  assert.equal(rewrites.get("/robots.txt"), "/api/index?__action402_path=/robots.txt");
+  assert.equal(rewrites.get("/sitemap.xml"), "/api/index?__action402_path=/sitemap.xml");
+  assert.equal(rewrites.get("/.well-known/:path*"), "/api/index?__action402_path=/.well-known/:path*");
 });
 
 test("vercel rewrite strips internal catch-all path query", () => {
@@ -596,6 +659,8 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.proofExamples.recentVerifiedProofs, 1);
   assert.equal(typeof body.trustScore.score, "number");
   assert.ok(body.trustScore.components.some((component) => component.id === "agent_surfaces"));
+  assert.equal(body.publicSurfaces.agentManifest.endsWith("/api/agent-manifest"), true);
+  assert.equal(body.publicSurfaces.wellKnownAgent.endsWith("/.well-known/agent.json"), true);
   assert.equal(body.publicSurfaces.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.publicSurfaces.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.publicSurfaces.snippets.endsWith("/api/snippets"), true);
@@ -607,6 +672,8 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.publicSurfaces.useCases.endsWith("/use-cases"), true);
   assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
   assert.equal(body.trustSignals.includes("public action catalog and quickstart endpoints"), true);
+  assert.equal(body.trustSignals.includes("canonical agent manifest and well-known discovery aliases"), true);
+  assert.equal(body.trustSignals.includes("robots.txt and sitemap.xml expose agent entry points"), true);
   assert.equal(body.trustSignals.includes("free preflight policy check before payment"), true);
   assert.equal(body.trustSignals.includes("copy-paste integration snippets for buyers and verifiers"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);

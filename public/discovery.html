@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Discovery Pack</title>
+    <meta
+      name="description"
+      content="Canonical machine-readable discovery pack for Action402 agents, crawlers, Bazaar clients, and MCP clients."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Discovery navigation">
+        <a href="/agents">Agents</a>
+        <a href="/actions">Actions</a>
+        <a href="/snippets">Snippets</a>
+        <a href="/trust">Trust</a>
+        <a href="/api/agent-manifest">Manifest</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Discovery pack</p>
+          <h1>One place for agents to discover, inspect, and decide.</h1>
+          <p>
+            Action402 publishes well-known manifests, OpenAPI, Bazaar metadata, llms.txt,
+            robots.txt, and sitemap.xml so autonomous agents can find the paid route without
+            scraping prose.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/agent-manifest">Agent Manifest</a>
+            <a class="button secondary" href="/.well-known/agent.json">Well-Known JSON</a>
+            <a class="button secondary" href="/llms.txt">llms.txt</a>
+            <a class="button secondary" href="/sitemap.xml">Sitemap</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Discovery facts">
+          <dl>
+            <div>
+              <dt>manifest</dt>
+              <dd><code>/api/agent-manifest</code></dd>
+            </div>
+            <div>
+              <dt>well-known</dt>
+              <dd><code>/.well-known/agent.json</code></dd>
+            </div>
+            <div>
+              <dt>agent context</dt>
+              <dd><code>/llms.txt</code></dd>
+            </div>
+            <div>
+              <dt>contracts</dt>
+              <dd><code>/openapi.json</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Machine entry points</p>
+          <h2>Prefer structured discovery before payment.</h2>
+          <p>
+            Agents should read these endpoints, compare price/network/route against buyer policy,
+            then use x402 only for the paid execution primitive.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>json</span>
+            <h3>GET /api/agent-manifest</h3>
+            <p>Canonical service card with paid action, free surfaces, safety, verification, and trust links.</p>
+          </article>
+          <article class="endpoint">
+            <span>json</span>
+            <h3>GET /.well-known/agent.json</h3>
+            <p>Well-known alias for crawlers and agent directories that look in standard locations.</p>
+          </article>
+          <article class="endpoint">
+            <span>text</span>
+            <h3>GET /llms.txt</h3>
+            <p>Compact plain-text context for LLM agents and discovery-first clients.</p>
+          </article>
+          <article class="endpoint">
+            <span>xml</span>
+            <h3>GET /sitemap.xml</h3>
+            <p>Browser and machine surfaces indexed in one sitemap.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Agent shortcut</p>
+        <h2>Minimum discovery flow.</h2>
+        <p>
+          This keeps buyer logic deterministic: discover, inspect, preflight, pay, verify.
+        </p>
+        <pre><code>GET /.well-known/agent.json
+GET /api/quickstart
+POST /api/policy/check
+POST /api/execute/webhook  # x402 paid
+GET /api/verify/jobs/{id}</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Discovery pack: /discovery</span>
+    </footer>
+  </body>
+</html>

@@ -25,6 +25,18 @@
       "destination": "/api/index?__action402_path=/openapi.json"
     },
     {
+      "source": "/robots.txt",
+      "destination": "/api/index?__action402_path=/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/index?__action402_path=/sitemap.xml"
+    },
+    {
+      "source": "/.well-known/:path*",
+      "destination": "/api/index?__action402_path=/.well-known/:path*"
+    },
+    {
       "source": "/demo",
       "destination": "/demo.html"
     },
@@ -47,6 +59,10 @@
     {
       "source": "/agents",
       "destination": "/agents.html"
+    },
+    {
+      "source": "/discovery",
+      "destination": "/discovery.html"
     },
     {
       "source": "/pricing",

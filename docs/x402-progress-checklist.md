@@ -16,6 +16,8 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Per-target quotas exist.
 - [x] Structured execution observability exists.
 - [x] Agent-readable `/api/capabilities` exists.
+- [x] Canonical agent manifest `/api/agent-manifest` exists.
+- [x] Well-known agent manifest `/.well-known/agent.json` exists.
 - [x] Agent-readable `/api/quickstart` exists.
 - [x] Free pre-payment policy check `/api/policy/check` exists.
 - [x] Copy-paste integration snippets `/api/snippets` exist.
@@ -23,7 +25,9 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] OpenAPI `/openapi.json` exists.
 - [x] Bazaar metadata `/api/bazaar` exists.
 - [x] Agent guide `/agents` exists.
+- [x] Discovery pack page `/discovery` exists.
 - [x] LLM/agent context `/llms.txt` exists.
+- [x] `robots.txt` and `sitemap.xml` discovery hints exist.
 - [x] Demo console `/demo.html` exists.
 - [x] Snippets page `/snippets` exists.
 - [x] Proof badge route `/proof/{jobOrReceiptId}` exists.
@@ -132,3 +136,11 @@ Latest production proof:
 - [x] Add proof badge pages for job/receipt ids.
 - [x] Add public trust score summary.
 - [x] Add copy-paste integration snippets for buyer and verification flows.
+
+## Phase 7: Discovery Growth
+
+- [x] Add `/api/agent-manifest` for agent directories and crawlers.
+- [x] Add `/.well-known/agent.json`, `/.well-known/action402.json`, and `/.well-known/x402.json`.
+- [x] Add `/discovery` as the browser-readable discovery pack.
+- [x] Add `/robots.txt` and `/sitemap.xml`.
+- [x] Add discovery pack checks to deploy and x402 smoke scripts.

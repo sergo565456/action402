@@ -9,17 +9,21 @@ Production: https://action402.vercel.app
 Agent entry points:
 
 - https://action402.vercel.app/agents - human-readable agent guide.
+- https://action402.vercel.app/discovery - canonical discovery pack.
 - https://action402.vercel.app/use-cases - task templates agents can match against.
 - https://action402.vercel.app/mcp - MCP and Bazaar discovery-first flow.
 - https://action402.vercel.app/trust - public trust summary.
 - https://action402.vercel.app/pricing - current price and free surfaces.
 - https://action402.vercel.app/api/capabilities - machine-readable service contract.
+- https://action402.vercel.app/api/agent-manifest - canonical agent manifest.
+- https://action402.vercel.app/.well-known/agent.json - well-known agent manifest alias.
 - https://action402.vercel.app/api/quickstart - compact buyer flow for agents.
 - https://action402.vercel.app/api/policy/check - free pre-payment policy check.
 - https://action402.vercel.app/api/snippets - copy-paste buyer and verification snippets.
 - https://action402.vercel.app/api/actions - action template catalog and policy modes.
 - https://action402.vercel.app/api/bazaar - x402/Bazaar route metadata.
 - https://action402.vercel.app/llms.txt - compact LLM context.
+- https://action402.vercel.app/sitemap.xml - public sitemap with machine-readable surfaces.
 
 ## MVP
 
@@ -31,6 +35,8 @@ Agent entry points:
 - `GET /api/proofs/recent` - redacted public verified proof examples.
 - `GET /api/monitoring/executions` - durable execution counters and recent failure categories.
 - `GET /api/trust` - redacted public trust summary for buyer-side inspection.
+- `GET /api/agent-manifest` - canonical machine-readable discovery manifest.
+- `GET /.well-known/agent.json` - well-known manifest alias for agents and crawlers.
 - `GET /api/quickstart` - compact agent quickstart with payment guardrails and verification flow.
 - `POST /api/policy/check` - free pre-payment check for target safety, policy, retry, timeout, and warnings.
 - `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
@@ -39,7 +45,10 @@ Agent entry points:
 - `GET /api/capabilities` - agent-readable service capabilities.
 - `GET /openapi.json` - OpenAPI 3.1 contract for integrations.
 - `GET /llms.txt` - plain-text agent discovery and usage guide.
+- `GET /robots.txt` - crawler and agent discovery hints.
+- `GET /sitemap.xml` - sitemap for public pages and machine-readable agent surfaces.
 - `/agents` - browser-readable guide for autonomous agents.
+- `/discovery` - browser-readable discovery pack.
 - `/use-cases` - task templates for agent discovery.
 - `/mcp` - MCP/Bazaar discovery guide.
 - `/trust` - browser-readable trust summary.
@@ -180,6 +189,8 @@ The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi
 Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 
 - `GET /llms.txt` - concise plain-text service guide.
+- `GET /api/agent-manifest` - canonical machine-readable service card for agents, crawlers, and directories.
+- `GET /.well-known/agent.json` - well-known alias for the same manifest.
 - `GET /api/capabilities` - action schema, x402 settings, safety limits, verification links, discovery keywords, and MCP hints.
 - `GET /api/quickstart` - minimal request, payment guardrails, copy-paste snippets, and proof verification links.
 - `POST /api/policy/check` - free pre-payment validation of the intended execution payload.

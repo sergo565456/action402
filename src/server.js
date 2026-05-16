@@ -10,6 +10,7 @@ import {
 } from "./advancedActions.js";
 import { publicBazaarMetadata } from "./bazaar.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
+import { publicAgentManifest, robotsTxt, sitemapXml } from "./discoveryManifest.js";
 import { publicIntegrationSnippets } from "./snippets.js";
 import { executeWebhookAction, preflightWebhookAction } from "./webhook.js";
 import { executionStats, getJob, getReceipt, initStore, listRecentJobs, storeStats } from "./store.js";
@@ -67,6 +68,10 @@ app.get("/api/bazaar", (req, res) => {
   res.json(publicBazaarMetadata());
 });
 
+app.get(["/api/agent-manifest", "/.well-known/agent.json", "/.well-known/action402.json", "/.well-known/x402.json"], (req, res) => {
+  res.json(publicAgentManifest({ baseUrl: config.publicBaseUrl }));
+});
+
 app.get("/api/capabilities", (req, res) => {
   res.json(publicCapabilities());
 });
@@ -121,6 +126,14 @@ app.get("/api/secrets/policy", (req, res) => {
 
 app.get("/openapi.json", (req, res) => {
   res.json(openApiSpec());
+});
+
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain").send(robotsTxt({ baseUrl: config.publicBaseUrl }));
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml").send(sitemapXml({ baseUrl: config.publicBaseUrl }));
 });
 
 app.get("/proof/:id", (req, res) => {

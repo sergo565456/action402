@@ -13,6 +13,7 @@ import {
   publicScheduleCapabilities,
   publicSecretStoragePolicy
 } from "./advancedActions.js";
+import { publicDiscoveryPack } from "./discoveryManifest.js";
 import { publicUseCaseTemplates } from "./useCases.js";
 
 const webhookRequestSchema = {
@@ -506,6 +507,35 @@ const secretStoragePolicySchema = {
   }
 };
 
+const agentManifestSchema = {
+  type: "object",
+  required: ["schemaVersion", "name", "canonicalBaseUrl", "paidActions", "freeAgentSurfaces", "links"],
+  properties: {
+    schemaVersion: { type: "string" },
+    name: { type: "string" },
+    tagline: { type: "string" },
+    status: { type: "string" },
+    category: { type: "string" },
+    description: { type: "string" },
+    canonicalBaseUrl: { type: "string" },
+    icon: { type: "string" },
+    audience: { type: "array", items: { type: "string" } },
+    protocols: { type: "array", items: { type: "string" } },
+    tags: { type: "array", items: { type: "string" } },
+    discoveryKeywords: { type: "array", items: { type: "string" } },
+    buyerPrompt: { type: "string" },
+    paidActions: { type: "array", items: { type: "object" } },
+    freeAgentSurfaces: { type: "array", items: { type: "object" } },
+    browserPages: { type: "array", items: { type: "object" } },
+    actionTemplateSummary: { type: "object" },
+    useCaseSummary: { type: "object" },
+    safety: { type: "object" },
+    verification: { type: "object" },
+    trust: { type: "object" },
+    links: { type: "object" }
+  }
+};
+
 const trustResponseSchema = {
   type: "object",
   required: [
@@ -580,6 +610,7 @@ export function publicCapabilities() {
   const handoffCapabilities = publicHandoffCapabilities({ baseUrl: config.publicBaseUrl });
   const scheduleCapabilities = publicScheduleCapabilities({ baseUrl: config.publicBaseUrl });
   const secretStoragePolicy = publicSecretStoragePolicy({ baseUrl: config.publicBaseUrl });
+  const discoveryPack = publicDiscoveryPack({ baseUrl: config.publicBaseUrl });
 
   return {
     name: "Action402",
@@ -599,6 +630,7 @@ export function publicCapabilities() {
       templateCount: publicActionTemplates().length,
       categories: Array.from(new Set(publicActionTemplates().map((template) => template.category))).sort()
     },
+    discoveryPack,
     quickstart: {
       path: "/api/quickstart",
       description: "Compact agent quickstart with payment guardrails, minimal request, snippets, and verification flow."
@@ -698,6 +730,7 @@ export function publicCapabilities() {
       oneLine: AGENT_PROMPT,
       callFlow: [
         "Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.",
+        "Read /api/agent-manifest or /.well-known/agent.json for the canonical machine-readable discovery pack.",
         "Optionally POST the same payload to /api/policy/check before paying.",
         "Use /api/handoff/browser only when a separate browser-capable agent will execute the browser steps.",
         "Use /api/schedules/preview only to validate future schedule shape; it will not execute or charge.",
@@ -758,6 +791,9 @@ export function publicCapabilities() {
         "Action402 action catalog",
         "agent quickstart x402",
         "pay per API call",
+        "Action402 agent manifest",
+        "well-known agent.json",
+        "x402 agent discovery manifest",
         "browser action handoff",
         "schedule preview x402",
         "secret storage policy",
@@ -769,6 +805,7 @@ export function publicCapabilities() {
         "GitHub Actions dispatch x402"
       ],
       bazaarFlow: [
+        "fetch /.well-known/agent.json or /api/agent-manifest",
         "search_resources query=Action402",
         "inspect the returned resource metadata and price",
         "proxy_tool_call using the discovered resource/tool name",
@@ -814,6 +851,13 @@ export function publicCapabilities() {
     links: {
       openapi: `${config.publicBaseUrl}/openapi.json`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
+      discovery: `${config.publicBaseUrl}/discovery`,
+      agentManifest: `${config.publicBaseUrl}/api/agent-manifest`,
+      wellKnownAgent: `${config.publicBaseUrl}/.well-known/agent.json`,
+      wellKnownAction402: `${config.publicBaseUrl}/.well-known/action402.json`,
+      wellKnownX402: `${config.publicBaseUrl}/.well-known/x402.json`,
+      robots: `${config.publicBaseUrl}/robots.txt`,
+      sitemap: `${config.publicBaseUrl}/sitemap.xml`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
@@ -1176,6 +1220,40 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/agent-manifest": {
+        get: {
+          summary: "Fetch canonical agent discovery manifest",
+          description:
+            "Returns the machine-readable discovery pack for agents, crawlers, Bazaar/MCP clients, and directories.",
+          responses: {
+            "200": {
+              description: "Agent discovery manifest",
+              content: {
+                "application/json": {
+                  schema: agentManifestSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/.well-known/agent.json": {
+        get: {
+          summary: "Fetch well-known agent manifest",
+          description:
+            "Well-known alias for the canonical Action402 agent discovery manifest.",
+          responses: {
+            "200": {
+              description: "Agent discovery manifest",
+              content: {
+                "application/json": {
+                  schema: agentManifestSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/policy/check": {
         post: {
           summary: "Preflight check a webhook execution request",
@@ -1336,6 +1414,26 @@ export function openApiSpec() {
           }
         }
       },
+      "/robots.txt": {
+        get: {
+          summary: "Fetch robots.txt with agent discovery hints",
+          responses: {
+            "200": {
+              description: "Robots file"
+            }
+          }
+        }
+      },
+      "/sitemap.xml": {
+        get: {
+          summary: "Fetch sitemap including agent-facing surfaces",
+          responses: {
+            "200": {
+              description: "Sitemap XML"
+            }
+          }
+        }
+      },
       "/proof/{id}": {
         get: {
           summary: "Render public proof badge page",
@@ -1384,6 +1482,7 @@ export function openApiSpec() {
         SchedulePreviewRequest: schedulePreviewRequestSchema,
         SchedulePreviewResponse: schedulePreviewResponseSchema,
         SecretStoragePolicy: secretStoragePolicySchema,
+        AgentManifest: agentManifestSchema,
         TrustResponse: trustResponseSchema,
         Error: errorSchema
       }

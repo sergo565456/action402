@@ -54,6 +54,7 @@ async function main() {
   await checkStatic("/demo.html", "Action402 Demo Console");
   await checkStatic("/brand.html", "Action402 Brand");
   await checkStatic("/agents", "Pay for one action");
+  await checkStatic("/discovery", "Discovery pack");
   await checkStatic("/pricing", "Usage and pricing");
   await checkStatic("/onboarding", "Agent onboarding");
   await checkStatic("/use-cases", "Use-case templates");
@@ -68,8 +69,14 @@ async function main() {
   await checkStatic("/proof/job_deploy_check_missing", "Proof badge");
   await checkStatic("/monitoring", "Execution monitoring");
   await checkStatic("/llms.txt", "paid webhook execution");
+  await checkStatic("/robots.txt", "Sitemap:");
+  await checkStatic("/sitemap.xml", "<urlset");
 
   const health = await checkJson("/health");
+  const agentManifest = await checkJson("/api/agent-manifest");
+  const wellKnownAgent = await checkJson("/.well-known/agent.json");
+  const wellKnownAction402 = await checkJson("/.well-known/action402.json");
+  const wellKnownX402 = await checkJson("/.well-known/x402.json");
   const capabilities = await checkJson("/api/capabilities");
   const actions = await checkJson("/api/actions");
   const quickstart = await checkJson("/api/quickstart");
@@ -140,6 +147,8 @@ async function main() {
 
   if (capabilities) {
     record("capabilities expose execute.webhook", capabilities.actions?.[0]?.id === "execute.webhook");
+    record("capabilities expose discovery pack", capabilities.discoveryPack?.agentManifest?.endsWith("/api/agent-manifest"));
+    record("capabilities expose well-known manifest", capabilities.links?.wellKnownAgent?.endsWith("/.well-known/agent.json"));
     record(
       "capabilities expose agent prompt",
       typeof capabilities.agentPrompt === "string" && capabilities.agentPrompt.includes("Action402")
@@ -181,6 +190,24 @@ async function main() {
     if (expectX402) {
       record("capabilities mark action paid", capabilities.actions?.[0]?.paid === true);
     }
+  }
+
+  if (agentManifest) {
+    record("agent manifest has schema", agentManifest.schemaVersion === "action402.agent-manifest.v1");
+    record("agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
+    record("agent manifest exposes free surfaces", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/capabilities"));
+  }
+
+  if (wellKnownAgent) {
+    record("well-known agent manifest loads", wellKnownAgent.schemaVersion === "action402.agent-manifest.v1");
+  }
+
+  if (wellKnownAction402) {
+    record("well-known action402 manifest loads", wellKnownAction402.name === "Action402");
+  }
+
+  if (wellKnownX402) {
+    record("well-known x402 manifest exposes exact payment", wellKnownX402.paidActions?.[0]?.payment?.scheme === "exact");
   }
 
   if (actions) {
@@ -261,6 +288,10 @@ async function main() {
       Array.isArray(bazaar.discovery?.qualitySignals) && bazaar.discovery.qualitySignals.length >= 4
     );
     record("bazaar metadata has proof link", typeof bazaar.links?.proofs === "string");
+    record("bazaar metadata has discovery link", typeof bazaar.links?.discovery === "string");
+    record("bazaar metadata has agent manifest link", typeof bazaar.links?.agentManifest === "string");
+    record("bazaar metadata has well-known link", typeof bazaar.links?.wellKnownAgent === "string");
+    record("bazaar metadata has sitemap link", typeof bazaar.links?.sitemap === "string");
     record("bazaar metadata has action catalog link", typeof bazaar.links?.actionCatalog === "string");
     record("bazaar metadata has quickstart link", typeof bazaar.links?.quickstart === "string");
     record("bazaar metadata has policy check link", typeof bazaar.links?.policyCheck === "string");
@@ -307,6 +338,8 @@ async function main() {
     record("trust endpoint exposes x402 settings", trust.x402?.scheme === "exact");
     record("trust endpoint exposes public surfaces", typeof trust.publicSurfaces?.useCases === "string");
     record("trust endpoint exposes score", typeof trust.trustScore?.score === "number");
+    record("trust endpoint exposes agent manifest surface", typeof trust.publicSurfaces?.agentManifest === "string");
+    record("trust endpoint exposes well-known surface", typeof trust.publicSurfaces?.wellKnownAgent === "string");
     record("trust endpoint exposes action catalog surface", typeof trust.publicSurfaces?.actionCatalog === "string");
     record("trust endpoint exposes policy check surface", typeof trust.publicSurfaces?.policyCheck === "string");
     record("trust endpoint exposes snippets surface", typeof trust.publicSurfaces?.snippets === "string");

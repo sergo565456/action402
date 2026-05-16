@@ -64,7 +64,7 @@ function buildTrustScore({ stats, store, proofStats }) {
       score: 15,
       maxScore: 15,
       details:
-        "Capabilities, Bazaar metadata, quickstart, snippets, policy check, action catalog, handoff, schedule preview, secret policy, llms.txt, and OpenAPI are public."
+        "Capabilities, agent manifest, Bazaar metadata, quickstart, snippets, policy check, action catalog, handoff, schedule preview, secret policy, llms.txt, sitemap, and OpenAPI are public."
     },
     {
       id: "safety",
@@ -143,6 +143,9 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
     proofExamples: proofStats,
     publicSurfaces: {
       capabilities: `${config.publicBaseUrl}/api/capabilities`,
+      discovery: `${config.publicBaseUrl}/discovery`,
+      agentManifest: `${config.publicBaseUrl}/api/agent-manifest`,
+      wellKnownAgent: `${config.publicBaseUrl}/.well-known/agent.json`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
@@ -157,6 +160,8 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       proofs: `${config.publicBaseUrl}/proofs`,
       proofBadge: `${config.publicBaseUrl}/proof/{jobOrReceiptId}`,
       monitoring: `${config.publicBaseUrl}/monitoring`,
+      robots: `${config.publicBaseUrl}/robots.txt`,
+      sitemap: `${config.publicBaseUrl}/sitemap.xml`,
       handoff: `${config.publicBaseUrl}/handoff`,
       handoffCapabilities: `${config.publicBaseUrl}/api/handoff/capabilities`,
       schedules: `${config.publicBaseUrl}/schedules`,
@@ -167,6 +172,8 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
     },
     trustSignals: [
       "x402 exact payments on Base",
+      "canonical agent manifest and well-known discovery aliases",
+      "robots.txt and sitemap.xml expose agent entry points",
       "public capabilities and OpenAPI contracts",
       "public action catalog and quickstart endpoints",
       "copy-paste integration snippets for buyers and verifiers",

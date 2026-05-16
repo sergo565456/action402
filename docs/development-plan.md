@@ -24,6 +24,10 @@ The first useful product is intentionally narrow:
 | `GET /api/jobs/:id` | free | Inspect job status and attempts |
 | `GET /api/receipts/:id` | free | Verify receipt signature |
 | `GET /api/bazaar` | free | Bazaar/discovery metadata |
+| `GET /api/agent-manifest` | free | Canonical machine-readable discovery manifest |
+| `GET /.well-known/agent.json` | free | Well-known agent manifest alias |
+| `GET /.well-known/action402.json` | free | Action402-specific manifest alias |
+| `GET /.well-known/x402.json` | free | x402-specific manifest alias |
 | `GET /api/quickstart` | free | Compact agent buyer flow |
 | `POST /api/policy/check` | free | Pre-payment policy and safety check |
 | `GET /api/snippets` | free | Copy-paste buyer and verification snippets |
@@ -35,6 +39,8 @@ The first useful product is intentionally narrow:
 | `GET /api/secrets/policy` | free | Public credential/secret handling policy |
 | `GET /api/trust` | free | Public buyer trust summary |
 | `GET /proof/:id` | free | Browser-friendly proof badge |
+| `GET /robots.txt` | free | Crawler and agent discovery hints |
+| `GET /sitemap.xml` | free | Public page and machine-surface sitemap |
 | `GET /health` | free | Runtime health |
 
 ## Next Build Milestones
@@ -77,6 +83,14 @@ The first useful product is intentionally narrow:
 - [x] Secret storage policy for authenticated targets. Current status: explicit no-storage public MVP policy with safe alternatives.
 - [x] Policy checks before execution through target policy presets, allowlist/blocklist, per-target quotas, and free `/api/policy/check` preflight.
 - [x] Receipt verification snippets through `/api/snippets` and `/snippets`.
+
+### Milestone 5: Discovery Growth
+
+- [x] Add canonical agent manifest at `/api/agent-manifest`.
+- [x] Add well-known manifest aliases for agents and x402 clients.
+- [x] Add `/discovery` page for the discovery pack.
+- [x] Add `robots.txt` and `sitemap.xml` with agent-facing entry points.
+- [x] Add discovery pack links to capabilities, Bazaar metadata, and `llms.txt`.
 
 ## Development Principles
 
