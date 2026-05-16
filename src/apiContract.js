@@ -14,6 +14,7 @@ import {
   publicSecretStoragePolicy
 } from "./advancedActions.js";
 import { publicCorsPolicy } from "./cors.js";
+import { publicCachePolicy } from "./cachePolicy.js";
 import { publicDiscoveryPack } from "./discoveryManifest.js";
 import { publicUseCaseTemplates } from "./useCases.js";
 
@@ -721,6 +722,7 @@ export function publicCapabilities() {
       description:
         "Machine-readable endpoints support non-credentialed CORS and OPTIONS preflight so browser-based agents can inspect contracts, 402 payment requirements, and payment response headers."
     },
+    cachePolicy: publicCachePolicy(),
     actions: [
       {
         id: "execute.webhook",
@@ -985,6 +987,7 @@ export function openApiSpec() {
       }
     ],
     "x-action402-cors": publicCorsPolicy(),
+    "x-action402-cache": publicCachePolicy(),
     paths: {
       "/api": {
         get: {

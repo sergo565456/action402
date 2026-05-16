@@ -14,6 +14,7 @@ Primary paid action:
 - Payment: x402 exact scheme when x402 is enabled.
 - Payment headers: compatible buyer clients retry with X-PAYMENT or payment-signature; settlement responses may expose X-PAYMENT-RESPONSE or PAYMENT-RESPONSE.
 - Browser access: machine-readable endpoints use non-credentialed CORS with OPTIONS preflight, allow x-payment/payment-signature request headers, and expose payment response headers.
+- Cache policy: stable discovery contracts use short public cache; runtime health, paid execution, proof, verification, and monitoring data use no-store.
 
 Discovery and contracts:
 - /api - compact machine-readable API index for agents that probe the API root first.

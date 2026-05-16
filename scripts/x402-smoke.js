@@ -73,6 +73,18 @@ function headerIncludes(headers, name, expectedValue) {
     .includes(expectedValue.toLowerCase());
 }
 
+async function checkCachePolicy() {
+  try {
+    const stable = await fetchJson("/api");
+    record("API index is short-cacheable", headerIncludes(stable.response.headers, "cache-control", "s-maxage=300"));
+
+    const runtime = await fetchJson("/health");
+    record("Runtime health is no-store", runtime.response.headers.get("cache-control") === "no-store");
+  } catch (error) {
+    record("Cache policy is checkable", false, error.message);
+  }
+}
+
 async function main() {
   console.log(`Action402 x402 smoke: ${baseUrl}`);
 
@@ -113,6 +125,7 @@ async function main() {
   const snippets = await checkJsonEndpoint("/api/snippets");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
   const openapi = await checkJsonEndpoint("/openapi.json");
+  await checkCachePolicy();
 
   if (health) {
     record("x402 is enabled", health.x402Enabled === true, `x402Enabled=${health.x402Enabled}`);
@@ -142,11 +155,13 @@ async function main() {
       capabilities.mcp?.recommendedToolName === "execute_webhook"
     );
     record("Browser CORS policy is published", capabilities.browserAccess?.cors?.enabled === true);
+    record("Cache policy is published", capabilities.cachePolicy?.dynamicCacheControl === "no-store");
     record("x402 payment headers are published", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
   }
 
   if (openapi) {
     record("OpenAPI API index path is published", Boolean(openapi.paths?.["/api"]?.get));
+    record("OpenAPI cache policy is published", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("OpenAPI x402 security scheme is published", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(
       "OpenAPI paid route is marked x402 protected",

@@ -1,5 +1,6 @@
 import { config } from "./config.js";
 import { publicCorsPolicy } from "./cors.js";
+import { publicCachePolicy } from "./cachePolicy.js";
 
 function absoluteUrl(path) {
   const baseUrl = String(config.publicBaseUrl || "").replace(/\/+$/, "");
@@ -68,6 +69,7 @@ export function publicApiIndex() {
       cors: publicCorsPolicy(),
       credentialsRequired: false
     },
+    cachePolicy: publicCachePolicy(),
     links: {
       self: absoluteUrl("/api"),
       executeWebhook: absoluteUrl("/api/execute/webhook"),

@@ -190,6 +190,8 @@ npm run smoke:x402 -- http://127.0.0.1:4021
 
 The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi.json`, agent discovery fields, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, public trust/proof surfaces, and proof badge routing.
 
+Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/bazaar`, `/api/actions`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`.
+
 ## Agent discovery
 
 Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:

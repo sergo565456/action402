@@ -98,6 +98,24 @@ async function checkCorsPreflight() {
   }
 }
 
+async function checkCachePolicy() {
+  try {
+    const stablePaths = ["/api", "/api/capabilities", "/api/bazaar", "/openapi.json"];
+    for (const path of stablePaths) {
+      const { response } = await fetchText(path);
+      record(`${path} uses short discovery cache`, headerIncludes(response, "cache-control", "s-maxage=300"));
+    }
+
+    const noStorePaths = ["/health", "/api/proofs/recent", "/api/monitoring/executions"];
+    for (const path of noStorePaths) {
+      const { response } = await fetchText(path);
+      record(`${path} uses no-store cache`, response.headers.get("cache-control") === "no-store");
+    }
+  } catch (error) {
+    record("cache policy is published", false, error.message);
+  }
+}
+
 async function main() {
   console.log(`Action402 deploy check: ${baseUrl}`);
 
@@ -209,6 +227,7 @@ async function main() {
   });
   const openapi = await checkJson("/openapi.json");
   await checkCorsPreflight();
+  await checkCachePolicy();
 
   if (health) {
     record("health ok", health.ok === true, `ok=${health.ok}`);
@@ -265,6 +284,7 @@ async function main() {
     record("capabilities expose schedule preview", capabilities.schedules?.previewPath === "/api/schedules/preview");
     record("capabilities expose secret policy", capabilities.secretStorage?.status === "not-supported-in-public-mvp");
     record("capabilities expose browser CORS policy", capabilities.browserAccess?.cors?.enabled === true);
+    record("capabilities expose cache policy", capabilities.cachePolicy?.dynamicCacheControl === "no-store");
     record("capabilities expose x402 payment headers", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
     record("capabilities expose action catalog", capabilities.actionCatalog?.path === "/api/actions");
     record("capabilities expose proof badge", capabilities.verification?.proofBadge === "/proof/{jobOrReceiptId}");
@@ -284,6 +304,7 @@ async function main() {
 
   if (openapi) {
     record("openapi exposes API index", Boolean(openapi.paths?.["/api"]?.get));
+    record("openapi exposes cache policy", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("openapi exposes x402 security scheme", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(
       "openapi marks paid route x402 protected",
