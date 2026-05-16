@@ -30,6 +30,7 @@ import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
 import { logEvent, observabilitySummary, recordMetric, requestLogger } from "./observability.js";
 import { targetQuotaStats } from "./targetQuota.js";
+import { corsMiddleware } from "./cors.js";
 
 assertProductionConfig();
 await initStore();
@@ -69,6 +70,7 @@ function methodNotAllowed(allowedMethods) {
 }
 
 app.use(requestLogger);
+app.use(corsMiddleware);
 app.use(express.static("public", { extensions: ["html"] }));
 
 app.get("/health", async (req, res, next) => {

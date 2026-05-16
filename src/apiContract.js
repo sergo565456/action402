@@ -13,6 +13,7 @@ import {
   publicScheduleCapabilities,
   publicSecretStoragePolicy
 } from "./advancedActions.js";
+import { publicCorsPolicy } from "./cors.js";
 import { publicDiscoveryPack } from "./discoveryManifest.js";
 import { publicUseCaseTemplates } from "./useCases.js";
 
@@ -686,6 +687,11 @@ export function publicCapabilities() {
       price: config.x402Price,
       facilitatorUrl: config.facilitatorUrl
     },
+    browserAccess: {
+      cors: publicCorsPolicy(),
+      description:
+        "Machine-readable endpoints support non-credentialed CORS and OPTIONS preflight so browser-based agents can inspect contracts, 402 payment requirements, and payment response headers."
+    },
     actions: [
       {
         id: "execute.webhook",
@@ -948,6 +954,7 @@ export function openApiSpec() {
         url: config.publicBaseUrl
       }
     ],
+    "x-action402-cors": publicCorsPolicy(),
     paths: {
       "/api/execute/webhook": {
         post: {

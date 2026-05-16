@@ -46,6 +46,7 @@ Agent entry points:
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
 - `GET /api/capabilities` - agent-readable service capabilities.
 - `GET /openapi.json` - OpenAPI 3.1 contract for integrations.
+- `OPTIONS /api/*` and `OPTIONS /api/execute/webhook` - non-credentialed CORS preflight for browser-based agents and x402 buyer clients.
 - `GET /llms.txt` - plain-text agent discovery and usage guide.
 - `GET /robots.txt` - crawler and agent discovery hints.
 - `GET /sitemap.xml` - sitemap for public pages and machine-readable agent surfaces.
@@ -237,5 +238,7 @@ Use `TARGET_QUOTA_*` settings to cap executions per target hostname in a rolling
 Use `RATE_LIMIT_*` settings to protect the paid execution endpoint from repeated calls by the same client. Keep `RECEIPT_SECRET` stable and private. When rotating receipt secrets, set a new `RECEIPT_KEY_ID` and keep old keys in `RECEIPT_PREVIOUS_SECRETS` as comma-separated `keyId:secret` entries.
 
 Use `LOG_LEVEL` and `REQUEST_LOG_ENABLED` to control structured JSON logs. `/health` exposes process-local observability counters for requests, x402 payment-required responses, accepted paid executions, execution replays, successes, failures, and rejected execution requests.
+
+Machine-readable endpoints publish non-credentialed CORS headers for browser-based agents. The policy allows `content-type`, `x-payment`, and `payment-signature` request headers, exposes x402 payment response headers, and does not use cookies or credentialed browser requests.
 
 Agents can call `/api/verify/jobs/:id` or `/api/verify/receipts/:id` to get a single JSON proof report. The report checks the HMAC signature and confirms that retained job fields match the signed receipt payload.

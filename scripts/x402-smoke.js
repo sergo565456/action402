@@ -65,6 +65,14 @@ function paymentHeaders(headers) {
   });
 }
 
+function headerIncludes(headers, name, expectedValue) {
+  return (headers.get(name) || "")
+    .toLowerCase()
+    .split(",")
+    .map((value) => value.trim())
+    .includes(expectedValue.toLowerCase());
+}
+
 async function main() {
   console.log(`Action402 x402 smoke: ${baseUrl}`);
 
@@ -127,6 +135,7 @@ async function main() {
       "MCP discovery hint is published",
       capabilities.mcp?.recommendedToolName === "execute_webhook"
     );
+    record("Browser CORS policy is published", capabilities.browserAccess?.cors?.enabled === true);
   }
 
   if (actions) {
@@ -170,9 +179,26 @@ async function main() {
 
   try {
     const response = await fetch(`${baseUrl}/api/execute/webhook`, {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://agent.example",
+        "access-control-request-method": "POST",
+        "access-control-request-headers": "content-type,x-payment,payment-signature"
+      }
+    });
+    record("browser agent preflight returns 204", response.status === 204, `status=${response.status}`);
+    record("browser agent preflight allows x-payment", headerIncludes(response.headers, "access-control-allow-headers", "x-payment"));
+  } catch (error) {
+    record("browser agent preflight returns 204", false, error.message);
+    record("browser agent preflight allows x-payment", false, error.message);
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/api/execute/webhook`, {
       method: "POST",
       headers: {
-        "content-type": "application/json"
+        "content-type": "application/json",
+        origin: "https://agent.example"
       },
       body: JSON.stringify({
         url: "https://example.com/webhook",
@@ -192,9 +218,11 @@ async function main() {
       headers.length > 0,
       headers.length > 0 ? headers.map(([name]) => name).join(", ") : body.slice(0, 160)
     );
+    record("402 is readable by browser agents", response.headers.get("access-control-allow-origin") === "*");
   } catch (error) {
     record("unpaid execution returns 402", false, error.message);
     record("x402 payment header is present", false, error.message);
+    record("402 is readable by browser agents", false, error.message);
   }
 
   const failed = checks.filter((check) => !check.ok);

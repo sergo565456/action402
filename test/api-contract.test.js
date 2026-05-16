@@ -21,11 +21,11 @@ async function request(path, options = {}) {
   }
 }
 
-async function requestText(path) {
+async function requestRaw(path, options = {}) {
   const server = app.listen(0);
   try {
     const { port } = server.address();
-    const response = await fetch(`http://127.0.0.1:${port}${path}`);
+    const response = await fetch(`http://127.0.0.1:${port}${path}`, options);
     const body = await response.text();
     return { response, body };
   } finally {
@@ -33,6 +33,10 @@ async function requestText(path) {
       server.close((error) => (error ? reject(error) : resolve()));
     });
   }
+}
+
+async function requestText(path) {
+  return requestRaw(path);
 }
 
 test("capabilities document exposes execute webhook action", async () => {
@@ -81,6 +85,12 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.schedules.previewPath, "/api/schedules/preview");
   assert.equal(body.schedules.status, "preview-only");
   assert.equal(body.secretStorage.status, "not-supported-in-public-mvp");
+  assert.equal(body.browserAccess.cors.enabled, true);
+  assert.equal(body.browserAccess.cors.allowOrigin, "*");
+  assert.equal(body.browserAccess.cors.allowCredentials, false);
+  assert.ok(body.browserAccess.cors.requestHeaders.includes("x-payment"));
+  assert.ok(body.browserAccess.cors.requestHeaders.includes("payment-signature"));
+  assert.ok(body.browserAccess.cors.exposedHeaders.includes("x-payment-response"));
   assert.equal(body.actionCatalog.path, "/api/actions");
   assert.equal(body.verification.proofBadge, "/proof/{jobOrReceiptId}");
   assert.equal(body.verification.integrationSnippets, "/api/snippets");
@@ -124,6 +134,8 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/proof/{id}"].get);
   assert.ok(body.paths["/robots.txt"].get);
   assert.ok(body.paths["/sitemap.xml"].get);
+  assert.equal(body["x-action402-cors"].enabled, true);
+  assert.ok(body["x-action402-cors"].exposedHeaders.includes("payment-response"));
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
   assert.ok(body.components.schemas.PublicProofSummary);
@@ -140,6 +152,34 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.SecretStoragePolicy);
   assert.ok(body.components.schemas.AgentManifest);
   assert.ok(body.components.schemas.TrustResponse);
+});
+
+test("machine-readable endpoints support browser agent CORS preflight", async () => {
+  const preflight = await requestRaw("/api/execute/webhook", {
+    method: "OPTIONS",
+    headers: {
+      origin: "https://agent.example",
+      "access-control-request-method": "POST",
+      "access-control-request-headers": "content-type,x-payment,payment-signature"
+    }
+  });
+
+  assert.equal(preflight.response.status, 204);
+  assert.equal(preflight.response.headers.get("access-control-allow-origin"), "*");
+  assert.equal(preflight.response.headers.get("access-control-allow-credentials"), null);
+  assert.ok(preflight.response.headers.get("access-control-allow-methods").includes("POST"));
+  assert.ok(preflight.response.headers.get("access-control-allow-headers").includes("x-payment"));
+  assert.ok(preflight.response.headers.get("access-control-allow-headers").includes("payment-signature"));
+  assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("x-payment-response"));
+  assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("payment-response"));
+
+  const capabilities = await request("/api/capabilities", {
+    headers: {
+      origin: "https://agent.example"
+    }
+  });
+  assert.equal(capabilities.response.status, 200);
+  assert.equal(capabilities.response.headers.get("access-control-allow-origin"), "*");
 });
 
 test("action catalog exposes ready templates and safe future scheduling", async () => {

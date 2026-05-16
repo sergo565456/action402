@@ -10,6 +10,14 @@ function record(name, ok, details = "") {
   checks.push({ name, ok, details });
 }
 
+function headerIncludes(response, name, expectedValue) {
+  return (response?.headers.get(name) || "")
+    .toLowerCase()
+    .split(",")
+    .map((value) => value.trim())
+    .includes(expectedValue.toLowerCase());
+}
+
 async function fetchText(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, options);
   const text = await response.text();
@@ -59,6 +67,34 @@ async function checkJsonStatus(path, expectedStatus, options = {}) {
   } catch (error) {
     record(`${path} returns JSON status ${expectedStatus}`, false, error.message);
     return { response: undefined, body: undefined };
+  }
+}
+
+async function checkCorsPreflight() {
+  try {
+    const { response } = await fetchText("/api/execute/webhook", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://agent.example",
+        "access-control-request-method": "POST",
+        "access-control-request-headers": "content-type,x-payment,payment-signature"
+      }
+    });
+
+    record("execute route supports CORS preflight", response.status === 204, `status=${response.status}`);
+    record("CORS allows browser agents", response.headers.get("access-control-allow-origin") === "*");
+    record("CORS remains non-credentialed", response.headers.get("access-control-allow-credentials") === null);
+    record("CORS allows x402 payment header", headerIncludes(response, "access-control-allow-headers", "x-payment"));
+    record(
+      "CORS allows payment-signature header",
+      headerIncludes(response, "access-control-allow-headers", "payment-signature")
+    );
+    record(
+      "CORS exposes x402 settlement header",
+      headerIncludes(response, "access-control-expose-headers", "x-payment-response")
+    );
+  } catch (error) {
+    record("execute route supports CORS preflight", false, error.message);
   }
 }
 
@@ -171,6 +207,7 @@ async function main() {
     method: "PUT"
   });
   await checkJson("/openapi.json");
+  await checkCorsPreflight();
 
   if (health) {
     record("health ok", health.ok === true, `ok=${health.ok}`);
@@ -218,6 +255,7 @@ async function main() {
     record("capabilities expose browser handoff", capabilities.handoff?.path === "/api/handoff/browser");
     record("capabilities expose schedule preview", capabilities.schedules?.previewPath === "/api/schedules/preview");
     record("capabilities expose secret policy", capabilities.secretStorage?.status === "not-supported-in-public-mvp");
+    record("capabilities expose browser CORS policy", capabilities.browserAccess?.cors?.enabled === true);
     record("capabilities expose action catalog", capabilities.actionCatalog?.path === "/api/actions");
     record("capabilities expose proof badge", capabilities.verification?.proofBadge === "/proof/{jobOrReceiptId}");
     record("capabilities expose MCP guide link", typeof capabilities.links?.mcpGuide === "string");
