@@ -47,6 +47,21 @@ async function checkJson(path, options = {}) {
   }
 }
 
+async function checkJsonStatus(path, expectedStatus, options = {}) {
+  try {
+    const { response, body } = await fetchJson(path, options);
+    record(
+      `${path} returns JSON status ${expectedStatus}`,
+      response.status === expectedStatus && body && typeof body === "object",
+      `status=${response.status}`
+    );
+    return { response, body };
+  } catch (error) {
+    record(`${path} returns JSON status ${expectedStatus}`, false, error.message);
+    return { response: undefined, body: undefined };
+  }
+}
+
 async function main() {
   console.log(`Action402 deploy check: ${baseUrl}`);
 
@@ -150,6 +165,7 @@ async function main() {
   const proofs = await checkJson("/api/proofs/recent");
   const monitoring = await checkJson("/api/monitoring/executions");
   const trust = await checkJson("/api/trust");
+  const apiNotFound = await checkJsonStatus("/api/deploy-check-missing-route", 404);
   await checkJson("/openapi.json");
 
   if (health) {
@@ -371,6 +387,11 @@ async function main() {
     record("trust endpoint exposes schedule preview surface", typeof trust.publicSurfaces?.schedulePreview === "string");
     record("trust endpoint exposes secret policy surface", typeof trust.publicSurfaces?.secretPolicy === "string");
     record("trust endpoint exposes trust signals", Array.isArray(trust.trustSignals) && trust.trustSignals.length >= 6);
+  }
+
+  if (apiNotFound.body) {
+    record("unknown API route returns structured code", apiNotFound.body.error?.code === "api_route_not_found");
+    record("unknown API route links OpenAPI", apiNotFound.body.error?.details?.openapi === "/openapi.json");
   }
 
   const failed = checks.filter((check) => !check.ok);

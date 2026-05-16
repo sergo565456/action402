@@ -42,6 +42,10 @@ function queryParam(req, name) {
   return new URL(req.url || "/", "http://action402.internal").searchParams.get(name);
 }
 
+function requestPath(req) {
+  return new URL(req.originalUrl || req.url || "/", "http://action402.internal").pathname;
+}
+
 app.use(requestLogger);
 app.use(express.static("public", { extensions: ["html"] }));
 
@@ -435,6 +439,20 @@ app.get("/api/verify/receipts/:id", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+app.use("/api", (req, res) => {
+  res.status(404).json(
+    errorBody(
+      new ApiError(404, "api_route_not_found", "API route not found", {
+        method: req.method,
+        path: requestPath(req),
+        openapi: "/openapi.json",
+        capabilities: "/api/capabilities",
+        quickstart: "/api/quickstart"
+      })
+    )
+  );
 });
 
 app.use((error, req, res, next) => {

@@ -244,6 +244,18 @@ test("canary echo returns only non-sensitive whitelisted fields", async () => {
   assert.equal(JSON.stringify(body).includes("must-not-echo"), false);
 });
 
+test("unknown API routes return structured JSON for agents", async () => {
+  const { response, body } = await request("/api/unknown-agent-route");
+
+  assert.equal(response.status, 404);
+  assert.equal(body.error.code, "api_route_not_found");
+  assert.equal(body.error.details.method, "GET");
+  assert.equal(body.error.details.path, "/api/unknown-agent-route");
+  assert.equal(body.error.details.openapi, "/openapi.json");
+  assert.equal(body.error.details.capabilities, "/api/capabilities");
+  assert.equal(body.error.details.quickstart, "/api/quickstart");
+});
+
 test("snippets endpoint exposes buyer and verification examples", async () => {
   const { response, body } = await request("/api/snippets");
 
