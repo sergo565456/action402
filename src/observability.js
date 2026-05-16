@@ -25,6 +25,10 @@ const metrics = {
 
 let sink = (line) => console.log(line);
 
+function requestPath(req) {
+  return new URL(req.url || "/", "http://action402.internal").pathname;
+}
+
 function configuredLevelValue() {
   return LEVELS[config.logLevel] ?? LEVELS.info;
 }
@@ -80,6 +84,8 @@ export function requestLogger(req, res, next) {
   res.setHeader("x-request-id", req.requestId);
 
   res.on("finish", () => {
+    const path = requestPath(req);
+
     recordMetric("requests");
     if (res.statusCode >= 400 && res.statusCode < 500) {
       recordMetric("requestClientErrors");
@@ -87,12 +93,12 @@ export function requestLogger(req, res, next) {
     if (res.statusCode >= 500) {
       recordMetric("requestServerErrors");
     }
-    if (config.x402Enabled && req.path === "/api/execute/webhook" && res.statusCode === 402) {
+    if (config.x402Enabled && path === "/api/execute/webhook" && res.statusCode === 402) {
       recordMetric("x402PaymentRequired");
       logEvent("warn", "x402.payment_required", {
         requestId: req.requestId,
         method: req.method,
-        path: req.path,
+        path,
         status: res.statusCode,
         durationMs: Date.now() - startedAt
       });
@@ -104,7 +110,7 @@ export function requestLogger(req, res, next) {
     logEvent(res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "info", "http.request", {
       requestId: req.requestId,
       method: req.method,
-      path: req.path,
+      path,
       status: res.statusCode,
       durationMs: Date.now() - startedAt
     });

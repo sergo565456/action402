@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { app } from "../src/server.js";
-import { applyVercelRewritePath } from "../api/index.js";
+import { applyVercelRewritePath, normalizeVercelRequestUrl } from "../api/index.js";
 import { validateBazaarDiscovery } from "../src/bazaar.js";
 import { buildReceipt } from "../src/receipt.js";
 import { createJob, resetStoreForTests, saveReceipt } from "../src/store.js";
@@ -447,6 +447,30 @@ test("vercel rewrites expose extensionless product pages", () => {
 test("vercel rewrite strips internal catch-all path query", () => {
   const req = {
     url: "/api/index?__action402_path=/api/execute/webhook&path=execute%2Fwebhook&trace=1"
+  };
+
+  applyVercelRewritePath(req);
+
+  assert.equal(req.url, "/api/execute/webhook?trace=1");
+});
+
+test("vercel request normalization converts absolute URLs before express routing", () => {
+  const req = {
+    url: "https://action402.vercel.app/api/proofs/recent?limit=5",
+    _parsedUrl: { stale: true },
+    _parsedOriginalUrl: { stale: true }
+  };
+
+  normalizeVercelRequestUrl(req);
+
+  assert.equal(req.url, "/api/proofs/recent?limit=5");
+  assert.equal(req._parsedUrl, undefined);
+  assert.equal(req._parsedOriginalUrl, undefined);
+});
+
+test("vercel rewrite handles absolute URLs without leaving a legacy parser input", () => {
+  const req = {
+    url: "https://action402.vercel.app/api/index?__action402_path=/api/execute/webhook&path=execute%2Fwebhook&trace=1"
   };
 
   applyVercelRewritePath(req);

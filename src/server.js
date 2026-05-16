@@ -37,6 +37,10 @@ logEvent("info", "service.starting", runtimeSummary());
 const app = express();
 app.set("trust proxy", true);
 
+function queryParam(req, name) {
+  return new URL(req.url || "/", "http://action402.internal").searchParams.get(name);
+}
+
 app.use(requestLogger);
 app.use(express.static("public", { extensions: ["html"] }));
 
@@ -142,7 +146,7 @@ app.get("/proof/:id", (req, res) => {
 
 app.get("/api/proofs/recent", async (req, res, next) => {
   try {
-    const limit = clampPublicLimit(req.query.limit, 10, 50);
+    const limit = clampPublicLimit(queryParam(req, "limit"), 10, 50);
     const jobs = await listRecentJobs(limit * 2);
     const proofs = [];
 
@@ -170,7 +174,7 @@ app.get("/api/proofs/recent", async (req, res, next) => {
 
 app.get("/api/monitoring/executions", async (req, res, next) => {
   try {
-    const windowMs = normalizeWindowMs(req.query.windowMs);
+    const windowMs = normalizeWindowMs(queryParam(req, "windowMs"));
     const stats = await executionStats({ windowMs });
     const jobs = await listRecentJobs(30);
     const recentFailures = [];
