@@ -11,7 +11,14 @@ data/
 
 .vercel
 
-# Local-only paid settlement automation. Do not commit.
+# Local-only paid settlement automation, wallets, and notification plumbing. Do not commit.
 .github/workflows/settlement-canary.yml
+/.github/workflows/*settlement*.yml
+/.github/workflows/*canary*.yml
 docs/settlement-canary.md
+docs/*settlement-canary*.md
 scripts/settlement-canary.js
+scripts/*settlement-canary*.js
+scripts/*local-settlement*.js
+.agentcash/
+wallet*.json

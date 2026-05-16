@@ -147,10 +147,13 @@ npm run readiness -- mainnet
 Deployment path:
 
 ```bash
+npm run privacy:check
 npm run deploy:check -- http://127.0.0.1:4021
 npm run smoke:testnet:unpaid
 npm run db:migrate -- mainnet
 ```
+
+`privacy:check` fails if local paid settlement automation, wallet-adjacent files, `data/`, or settlement workflow files are tracked by Git.
 
 See `docs/deployment.md` for the Vercel deployment flow.
 

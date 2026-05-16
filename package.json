@@ -11,6 +11,7 @@
     "dev:mainnet": "node scripts/start-profile.js mainnet",
     "db:migrate": "node scripts/db-migrate.js",
     "deploy:check": "node scripts/deploy-check.js",
+    "privacy:check": "node scripts/local-only-check.js",
     "readiness": "node scripts/readiness-check.js",
     "start": "node src/server.js",
     "smoke:testnet:unpaid": "node scripts/testnet-unpaid-smoke.js",
