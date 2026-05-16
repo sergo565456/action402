@@ -108,6 +108,8 @@ async function main() {
   const wellKnownAgent = await checkJsonEndpoint("/.well-known/agent.json");
   const capabilities = await checkJsonEndpoint("/api/capabilities");
   const pricing = await checkJsonEndpoint("/api/pricing");
+  const mcpManifest = await checkJsonEndpoint("/api/mcp");
+  const wellKnownMcp = await checkJsonEndpoint("/.well-known/mcp.json");
   const actions = await checkJsonEndpoint("/api/actions");
   const quickstart = await checkJsonEndpoint("/api/quickstart");
   await checkPolicyEndpoint();
@@ -150,6 +152,7 @@ async function main() {
     record("API index is published", apiIndex.service === "Action402");
     record("API index points to paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
     record("API index points to pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
+    record("API index points to MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
   }
 
   if (agentManifest) {
@@ -174,6 +177,7 @@ async function main() {
     record("Cache policy is published", capabilities.cachePolicy?.dynamicCacheControl === "no-store");
     record("x402 payment headers are published", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
     record("Pricing surface is published", capabilities.pricing?.path === "/api/pricing");
+    record("MCP manifest surface is published", capabilities.mcpManifest?.path === "/api/mcp");
   }
 
   if (pricing) {
@@ -182,9 +186,20 @@ async function main() {
     record("Pricing endpoint exposes buyer guardrails", pricing.buyerGuardrails?.some((item) => item.includes("/api/policy/check")));
   }
 
+  if (mcpManifest) {
+    record("MCP manifest is published", mcpManifest.recommendedToolName === "execute_webhook");
+    record("MCP manifest is honest about hosting", mcpManifest.mcpServer?.hostedByAction402 === false);
+    record("MCP manifest exposes paid tool", mcpManifest.tools?.some((tool) => tool.name === "execute_webhook"));
+  }
+
+  if (wellKnownMcp) {
+    record("Well-known MCP manifest is published", wellKnownMcp.recommendedToolName === "execute_webhook");
+  }
+
   if (openapi) {
     record("OpenAPI API index path is published", Boolean(openapi.paths?.["/api"]?.get));
     record("OpenAPI pricing path is published", Boolean(openapi.paths?.["/api/pricing"]?.get));
+    record("OpenAPI MCP manifest path is published", Boolean(openapi.paths?.["/api/mcp"]?.get));
     record("OpenAPI cache policy is published", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("OpenAPI x402 security scheme is published", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(

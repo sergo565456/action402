@@ -2,6 +2,7 @@ import express from "express";
 import { config, assertProductionConfig, runtimeSummary } from "./config.js";
 import { publicApiIndex } from "./apiIndex.js";
 import { publicPricing } from "./pricing.js";
+import { publicMcpManifest } from "./mcpManifest.js";
 import { publicActionCatalog, publicQuickstart } from "./actionCatalog.js";
 import {
   createBrowserHandoff,
@@ -111,6 +112,10 @@ app.get("/api/bazaar", (req, res) => {
 
 app.get(["/api/agent-manifest", "/.well-known/agent.json", "/.well-known/action402.json", "/.well-known/x402.json"], (req, res) => {
   res.json(publicAgentManifest({ baseUrl: config.publicBaseUrl }));
+});
+
+app.get(["/api/mcp", "/.well-known/mcp.json"], (req, res) => {
+  res.json(publicMcpManifest({ baseUrl: config.publicBaseUrl }));
 });
 
 app.get("/api/capabilities", (req, res) => {
@@ -490,6 +495,7 @@ app.all(
     "/api/",
     "/api/bazaar",
     "/api/agent-manifest",
+    "/api/mcp",
     "/api/capabilities",
     "/api/pricing",
     "/api/actions",

@@ -66,6 +66,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.links.pricingApi.endsWith("/api/pricing"), true);
+  assert.equal(body.links.mcpManifest.endsWith("/api/mcp"), true);
+  assert.equal(body.links.wellKnownMcp.endsWith("/.well-known/mcp.json"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.canaryEcho.endsWith("/api/canary/echo"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
@@ -81,6 +83,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.quickstart.path, "/api/quickstart");
   assert.equal(body.pricing.path, "/api/pricing");
   assert.equal(body.pricing.payment.route.endsWith("/api/execute/webhook"), true);
+  assert.equal(body.mcpManifest.path, "/api/mcp");
+  assert.equal(body.mcpManifest.wellKnownPath, "/.well-known/mcp.json");
   assert.equal(body.policyCheck.path, "/api/policy/check");
   assert.equal(body.policyCheck.paid, false);
   assert.equal(body.canary.path, "/api/canary/echo");
@@ -137,8 +141,10 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/actions"].get);
   assert.ok(body.paths["/api/quickstart"].get);
   assert.ok(body.paths["/api/pricing"].get);
+  assert.ok(body.paths["/api/mcp"].get);
   assert.ok(body.paths["/api/agent-manifest"].get);
   assert.ok(body.paths["/.well-known/agent.json"].get);
+  assert.ok(body.paths["/.well-known/mcp.json"].get);
   assert.ok(body.paths["/api/policy/check"].post);
   assert.ok(body.paths["/api/canary/echo"].get);
   assert.ok(body.paths["/api/canary/echo"].post);
@@ -164,6 +170,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.ActionCatalogResponse);
   assert.ok(body.components.schemas.QuickstartResponse);
   assert.ok(body.components.schemas.PricingResponse);
+  assert.ok(body.components.schemas.McpManifestResponse);
   assert.ok(body.components.schemas.PolicyCheckResponse);
   assert.ok(body.components.schemas.CanaryEchoResponse);
   assert.ok(body.components.schemas.ApiIndexResponse);
@@ -187,9 +194,11 @@ test("api index gives agents a compact entry map", async () => {
   assert.equal(body.paid[0].network, "eip155:84532");
   assert.ok(body.recommendedStart.includes("/api/quickstart"));
   assert.ok(body.recommendedStart.includes("/api/pricing"));
+  assert.ok(body.recommendedStart.includes("/api/mcp"));
   assert.ok(body.recommendedStart.includes("/openapi.json"));
   assert.ok(body.free.discovery.includes("/api/capabilities"));
   assert.ok(body.free.discovery.includes("/api/pricing"));
+  assert.ok(body.free.discovery.includes("/api/mcp"));
   assert.ok(body.free.preflight.includes("/api/policy/check"));
   assert.ok(body.free.verification.includes("/api/verify/jobs/{id}"));
   assert.equal(body.browserAccess.credentialsRequired, false);
@@ -199,6 +208,7 @@ test("api index gives agents a compact entry map", async () => {
   assert.equal(body.links.openapi.endsWith("/openapi.json"), true);
   assert.equal(body.links.bazaar.endsWith("/api/bazaar"), true);
   assert.equal(body.links.pricing.endsWith("/api/pricing"), true);
+  assert.equal(body.links.mcpManifest.endsWith("/api/mcp"), true);
 
   const wrongMethod = await request("/api", {
     method: "POST"
@@ -216,6 +226,10 @@ test("cache policy separates stable discovery from runtime state", async () => {
   const pricing = await request("/api/pricing");
   assert.ok(pricing.response.headers.get("cache-control").includes("s-maxage=300"));
   assert.ok(pricing.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
+
+  const mcpManifest = await request("/api/mcp");
+  assert.ok(mcpManifest.response.headers.get("cache-control").includes("s-maxage=300"));
+  assert.ok(mcpManifest.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
 
   const capabilities = await request("/api/capabilities");
   assert.ok(capabilities.response.headers.get("cache-control").includes("s-maxage=300"));
@@ -314,6 +328,34 @@ test("pricing endpoint gives agents machine-readable payment guardrails", async 
   assert.equal(body.links.openapi.endsWith("/openapi.json"), true);
 
   const wrongMethod = await request("/api/pricing", {
+    method: "POST"
+  });
+  assert.equal(wrongMethod.response.status, 405);
+  assert.equal(wrongMethod.response.headers.get("allow"), "GET");
+  assert.equal(wrongMethod.body.error.code, "method_not_allowed");
+});
+
+test("MCP manifest gives wrapper builders honest tool metadata", async () => {
+  const { response, body } = await request("/api/mcp");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.service, "Action402");
+  assert.equal(body.status, "manifest-only");
+  assert.equal(body.recommendedToolName, "execute_webhook");
+  assert.equal(body.mcpServer.hostedByAction402, false);
+  assert.ok(body.discoveryQueries.includes("Action402 MCP manifest"));
+  assert.ok(body.tools.some((tool) => tool.name === "execute_webhook" && tool.route.path === "/api/execute/webhook"));
+  assert.ok(body.tools.some((tool) => tool.name === "check_webhook_policy" && tool.paid === false));
+  assert.ok(body.buyerFlow.some((step) => step.includes("/api/pricing")));
+  assert.ok(body.guardrails.some((step) => step.includes("private keys")));
+  assert.equal(body.links.wellKnown.endsWith("/.well-known/mcp.json"), true);
+
+  const wellKnown = await request("/.well-known/mcp.json");
+  assert.equal(wellKnown.response.status, 200);
+  assert.equal(wellKnown.body.version, body.version);
+
+  const wrongMethod = await request("/api/mcp", {
     method: "POST"
   });
   assert.equal(wrongMethod.response.status, 405);
@@ -490,6 +532,8 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/capabilities"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/pricing"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/mcp"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/.well-known/mcp.json"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/canary/echo"));
   assert.ok(manifest.body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
 
@@ -506,11 +550,17 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(wellKnownX402.response.status, 200);
   assert.equal(wellKnownX402.body.paidActions[0].payment.scheme, "exact");
 
+  const wellKnownMcp = await request("/.well-known/mcp.json");
+  assert.equal(wellKnownMcp.response.status, 200);
+  assert.equal(wellKnownMcp.body.recommendedToolName, "execute_webhook");
+
   const robots = await requestText("/robots.txt");
   assert.equal(robots.response.status, 200);
   assert.equal(robots.body.includes("Allow: /api"), true);
   assert.equal(robots.body.includes("Allow: /api/agent-manifest"), true);
   assert.equal(robots.body.includes("Allow: /api/pricing"), true);
+  assert.equal(robots.body.includes("Allow: /api/mcp"), true);
+  assert.equal(robots.body.includes("Allow: /.well-known/mcp.json"), true);
   assert.equal(robots.body.includes("Sitemap:"), true);
 
   const sitemap = await requestText("/sitemap.xml");
@@ -519,6 +569,8 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(sitemap.body.includes("/api</loc>"), true);
   assert.equal(sitemap.body.includes("/discovery"), true);
   assert.equal(sitemap.body.includes("/api/pricing"), true);
+  assert.equal(sitemap.body.includes("/api/mcp"), true);
+  assert.equal(sitemap.body.includes("/.well-known/mcp.json"), true);
   assert.equal(sitemap.body.includes("/api/agent-manifest"), true);
   assert.equal(sitemap.body.includes("/api/canary/echo"), true);
 });
@@ -618,6 +670,7 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.links.pricingApi.endsWith("/api/pricing"), true);
+  assert.equal(body.links.mcpManifest.endsWith("/api/mcp"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.canaryEcho.endsWith("/api/canary/echo"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
@@ -630,6 +683,7 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.ok(body.actionCatalog.templateCount >= 9);
   assert.equal(body.quickstart.path, "/api/quickstart");
   assert.equal(body.pricing.path, "/api/pricing");
+  assert.equal(body.mcp.manifest, "/api/mcp");
   assert.equal(body.policyCheck.path, "/api/policy/check");
   assert.equal(body.canary.path, "/api/canary/echo");
   assert.equal(body.handoff.path, "/api/handoff/browser");
@@ -662,6 +716,8 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/api/actions"), true);
   assert.equal(body.includes("/api/quickstart"), true);
   assert.equal(body.includes("/api/pricing"), true);
+  assert.equal(body.includes("/api/mcp"), true);
+  assert.equal(body.includes("/.well-known/mcp.json"), true);
   assert.equal(body.includes("/api/policy/check"), true);
   assert.equal(body.includes("/api/canary/echo"), true);
   assert.equal(body.includes("/api/snippets"), true);

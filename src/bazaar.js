@@ -170,6 +170,7 @@ export function publicBazaarMetadata() {
         "pay per API call",
         "Action402 action catalog",
         "Action402 pricing API",
+        "Action402 MCP manifest",
         "agent quickstart x402",
         "Action402 integration snippets",
         "x402 verification snippets",
@@ -198,6 +199,7 @@ export function publicBazaarMetadata() {
         "robots.txt and sitemap.xml advertise agent-facing entry points",
         "Machine-readable action catalog is available",
         "Machine-readable pricing endpoint is available for buyer guardrails",
+        "Machine-readable MCP manifest is available for wrapper/tool builders",
         "Compact quickstart endpoint is available",
         "Copy-paste integration snippets are available",
         "Free preflight policy check is available before payment",
@@ -298,6 +300,8 @@ export function publicBazaarMetadata() {
     },
     mcp: {
       recommendedToolName: "execute_webhook",
+      manifest: "/api/mcp",
+      wellKnownManifest: "/.well-known/mcp.json",
       discoveryHint:
         "Search Bazaar/x402 MCP discovery for Action402 or paid webhook execution, then call the returned tool/resource with the JSON input example.",
       buyerFlow: [
@@ -314,10 +318,12 @@ export function publicBazaarMetadata() {
       wellKnownAgent: `${config.publicBaseUrl}/.well-known/agent.json`,
       wellKnownAction402: `${config.publicBaseUrl}/.well-known/action402.json`,
       wellKnownX402: `${config.publicBaseUrl}/.well-known/x402.json`,
+      wellKnownMcp: `${config.publicBaseUrl}/.well-known/mcp.json`,
       robots: `${config.publicBaseUrl}/robots.txt`,
       sitemap: `${config.publicBaseUrl}/sitemap.xml`,
       pricing: `${config.publicBaseUrl}/pricing`,
       pricingApi: `${config.publicBaseUrl}/api/pricing`,
+      mcpManifest: `${config.publicBaseUrl}/api/mcp`,
       onboarding: `${config.publicBaseUrl}/onboarding`,
       useCases: `${config.publicBaseUrl}/use-cases`,
       actions: `${config.publicBaseUrl}/actions`,

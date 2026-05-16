@@ -16,6 +16,7 @@ import {
 import { publicCorsPolicy } from "./cors.js";
 import { publicCachePolicy } from "./cachePolicy.js";
 import { publicPricing } from "./pricing.js";
+import { publicMcpManifest } from "./mcpManifest.js";
 import { publicDiscoveryPack } from "./discoveryManifest.js";
 import { publicUseCaseTemplates } from "./useCases.js";
 
@@ -330,6 +331,42 @@ const pricingResponseSchema = {
       items: { type: "string" }
     },
     limits: { type: "object" },
+    links: { type: "object" }
+  }
+};
+
+const mcpManifestResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "version", "status", "recommendedToolName", "tools", "buyerFlow", "links"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    version: { type: "string" },
+    generatedAt: { type: "string" },
+    status: { type: "string" },
+    description: { type: "string" },
+    recommendedToolName: { type: "string" },
+    resourceAliases: {
+      type: "array",
+      items: { type: "string" }
+    },
+    discoveryQueries: {
+      type: "array",
+      items: { type: "string" }
+    },
+    mcpServer: { type: "object" },
+    tools: {
+      type: "array",
+      items: { type: "object" }
+    },
+    buyerFlow: {
+      type: "array",
+      items: { type: "string" }
+    },
+    guardrails: {
+      type: "array",
+      items: { type: "string" }
+    },
     links: { type: "object" }
   }
 };
@@ -684,6 +721,7 @@ export function publicCapabilities() {
   const secretStoragePolicy = publicSecretStoragePolicy({ baseUrl: config.publicBaseUrl });
   const discoveryPack = publicDiscoveryPack({ baseUrl: config.publicBaseUrl });
   const pricing = publicPricing({ baseUrl: config.publicBaseUrl });
+  const mcpManifest = publicMcpManifest({ baseUrl: config.publicBaseUrl });
 
   return {
     name: "Action402",
@@ -718,6 +756,14 @@ export function publicCapabilities() {
         "Machine-readable price, payment route, free surfaces, limits, and buyer guardrails for budget-aware agents.",
       payment: pricing.payment,
       paidActions: pricing.paidActions
+    },
+    mcpManifest: {
+      path: "/api/mcp",
+      wellKnownPath: "/.well-known/mcp.json",
+      description:
+        "Machine-readable MCP wrapper manifest with tool candidates, buyer flow, and x402 guardrails.",
+      recommendedToolName: mcpManifest.recommendedToolName,
+      status: mcpManifest.status
     },
     snippets: {
       path: "/api/snippets",
@@ -849,6 +895,7 @@ export function publicCapabilities() {
       callFlow: [
         "Read /api/quickstart, /api/pricing, /api/actions, /api/capabilities, or /openapi.json.",
         "Read /api/agent-manifest or /.well-known/agent.json for the canonical machine-readable discovery pack.",
+        "Read /api/mcp or /.well-known/mcp.json when building a local MCP wrapper.",
         "Optionally POST the same payload to /api/policy/check before paying.",
         "Use /api/canary/echo only as a free non-sensitive target check; it does not create a paid receipt.",
         "Use /api/handoff/browser only when a separate browser-capable agent will execute the browser steps.",
@@ -972,6 +1019,8 @@ export function publicCapabilities() {
       openapi: `${config.publicBaseUrl}/openapi.json`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       pricingApi: `${config.publicBaseUrl}/api/pricing`,
+      mcpManifest: `${config.publicBaseUrl}/api/mcp`,
+      wellKnownMcp: `${config.publicBaseUrl}/.well-known/mcp.json`,
       discovery: `${config.publicBaseUrl}/discovery`,
       agentManifest: `${config.publicBaseUrl}/api/agent-manifest`,
       wellKnownAgent: `${config.publicBaseUrl}/.well-known/agent.json`,
@@ -1052,6 +1101,23 @@ export function openApiSpec() {
               content: {
                 "application/json": {
                   schema: pricingResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/mcp": {
+        get: {
+          summary: "Fetch MCP wrapper manifest",
+          description:
+            "Returns a machine-readable manifest for agents or developers mapping Action402 HTTP/x402 routes into local MCP tools. This is a manifest, not a hosted MCP server.",
+          responses: {
+            "200": {
+              description: "MCP wrapper manifest",
+              content: {
+                "application/json": {
+                  schema: mcpManifestResponseSchema
                 }
               }
             }
@@ -1417,6 +1483,23 @@ export function openApiSpec() {
           }
         }
       },
+      "/.well-known/mcp.json": {
+        get: {
+          summary: "Fetch well-known MCP wrapper manifest",
+          description:
+            "Well-known alias for the Action402 MCP wrapper manifest. This is a manifest, not a hosted MCP server.",
+          responses: {
+            "200": {
+              description: "MCP wrapper manifest",
+              content: {
+                "application/json": {
+                  schema: mcpManifestResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/policy/check": {
         post: {
           summary: "Preflight check a webhook execution request",
@@ -1698,6 +1781,7 @@ export function openApiSpec() {
         ActionCatalogResponse: actionCatalogResponseSchema,
         QuickstartResponse: quickstartResponseSchema,
         PricingResponse: pricingResponseSchema,
+        McpManifestResponse: mcpManifestResponseSchema,
         SnippetsResponse: snippetsResponseSchema,
         PolicyCheckResponse: policyCheckResponseSchema,
         BrowserHandoffRequest: browserHandoffRequestSchema,

@@ -121,7 +121,7 @@ async function checkCorsPreflight() {
 
 async function checkCachePolicy() {
   try {
-    const stablePaths = ["/api", "/api/capabilities", "/api/pricing", "/api/bazaar", "/openapi.json"];
+    const stablePaths = ["/api", "/api/capabilities", "/api/pricing", "/api/mcp", "/api/bazaar", "/openapi.json"];
     for (const path of stablePaths) {
       const { response } = await fetchText(path);
       record(`${path} uses short discovery cache`, hasShortDiscoveryCache(response));
@@ -168,8 +168,10 @@ async function main() {
   const wellKnownAgent = await checkJson("/.well-known/agent.json");
   const wellKnownAction402 = await checkJson("/.well-known/action402.json");
   const wellKnownX402 = await checkJson("/.well-known/x402.json");
+  const wellKnownMcp = await checkJson("/.well-known/mcp.json");
   const capabilities = await checkJson("/api/capabilities");
   const pricing = await checkJson("/api/pricing");
+  const mcpManifest = await checkJson("/api/mcp");
   const actions = await checkJson("/api/actions");
   const quickstart = await checkJson("/api/quickstart");
   const policyCheck = await checkJson("/api/policy/check", {
@@ -262,6 +264,7 @@ async function main() {
     record("api index exposes service", apiIndex.service === "Action402");
     record("api index exposes paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
     record("api index exposes pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
+    record("api index exposes MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
     record("api index exposes free discovery", apiIndex.free?.discovery?.includes("/api/capabilities"));
     record("api index exposes verification", apiIndex.free?.verification?.includes("/api/verify/jobs/{id}"));
   }
@@ -301,6 +304,7 @@ async function main() {
     );
     record("capabilities expose quickstart", capabilities.quickstart?.path === "/api/quickstart");
     record("capabilities expose pricing", capabilities.pricing?.path === "/api/pricing");
+    record("capabilities expose MCP manifest", capabilities.mcpManifest?.path === "/api/mcp");
     record("capabilities expose policy check", capabilities.policyCheck?.path === "/api/policy/check");
     record("capabilities expose canary echo", capabilities.canary?.path === "/api/canary/echo");
     record("capabilities expose snippets", capabilities.snippets?.path === "/api/snippets");
@@ -324,12 +328,15 @@ async function main() {
     record("agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
     record("agent manifest exposes API index", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api"));
     record("agent manifest exposes pricing", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/pricing"));
+    record("agent manifest exposes MCP manifest", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/mcp"));
     record("agent manifest exposes free surfaces", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/capabilities"));
   }
 
   if (openapi) {
     record("openapi exposes API index", Boolean(openapi.paths?.["/api"]?.get));
     record("openapi exposes pricing", Boolean(openapi.paths?.["/api/pricing"]?.get));
+    record("openapi exposes MCP manifest", Boolean(openapi.paths?.["/api/mcp"]?.get));
+    record("openapi exposes well-known MCP manifest", Boolean(openapi.paths?.["/.well-known/mcp.json"]?.get));
     record("openapi exposes cache policy", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("openapi exposes x402 security scheme", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(
@@ -348,6 +355,11 @@ async function main() {
 
   if (wellKnownX402) {
     record("well-known x402 manifest exposes exact payment", wellKnownX402.paidActions?.[0]?.payment?.scheme === "exact");
+  }
+
+  if (wellKnownMcp) {
+    record("well-known MCP manifest loads", wellKnownMcp.recommendedToolName === "execute_webhook");
+    record("well-known MCP manifest is honest", wellKnownMcp.status === "manifest-only");
   }
 
   if (actions) {
@@ -375,6 +387,14 @@ async function main() {
     record("pricing endpoint exposes exact price", pricing.payment?.price?.display === health?.price);
     record("pricing endpoint exposes free surfaces", pricing.freeSurfaces?.discovery?.includes("/api/capabilities"));
     record("pricing endpoint exposes buyer guardrails", pricing.buyerGuardrails?.some((item) => item.includes("/api/policy/check")));
+  }
+
+  if (mcpManifest) {
+    record("MCP manifest exposes recommended tool", mcpManifest.recommendedToolName === "execute_webhook");
+    record("MCP manifest marks hosted server honestly", mcpManifest.mcpServer?.hostedByAction402 === false);
+    record("MCP manifest exposes paid tool", mcpManifest.tools?.some((tool) => tool.name === "execute_webhook" && tool.paid === true));
+    record("MCP manifest exposes pricing guardrail", mcpManifest.buyerFlow?.some((step) => step.includes("/api/pricing")));
+    record("MCP manifest exposes well-known link", mcpManifest.links?.wellKnown?.endsWith("/.well-known/mcp.json"));
   }
 
   if (policyCheck) {
@@ -449,6 +469,7 @@ async function main() {
     record("bazaar metadata has action catalog link", typeof bazaar.links?.actionCatalog === "string");
     record("bazaar metadata has quickstart link", typeof bazaar.links?.quickstart === "string");
     record("bazaar metadata has pricing API link", typeof bazaar.links?.pricingApi === "string");
+    record("bazaar metadata has MCP manifest link", typeof bazaar.links?.mcpManifest === "string");
     record("bazaar metadata has policy check link", typeof bazaar.links?.policyCheck === "string");
     record("bazaar metadata has snippets link", typeof bazaar.links?.snippets === "string");
     record("bazaar metadata has handoff link", typeof bazaar.links?.handoffEndpoint === "string");
