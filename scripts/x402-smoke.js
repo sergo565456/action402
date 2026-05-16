@@ -111,7 +111,7 @@ async function main() {
   const secretPolicy = await checkJsonEndpoint("/api/secrets/policy");
   const snippets = await checkJsonEndpoint("/api/snippets");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
-  await checkJsonEndpoint("/openapi.json");
+  const openapi = await checkJsonEndpoint("/openapi.json");
 
   if (health) {
     record("x402 is enabled", health.x402Enabled === true, `x402Enabled=${health.x402Enabled}`);
@@ -136,6 +136,15 @@ async function main() {
       capabilities.mcp?.recommendedToolName === "execute_webhook"
     );
     record("Browser CORS policy is published", capabilities.browserAccess?.cors?.enabled === true);
+    record("x402 payment headers are published", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
+  }
+
+  if (openapi) {
+    record("OpenAPI x402 security scheme is published", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
+    record(
+      "OpenAPI paid route is marked x402 protected",
+      openapi.paths?.["/api/execute/webhook"]?.post?.security?.some((item) => Array.isArray(item.X402Payment))
+    );
   }
 
   if (actions) {

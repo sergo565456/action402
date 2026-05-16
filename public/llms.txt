@@ -12,6 +12,7 @@ Primary paid action:
 - Request body: JSON with url, method, optional headers, optional body, idempotencyKey, retry, and timeoutMs.
 - Response: job id, status, attempts, receipt id/signature, and links to job and receipt.
 - Payment: x402 exact scheme when x402 is enabled.
+- Payment headers: compatible buyer clients retry with X-PAYMENT or payment-signature; settlement responses may expose X-PAYMENT-RESPONSE or PAYMENT-RESPONSE.
 - Browser access: machine-readable endpoints use non-credentialed CORS with OPTIONS preflight, allow x-payment/payment-signature request headers, and expose payment response headers.
 
 Discovery and contracts:

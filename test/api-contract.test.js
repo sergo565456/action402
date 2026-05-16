@@ -91,6 +91,10 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.ok(body.browserAccess.cors.requestHeaders.includes("x-payment"));
   assert.ok(body.browserAccess.cors.requestHeaders.includes("payment-signature"));
   assert.ok(body.browserAccess.cors.exposedHeaders.includes("x-payment-response"));
+  assert.ok(body.x402.requestPaymentHeaders.includes("X-PAYMENT"));
+  assert.ok(body.x402.requestPaymentHeaders.includes("payment-signature"));
+  assert.ok(body.x402.settlementResponseHeaders.includes("X-PAYMENT-RESPONSE"));
+  assert.equal(body.x402.openApiSecurityScheme, "X402Payment");
   assert.equal(body.actionCatalog.path, "/api/actions");
   assert.equal(body.verification.proofBadge, "/proof/{jobOrReceiptId}");
   assert.equal(body.verification.integrationSnippets, "/api/snippets");
@@ -113,6 +117,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.equal(response.status, 200);
   assert.equal(body.openapi, "3.1.0");
   assert.ok(body.paths["/api/execute/webhook"].post);
+  assert.deepEqual(body.paths["/api/execute/webhook"].post.security, [{ X402Payment: [] }]);
   assert.ok(body.paths["/api/verify/jobs/{id}"].get);
   assert.ok(body.paths["/api/verify/receipts/{id}"].get);
   assert.ok(body.paths["/api/proofs/recent"].get);
@@ -136,6 +141,9 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/sitemap.xml"].get);
   assert.equal(body["x-action402-cors"].enabled, true);
   assert.ok(body["x-action402-cors"].exposedHeaders.includes("payment-response"));
+  assert.equal(body.components.securitySchemes.X402Payment.type, "apiKey");
+  assert.equal(body.components.securitySchemes.X402Payment.in, "header");
+  assert.equal(body.components.securitySchemes.X402Payment.name, "X-PAYMENT");
   assert.ok(body.components.schemas.WebhookRequest);
   assert.ok(body.components.schemas.VerificationReport);
   assert.ok(body.components.schemas.PublicProofSummary);

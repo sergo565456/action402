@@ -685,7 +685,10 @@ export function publicCapabilities() {
       scheme: "exact",
       network: config.x402Network,
       price: config.x402Price,
-      facilitatorUrl: config.facilitatorUrl
+      facilitatorUrl: config.facilitatorUrl,
+      requestPaymentHeaders: ["X-PAYMENT", "payment-signature"],
+      settlementResponseHeaders: ["X-PAYMENT-RESPONSE", "PAYMENT-RESPONSE"],
+      openApiSecurityScheme: "X402Payment"
     },
     browserAccess: {
       cors: publicCorsPolicy(),
@@ -961,6 +964,11 @@ export function openApiSpec() {
           summary: "Execute one paid webhook/API action",
           description:
             "Protected by x402 when X402_ENABLED=true. Executes one outbound HTTPS request and returns a signed receipt.",
+          security: [
+            {
+              X402Payment: []
+            }
+          ],
           requestBody: {
             required: true,
             content: {
@@ -1572,6 +1580,15 @@ export function openApiSpec() {
       }
     },
     components: {
+      securitySchemes: {
+        X402Payment: {
+          type: "apiKey",
+          in: "header",
+          name: "X-PAYMENT",
+          description:
+            "x402 payment payload for paid execution. Make the first request without this header to receive the 402 payment requirements, then retry with X-PAYMENT or payment-signature through a compatible x402 buyer client."
+        }
+      },
       schemas: {
         WebhookRequest: webhookRequestSchema,
         ExecuteWebhookResponse: executeWebhookResponseSchema,

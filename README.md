@@ -29,6 +29,7 @@ Agent entry points:
 ## MVP
 
 - `POST /api/execute/webhook` - paid action endpoint in x402 mode.
+  Compatible x402 buyers retry with `X-PAYMENT` or `payment-signature`; settlement headers are exposed as `X-PAYMENT-RESPONSE` or `PAYMENT-RESPONSE`.
 - `GET /api/jobs/:id` - public job status.
 - `GET /api/receipts/:id` - public receipt verification.
 - `GET /api/verify/jobs/:id` - proof report linking job, receipt, signature, target, method, status, and attempts.

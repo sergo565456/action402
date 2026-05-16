@@ -206,7 +206,7 @@ async function main() {
   const canaryWrongMethod = await checkJsonStatus("/api/canary/echo", 405, {
     method: "PUT"
   });
-  await checkJson("/openapi.json");
+  const openapi = await checkJson("/openapi.json");
   await checkCorsPreflight();
 
   if (health) {
@@ -256,6 +256,7 @@ async function main() {
     record("capabilities expose schedule preview", capabilities.schedules?.previewPath === "/api/schedules/preview");
     record("capabilities expose secret policy", capabilities.secretStorage?.status === "not-supported-in-public-mvp");
     record("capabilities expose browser CORS policy", capabilities.browserAccess?.cors?.enabled === true);
+    record("capabilities expose x402 payment headers", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
     record("capabilities expose action catalog", capabilities.actionCatalog?.path === "/api/actions");
     record("capabilities expose proof badge", capabilities.verification?.proofBadge === "/proof/{jobOrReceiptId}");
     record("capabilities expose MCP guide link", typeof capabilities.links?.mcpGuide === "string");
@@ -269,6 +270,14 @@ async function main() {
     record("agent manifest has schema", agentManifest.schemaVersion === "action402.agent-manifest.v1");
     record("agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
     record("agent manifest exposes free surfaces", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/capabilities"));
+  }
+
+  if (openapi) {
+    record("openapi exposes x402 security scheme", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
+    record(
+      "openapi marks paid route x402 protected",
+      openapi.paths?.["/api/execute/webhook"]?.post?.security?.some((item) => Array.isArray(item.X402Payment))
+    );
   }
 
   if (wellKnownAgent) {
