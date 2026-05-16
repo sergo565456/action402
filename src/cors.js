@@ -1,4 +1,5 @@
 const CORS_PATH_PREFIXES = [
+  "/api",
   "/api/",
   "/.well-known/",
   "/health",

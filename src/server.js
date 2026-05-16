@@ -1,5 +1,6 @@
 import express from "express";
 import { config, assertProductionConfig, runtimeSummary } from "./config.js";
+import { publicApiIndex } from "./apiIndex.js";
 import { publicActionCatalog, publicQuickstart } from "./actionCatalog.js";
 import {
   createBrowserHandoff,
@@ -95,6 +96,10 @@ app.get("/health", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+app.get(["/api", "/api/"], (req, res) => {
+  res.json(publicApiIndex());
 });
 
 app.get("/api/bazaar", (req, res) => {
@@ -474,6 +479,8 @@ app.get("/api/verify/receipts/:id", async (req, res, next) => {
 
 app.all(
   [
+    "/api",
+    "/api/",
     "/api/bazaar",
     "/api/agent-manifest",
     "/api/capabilities",

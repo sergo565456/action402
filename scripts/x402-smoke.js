@@ -77,6 +77,7 @@ async function main() {
   console.log(`Action402 x402 smoke: ${baseUrl}`);
 
   const health = await checkJsonEndpoint("/health");
+  const apiIndex = await checkJsonEndpoint("/api");
   const agentManifest = await checkJsonEndpoint("/api/agent-manifest");
   const wellKnownAgent = await checkJsonEndpoint("/.well-known/agent.json");
   const capabilities = await checkJsonEndpoint("/api/capabilities");
@@ -117,6 +118,11 @@ async function main() {
     record("x402 is enabled", health.x402Enabled === true, `x402Enabled=${health.x402Enabled}`);
   }
 
+  if (apiIndex) {
+    record("API index is published", apiIndex.service === "Action402");
+    record("API index points to paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
+  }
+
   if (agentManifest) {
     record("Agent manifest is published", agentManifest.schemaVersion === "action402.agent-manifest.v1");
     record("Agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
@@ -140,6 +146,7 @@ async function main() {
   }
 
   if (openapi) {
+    record("OpenAPI API index path is published", Boolean(openapi.paths?.["/api"]?.get));
     record("OpenAPI x402 security scheme is published", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(
       "OpenAPI paid route is marked x402 protected",

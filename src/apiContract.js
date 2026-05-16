@@ -530,6 +530,28 @@ const canaryEchoResponseSchema = {
   }
 };
 
+const apiIndexResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "recommendedStart", "paid", "free", "links"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    version: { type: "string" },
+    purpose: { type: "string" },
+    recommendedStart: {
+      type: "array",
+      items: { type: "string" }
+    },
+    paid: {
+      type: "array",
+      items: { type: "object" }
+    },
+    free: { type: "object" },
+    browserAccess: { type: "object" },
+    links: { type: "object" }
+  }
+};
+
 const agentManifestSchema = {
   type: "object",
   required: ["schemaVersion", "name", "canonicalBaseUrl", "paidActions", "freeAgentSurfaces", "links"],
@@ -645,6 +667,10 @@ export function publicCapabilities() {
     discoveryKeywords: DISCOVERY_KEYWORDS,
     agentPrompt: AGENT_PROMPT,
     publicBaseUrl: config.publicBaseUrl,
+    apiIndex: {
+      path: "/api",
+      description: "Compact machine-readable API index for agents that probe the API root first."
+    },
     useCaseTemplates: publicUseCaseTemplates(),
     actionCatalog: {
       path: "/api/actions",
@@ -906,6 +932,7 @@ export function publicCapabilities() {
       }
     },
     links: {
+      apiIndex: `${config.publicBaseUrl}/api`,
       openapi: `${config.publicBaseUrl}/openapi.json`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       discovery: `${config.publicBaseUrl}/discovery`,
@@ -959,6 +986,23 @@ export function openApiSpec() {
     ],
     "x-action402-cors": publicCorsPolicy(),
     paths: {
+      "/api": {
+        get: {
+          summary: "Fetch compact API index",
+          description:
+            "Returns a compact machine-readable map of paid action, free discovery, preflight, verification, trust, and browser-access endpoints for agents that start at the API root.",
+          responses: {
+            "200": {
+              description: "Agent-readable API index",
+              content: {
+                "application/json": {
+                  schema: apiIndexResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/execute/webhook": {
         post: {
           summary: "Execute one paid webhook/API action",
@@ -1606,6 +1650,7 @@ export function openApiSpec() {
         SchedulePreviewResponse: schedulePreviewResponseSchema,
         SecretStoragePolicy: secretStoragePolicySchema,
         CanaryEchoResponse: canaryEchoResponseSchema,
+        ApiIndexResponse: apiIndexResponseSchema,
         AgentManifest: agentManifestSchema,
         TrustResponse: trustResponseSchema,
         Error: errorSchema

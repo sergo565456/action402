@@ -124,6 +124,7 @@ async function main() {
   await checkStatic("/sitemap.xml", "<urlset");
 
   const health = await checkJson("/health");
+  const apiIndex = await checkJson("/api");
   const agentManifest = await checkJson("/api/agent-manifest");
   const wellKnownAgent = await checkJson("/.well-known/agent.json");
   const wellKnownAction402 = await checkJson("/.well-known/action402.json");
@@ -216,8 +217,16 @@ async function main() {
     }
   }
 
+  if (apiIndex) {
+    record("api index exposes service", apiIndex.service === "Action402");
+    record("api index exposes paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
+    record("api index exposes free discovery", apiIndex.free?.discovery?.includes("/api/capabilities"));
+    record("api index exposes verification", apiIndex.free?.verification?.includes("/api/verify/jobs/{id}"));
+  }
+
   if (capabilities) {
     record("capabilities expose execute.webhook", capabilities.actions?.[0]?.id === "execute.webhook");
+    record("capabilities expose api index", capabilities.apiIndex?.path === "/api");
     record("capabilities expose discovery pack", capabilities.discoveryPack?.agentManifest?.endsWith("/api/agent-manifest"));
     record("capabilities expose well-known manifest", capabilities.links?.wellKnownAgent?.endsWith("/.well-known/agent.json"));
     record(
@@ -269,10 +278,12 @@ async function main() {
   if (agentManifest) {
     record("agent manifest has schema", agentManifest.schemaVersion === "action402.agent-manifest.v1");
     record("agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
+    record("agent manifest exposes API index", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api"));
     record("agent manifest exposes free surfaces", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/capabilities"));
   }
 
   if (openapi) {
+    record("openapi exposes API index", Boolean(openapi.paths?.["/api"]?.get));
     record("openapi exposes x402 security scheme", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(
       "openapi marks paid route x402 protected",

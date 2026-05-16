@@ -54,6 +54,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.agentPrompt.includes("Use Action402"), true);
   assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/verify")), true);
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
+  assert.equal(body.apiIndex.path, "/api");
+  assert.equal(body.links.apiIndex.endsWith("/api"), true);
   assert.equal(body.links.llms.endsWith("/llms.txt"), true);
   assert.equal(body.links.discovery.endsWith("/discovery"), true);
   assert.equal(body.links.agentManifest.endsWith("/api/agent-manifest"), true);
@@ -72,6 +74,7 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.trust.endsWith("/trust"), true);
   assert.equal(body.trust.path, "/api/trust");
   assert.equal(body.discoveryPack.status, "active");
+  assert.equal(body.discoveryPack.apiIndex.endsWith("/api"), true);
   assert.equal(body.discoveryPack.agentManifest.endsWith("/api/agent-manifest"), true);
   assert.ok(body.discoveryPack.wellKnown.some((url) => url.endsWith("/.well-known/agent.json")));
   assert.equal(body.quickstart.path, "/api/quickstart");
@@ -116,6 +119,7 @@ test("openapi document exposes execute webhook path", async () => {
 
   assert.equal(response.status, 200);
   assert.equal(body.openapi, "3.1.0");
+  assert.ok(body.paths["/api"].get);
   assert.ok(body.paths["/api/execute/webhook"].post);
   assert.deepEqual(body.paths["/api/execute/webhook"].post.security, [{ X402Payment: [] }]);
   assert.ok(body.paths["/api/verify/jobs/{id}"].get);
@@ -152,6 +156,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.QuickstartResponse);
   assert.ok(body.components.schemas.PolicyCheckResponse);
   assert.ok(body.components.schemas.CanaryEchoResponse);
+  assert.ok(body.components.schemas.ApiIndexResponse);
   assert.ok(body.components.schemas.SnippetsResponse);
   assert.ok(body.components.schemas.BrowserHandoffRequest);
   assert.ok(body.components.schemas.BrowserHandoffResponse);
@@ -160,6 +165,32 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.SecretStoragePolicy);
   assert.ok(body.components.schemas.AgentManifest);
   assert.ok(body.components.schemas.TrustResponse);
+});
+
+test("api index gives agents a compact entry map", async () => {
+  const { response, body } = await request("/api");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.service, "Action402");
+  assert.equal(body.paid[0].path, "/api/execute/webhook");
+  assert.equal(body.paid[0].network, "eip155:84532");
+  assert.ok(body.recommendedStart.includes("/api/quickstart"));
+  assert.ok(body.recommendedStart.includes("/openapi.json"));
+  assert.ok(body.free.discovery.includes("/api/capabilities"));
+  assert.ok(body.free.preflight.includes("/api/policy/check"));
+  assert.ok(body.free.verification.includes("/api/verify/jobs/{id}"));
+  assert.equal(body.browserAccess.credentialsRequired, false);
+  assert.equal(body.browserAccess.cors.enabled, true);
+  assert.equal(body.links.openapi.endsWith("/openapi.json"), true);
+  assert.equal(body.links.bazaar.endsWith("/api/bazaar"), true);
+
+  const wrongMethod = await request("/api", {
+    method: "POST"
+  });
+  assert.equal(wrongMethod.response.status, 405);
+  assert.equal(wrongMethod.response.headers.get("allow"), "GET");
+  assert.equal(wrongMethod.body.error.code, "method_not_allowed");
 });
 
 test("machine-readable endpoints support browser agent CORS preflight", async () => {
@@ -188,6 +219,16 @@ test("machine-readable endpoints support browser agent CORS preflight", async ()
   });
   assert.equal(capabilities.response.status, 200);
   assert.equal(capabilities.response.headers.get("access-control-allow-origin"), "*");
+
+  const apiIndexPreflight = await requestRaw("/api", {
+    method: "OPTIONS",
+    headers: {
+      origin: "https://agent.example",
+      "access-control-request-method": "GET"
+    }
+  });
+  assert.equal(apiIndexPreflight.response.status, 204);
+  assert.equal(apiIndexPreflight.response.headers.get("access-control-allow-origin"), "*");
 });
 
 test("action catalog exposes ready templates and safe future scheduling", async () => {
@@ -353,6 +394,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(manifest.body.name, "Action402");
   assert.ok(manifest.body.protocols.includes("x402"));
   assert.ok(manifest.body.paidActions.some((action) => action.path === "/api/execute/webhook"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/capabilities"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/canary/echo"));
   assert.ok(manifest.body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
@@ -372,12 +414,14 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
 
   const robots = await requestText("/robots.txt");
   assert.equal(robots.response.status, 200);
+  assert.equal(robots.body.includes("Allow: /api"), true);
   assert.equal(robots.body.includes("Allow: /api/agent-manifest"), true);
   assert.equal(robots.body.includes("Sitemap:"), true);
 
   const sitemap = await requestText("/sitemap.xml");
   assert.equal(sitemap.response.status, 200);
   assert.equal(sitemap.body.includes("<urlset"), true);
+  assert.equal(sitemap.body.includes("/api</loc>"), true);
   assert.equal(sitemap.body.includes("/discovery"), true);
   assert.equal(sitemap.body.includes("/api/agent-manifest"), true);
   assert.equal(sitemap.body.includes("/api/canary/echo"), true);
@@ -507,6 +551,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(response.status, 200);
   assert.equal(body.includes("Action402"), true);
   assert.equal(body.includes("paid webhook execution"), true);
+  assert.equal(body.includes("/api - compact machine-readable API index"), true);
   assert.equal(body.includes("/api/capabilities"), true);
   assert.equal(body.includes("/discovery"), true);
   assert.equal(body.includes("/api/agent-manifest"), true);

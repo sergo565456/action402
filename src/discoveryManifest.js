@@ -24,6 +24,7 @@ const PUBLIC_PAGES = [
 ];
 
 const MACHINE_SURFACES = [
+  "/api",
   "/api/agent-manifest",
   "/.well-known/agent.json",
   "/.well-known/action402.json",
@@ -69,6 +70,7 @@ function discoveryLinks(baseUrl) {
   return {
     homepage: absoluteUrl("/", baseUrl),
     discoveryPage: absoluteUrl("/discovery", baseUrl),
+    apiIndex: absoluteUrl("/api", baseUrl),
     apiManifest: absoluteUrl("/api/agent-manifest", baseUrl),
     wellKnownAgent: absoluteUrl("/.well-known/agent.json", baseUrl),
     wellKnownAction402: absoluteUrl("/.well-known/action402.json", baseUrl),
@@ -101,7 +103,8 @@ export function publicDiscoveryPack({ baseUrl = config.publicBaseUrl } = {}) {
     bazaar: links.bazaar,
     robots: links.robots,
     sitemap: links.sitemap,
-    discoveryPage: links.discoveryPage
+    discoveryPage: links.discoveryPage,
+    apiIndex: links.apiIndex
   };
 }
 
@@ -199,6 +202,7 @@ export function robotsTxt({ baseUrl = config.publicBaseUrl } = {}) {
   return [
     "User-agent: *",
     "Allow: /",
+    "Allow: /api",
     "Allow: /llms.txt",
     "Allow: /api/agent-manifest",
     "Allow: /.well-known/agent.json",
@@ -210,6 +214,7 @@ export function robotsTxt({ baseUrl = config.publicBaseUrl } = {}) {
     `Sitemap: ${links.sitemap}`,
     "",
     "# Agent entry points:",
+    `# ${links.apiIndex}`,
     `# ${links.apiManifest}`,
     `# ${links.llms}`,
     `# ${links.bazaar}`,

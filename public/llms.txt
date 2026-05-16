@@ -16,6 +16,7 @@ Primary paid action:
 - Browser access: machine-readable endpoints use non-credentialed CORS with OPTIONS preflight, allow x-payment/payment-signature request headers, and expose payment response headers.
 
 Discovery and contracts:
+- /api - compact machine-readable API index for agents that probe the API root first.
 - /agents - human-readable agent integration guide.
 - /discovery - canonical discovery pack page for agents, crawlers, Bazaar clients, and MCP clients.
 - /pricing - usage and pricing page. Current paid action price: $0.003.
@@ -63,7 +64,7 @@ Verification:
 - GET /proof/{jobOrReceiptId} - public proof badge page for operators and browser-capable agents.
 
 Usage and pricing:
-- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /actions, /snippets, /handoff, /schedules, /secrets, /mcp, /trust, /proofs, /proof/{jobOrReceiptId}, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402.json, /api/quickstart, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
+- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /actions, /snippets, /handoff, /schedules, /secrets, /mcp, /trust, /proofs, /proof/{jobOrReceiptId}, /api, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402.json, /api/quickstart, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
 - Paid: POST /api/execute/webhook.
 - Published price: $0.003 per paid execution request.
 - Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.
@@ -113,18 +114,19 @@ MCP/Bazaar guidance:
 If an MCP client supports x402/Bazaar discovery, search resources for "Action402" or "paid webhook execution", inspect the returned price and route metadata, call the returned resource/tool through the MCP proxy, then verify links.job or links.receipt after completion.
 
 Agent decision shortcut:
-1. Read /api/quickstart for the smallest safe call flow.
-2. Read /api/agent-manifest or /.well-known/agent.json for the canonical service card.
-3. POST the intended payload to /api/policy/check to catch rejected targets before paying.
-4. Use /api/canary/echo only for non-sensitive route/JSON self-tests; it does not create a paid receipt.
-5. Read /api/snippets for copy-paste buyer and proof verification examples.
-6. Read /api/actions to match the task to a template.
-7. Use /api/handoff/browser only if a separate browser-capable agent will execute browser steps.
-8. Use /api/schedules/preview only to validate a future schedule; it will not run.
-9. Read /api/secrets/policy before sending any target authorization headers.
-10. Pay only if the 402 requirement matches expected price, network, and route.
-11. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, or /proof/{jobOrReceiptId}.
-12. Browser-based agents may call the same API surfaces directly; preflight /api/execute/webhook with OPTIONS if the buyer client sends x-payment or payment-signature.
+1. Read /api for a compact map if starting from the API root.
+2. Read /api/quickstart for the smallest safe call flow.
+3. Read /api/agent-manifest or /.well-known/agent.json for the canonical service card.
+4. POST the intended payload to /api/policy/check to catch rejected targets before paying.
+5. Use /api/canary/echo only for non-sensitive route/JSON self-tests; it does not create a paid receipt.
+6. Read /api/snippets for copy-paste buyer and proof verification examples.
+7. Read /api/actions to match the task to a template.
+8. Use /api/handoff/browser only if a separate browser-capable agent will execute browser steps.
+9. Use /api/schedules/preview only to validate a future schedule; it will not run.
+10. Read /api/secrets/policy before sending any target authorization headers.
+11. Pay only if the 402 requirement matches expected price, network, and route.
+12. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, or /proof/{jobOrReceiptId}.
+13. Browser-based agents may call the same API surfaces directly; preflight /api/execute/webhook with OPTIONS if the buyer client sends x-payment or payment-signature.
 
 AgentCash quick start:
 npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"body\":{\"event\":\"agent.llms-test\"},\"idempotencyKey\":\"llms-test-001\",\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json

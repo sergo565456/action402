@@ -30,6 +30,7 @@ Agent entry points:
 
 - `POST /api/execute/webhook` - paid action endpoint in x402 mode.
   Compatible x402 buyers retry with `X-PAYMENT` or `payment-signature`; settlement headers are exposed as `X-PAYMENT-RESPONSE` or `PAYMENT-RESPONSE`.
+- `GET /api` - compact machine-readable API index for agents that probe the API root first.
 - `GET /api/jobs/:id` - public job status.
 - `GET /api/receipts/:id` - public receipt verification.
 - `GET /api/verify/jobs/:id` - proof report linking job, receipt, signature, target, method, status, and attempts.
@@ -193,6 +194,7 @@ The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi
 
 Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 
+- `GET /api` - compact root API map with paid, free, discovery, preflight, verification, and trust endpoints.
 - `GET /llms.txt` - concise plain-text service guide.
 - `GET /api/agent-manifest` - canonical machine-readable service card for agents, crawlers, and directories.
 - `GET /.well-known/agent.json` - well-known alias for the same manifest.
