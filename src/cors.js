@@ -21,6 +21,8 @@ const CORS_ALLOW_HEADERS = [
 ];
 const CORS_EXPOSE_HEADERS = [
   "x-request-id",
+  "link",
+  "x-action402-agent-entry",
   "x-payment-response",
   "payment-response",
   "payment-required",

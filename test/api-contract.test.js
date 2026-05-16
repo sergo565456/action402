@@ -100,8 +100,12 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.browserAccess.cors.allowCredentials, false);
   assert.ok(body.browserAccess.cors.requestHeaders.includes("x-payment"));
   assert.ok(body.browserAccess.cors.requestHeaders.includes("payment-signature"));
+  assert.ok(body.browserAccess.cors.exposedHeaders.includes("link"));
+  assert.ok(body.browserAccess.cors.exposedHeaders.includes("x-action402-agent-entry"));
   assert.ok(body.browserAccess.cors.exposedHeaders.includes("x-payment-response"));
   assert.ok(body.browserAccess.cors.exposedHeaders.includes("x-action402-cache-policy"));
+  assert.equal(body.browserAccess.discoveryHeaders.agentEntryHeader, "X-Action402-Agent-Entry");
+  assert.ok(body.browserAccess.discoveryHeaders.links.some((link) => link.path === "/api/mcp"));
   assert.ok(body.cachePolicy.stableDiscoveryCacheControl.includes("s-maxage=300"));
   assert.equal(body.cachePolicy.dynamicCacheControl, "no-store");
   assert.equal(body.cachePolicy.responseHeader, "X-Action402-Cache-Policy");
@@ -160,6 +164,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.equal(body["x-action402-cors"].enabled, true);
   assert.ok(body["x-action402-cors"].exposedHeaders.includes("payment-response"));
   assert.ok(body["x-action402-cache"].stableDiscoveryCacheControl.includes("s-maxage=300"));
+  assert.ok(body["x-action402-discovery-headers"].links.some((link) => link.path === "/openapi.json"));
   assert.equal(body.components.securitySchemes.X402Payment.type, "apiKey");
   assert.equal(body.components.securitySchemes.X402Payment.in, "header");
   assert.equal(body.components.securitySchemes.X402Payment.name, "X-PAYMENT");
@@ -205,6 +210,8 @@ test("api index gives agents a compact entry map", async () => {
   assert.equal(body.browserAccess.cors.enabled, true);
   assert.ok(body.cachePolicy.stableDiscoveryPaths.includes("/api"));
   assert.ok(body.cachePolicy.noStorePaths.includes("/health"));
+  assert.equal(body.discoveryHeaders.agentEntryHeader, "X-Action402-Agent-Entry");
+  assert.ok(body.discoveryHeaders.links.some((link) => link.path === "/api/pricing"));
   assert.equal(body.links.openapi.endsWith("/openapi.json"), true);
   assert.equal(body.links.bazaar.endsWith("/api/bazaar"), true);
   assert.equal(body.links.pricing.endsWith("/api/pricing"), true);
@@ -222,14 +229,19 @@ test("cache policy separates stable discovery from runtime state", async () => {
   const apiIndex = await request("/api");
   assert.ok(apiIndex.response.headers.get("cache-control").includes("s-maxage=300"));
   assert.ok(apiIndex.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
+  assert.equal(apiIndex.response.headers.get("x-action402-agent-entry"), "/api");
+  assert.ok(apiIndex.response.headers.get("link").includes("/api/mcp"));
+  assert.ok(apiIndex.response.headers.get("link").includes("/openapi.json"));
 
   const pricing = await request("/api/pricing");
   assert.ok(pricing.response.headers.get("cache-control").includes("s-maxage=300"));
   assert.ok(pricing.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
+  assert.equal(pricing.response.headers.get("x-action402-agent-entry"), "/api");
 
   const mcpManifest = await request("/api/mcp");
   assert.ok(mcpManifest.response.headers.get("cache-control").includes("s-maxage=300"));
   assert.ok(mcpManifest.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
+  assert.equal(mcpManifest.response.headers.get("x-action402-agent-entry"), "/api");
 
   const capabilities = await request("/api/capabilities");
   assert.ok(capabilities.response.headers.get("cache-control").includes("s-maxage=300"));
@@ -289,6 +301,8 @@ test("machine-readable endpoints support browser agent CORS preflight", async ()
   assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("x-payment-response"));
   assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("payment-response"));
   assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("x-action402-cache-policy"));
+  assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("link"));
+  assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("x-action402-agent-entry"));
 
   const capabilities = await request("/api/capabilities", {
     headers: {

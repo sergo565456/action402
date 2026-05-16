@@ -15,6 +15,7 @@ Primary paid action:
 - Payment headers: compatible buyer clients retry with X-PAYMENT or payment-signature; settlement responses may expose X-PAYMENT-RESPONSE or PAYMENT-RESPONSE.
 - Browser access: machine-readable endpoints use non-credentialed CORS with OPTIONS preflight, allow x-payment/payment-signature request headers, and expose payment response headers.
 - Cache policy: stable discovery contracts use short public cache; runtime health, paid execution, proof, verification, and monitoring data use no-store. Read X-Action402-Cache-Policy for the full intended policy when a host normalizes Cache-Control.
+- Discovery headers: agent-facing pages and machine-readable discovery endpoints send X-Action402-Agent-Entry: /api and a Link header for /api, /api/agent-manifest, /openapi.json, /llms.txt, /api/pricing, /api/mcp, and /api/bazaar.
 
 Discovery and contracts:
 - /api - compact machine-readable API index for agents that probe the API root first.

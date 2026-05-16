@@ -87,10 +87,23 @@ function hasNoStoreCache(headers) {
   return headers.get("cache-control") === "no-store" && headers.get("x-action402-cache-policy") === "no-store";
 }
 
+function hasDiscoveryHeaders(headers) {
+  const link = headers.get("link") || "";
+  return (
+    headers.get("x-action402-agent-entry") === "/api" &&
+    link.includes("/api/agent-manifest") &&
+    link.includes("/openapi.json") &&
+    link.includes("/api/pricing") &&
+    link.includes("/api/mcp") &&
+    link.includes("/api/bazaar")
+  );
+}
+
 async function checkCachePolicy() {
   try {
     const stable = await fetchJson("/api");
     record("API index is short-cacheable", hasShortDiscoveryCache(stable.response.headers));
+    record("API index exposes discovery headers", hasDiscoveryHeaders(stable.response.headers));
 
     const runtime = await fetchJson("/health");
     record("Runtime health is no-store", hasNoStoreCache(runtime.response.headers));
@@ -174,6 +187,7 @@ async function main() {
       capabilities.mcp?.recommendedToolName === "execute_webhook"
     );
     record("Browser CORS policy is published", capabilities.browserAccess?.cors?.enabled === true);
+    record("Discovery header policy is published", capabilities.browserAccess?.discoveryHeaders?.enabled === true);
     record("Cache policy is published", capabilities.cachePolicy?.dynamicCacheControl === "no-store");
     record("x402 payment headers are published", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
     record("Pricing surface is published", capabilities.pricing?.path === "/api/pricing");
@@ -201,6 +215,7 @@ async function main() {
     record("OpenAPI pricing path is published", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("OpenAPI MCP manifest path is published", Boolean(openapi.paths?.["/api/mcp"]?.get));
     record("OpenAPI cache policy is published", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
+    record("OpenAPI discovery header policy is published", openapi["x-action402-discovery-headers"]?.enabled === true);
     record("OpenAPI x402 security scheme is published", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(
       "OpenAPI paid route is marked x402 protected",
@@ -262,10 +277,12 @@ async function main() {
       "browser agent preflight exposes cache policy",
       headerIncludes(response.headers, "access-control-expose-headers", "x-action402-cache-policy")
     );
+    record("browser agent preflight exposes Link", headerIncludes(response.headers, "access-control-expose-headers", "link"));
   } catch (error) {
     record("browser agent preflight returns 204", false, error.message);
     record("browser agent preflight allows x-payment", false, error.message);
     record("browser agent preflight exposes cache policy", false, error.message);
+    record("browser agent preflight exposes Link", false, error.message);
   }
 
   try {

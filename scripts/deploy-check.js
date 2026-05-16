@@ -35,6 +35,18 @@ function hasNoStoreCache(response) {
   );
 }
 
+function hasDiscoveryHeaders(response) {
+  const link = response?.headers.get("link") || "";
+  return (
+    response?.headers.get("x-action402-agent-entry") === "/api" &&
+    link.includes("/api/agent-manifest") &&
+    link.includes("/openapi.json") &&
+    link.includes("/api/pricing") &&
+    link.includes("/api/mcp") &&
+    link.includes("/api/bazaar")
+  );
+}
+
 async function fetchText(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, options);
   const text = await response.text();
@@ -114,6 +126,11 @@ async function checkCorsPreflight() {
       "CORS exposes cache policy header",
       headerIncludes(response, "access-control-expose-headers", "x-action402-cache-policy")
     );
+    record("CORS exposes discovery Link header", headerIncludes(response, "access-control-expose-headers", "link"));
+    record(
+      "CORS exposes agent entry header",
+      headerIncludes(response, "access-control-expose-headers", "x-action402-agent-entry")
+    );
   } catch (error) {
     record("execute route supports CORS preflight", false, error.message);
   }
@@ -125,6 +142,7 @@ async function checkCachePolicy() {
     for (const path of stablePaths) {
       const { response } = await fetchText(path);
       record(`${path} uses short discovery cache`, hasShortDiscoveryCache(response));
+      record(`${path} exposes discovery headers`, hasDiscoveryHeaders(response));
     }
 
     const noStorePaths = ["/health", "/api/proofs/recent", "/api/monitoring/executions"];
@@ -312,6 +330,7 @@ async function main() {
     record("capabilities expose schedule preview", capabilities.schedules?.previewPath === "/api/schedules/preview");
     record("capabilities expose secret policy", capabilities.secretStorage?.status === "not-supported-in-public-mvp");
     record("capabilities expose browser CORS policy", capabilities.browserAccess?.cors?.enabled === true);
+    record("capabilities expose discovery header policy", capabilities.browserAccess?.discoveryHeaders?.enabled === true);
     record("capabilities expose cache policy", capabilities.cachePolicy?.dynamicCacheControl === "no-store");
     record("capabilities expose x402 payment headers", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
     record("capabilities expose action catalog", capabilities.actionCatalog?.path === "/api/actions");
@@ -338,6 +357,7 @@ async function main() {
     record("openapi exposes MCP manifest", Boolean(openapi.paths?.["/api/mcp"]?.get));
     record("openapi exposes well-known MCP manifest", Boolean(openapi.paths?.["/.well-known/mcp.json"]?.get));
     record("openapi exposes cache policy", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
+    record("openapi exposes discovery header policy", openapi["x-action402-discovery-headers"]?.enabled === true);
     record("openapi exposes x402 security scheme", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(
       "openapi marks paid route x402 protected",

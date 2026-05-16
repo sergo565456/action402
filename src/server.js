@@ -35,6 +35,7 @@ import { logEvent, observabilitySummary, recordMetric, requestLogger } from "./o
 import { targetQuotaStats } from "./targetQuota.js";
 import { corsMiddleware } from "./cors.js";
 import { cacheControlMiddleware } from "./cachePolicy.js";
+import { discoveryHeaderMiddleware } from "./discoveryHeaders.js";
 
 assertProductionConfig();
 await initStore();
@@ -76,6 +77,7 @@ function methodNotAllowed(allowedMethods) {
 app.use(requestLogger);
 app.use(corsMiddleware);
 app.use(cacheControlMiddleware);
+app.use(discoveryHeaderMiddleware);
 app.use(express.static("public", { extensions: ["html"] }));
 
 app.get("/health", async (req, res, next) => {

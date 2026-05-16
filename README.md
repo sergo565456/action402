@@ -198,6 +198,8 @@ The smoke script checks `/health`, `/api/capabilities`, `/api/pricing`, `/api/mc
 
 Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/actions`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
 
+Agent-facing pages and machine-readable discovery endpoints also publish HTTP discovery headers: `X-Action402-Agent-Entry: /api` and a `Link` header pointing to the API index, agent manifest, OpenAPI, `llms.txt`, pricing, MCP manifest, and Bazaar metadata.
+
 ## Agent discovery
 
 Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:

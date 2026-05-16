@@ -17,6 +17,7 @@ import { publicCorsPolicy } from "./cors.js";
 import { publicCachePolicy } from "./cachePolicy.js";
 import { publicPricing } from "./pricing.js";
 import { publicMcpManifest } from "./mcpManifest.js";
+import { publicDiscoveryHeaderPolicy } from "./discoveryHeaders.js";
 import { publicDiscoveryPack } from "./discoveryManifest.js";
 import { publicUseCaseTemplates } from "./useCases.js";
 
@@ -799,6 +800,7 @@ export function publicCapabilities() {
     },
     browserAccess: {
       cors: publicCorsPolicy(),
+      discoveryHeaders: publicDiscoveryHeaderPolicy(),
       description:
         "Machine-readable endpoints support non-credentialed CORS and OPTIONS preflight so browser-based agents can inspect contracts, 402 payment requirements, and payment response headers."
     },
@@ -1072,6 +1074,7 @@ export function openApiSpec() {
     ],
     "x-action402-cors": publicCorsPolicy(),
     "x-action402-cache": publicCachePolicy(),
+    "x-action402-discovery-headers": publicDiscoveryHeaderPolicy(),
     paths: {
       "/api": {
         get: {
