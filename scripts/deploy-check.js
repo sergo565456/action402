@@ -286,6 +286,8 @@ async function main() {
     record("api index exposes MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
     record("api index exposes free discovery", apiIndex.free?.discovery?.includes("/api/capabilities"));
     record("api index exposes verification", apiIndex.free?.verification?.includes("/api/verify/jobs/{id}"));
+    record("api index exposes status page", apiIndex.free?.trustAndMonitoring?.includes("/status"));
+    record("api index exposes health endpoint", apiIndex.free?.trustAndMonitoring?.includes("/health"));
   }
 
   if (capabilities) {
@@ -417,6 +419,7 @@ async function main() {
     record("pricing endpoint exposes paid route", pricing.payment?.route?.endsWith("/api/execute/webhook"));
     record("pricing endpoint exposes exact price", pricing.payment?.price?.display === health?.price);
     record("pricing endpoint exposes free surfaces", pricing.freeSurfaces?.discovery?.includes("/api/capabilities"));
+    record("pricing endpoint exposes status surface", pricing.freeSurfaces?.trustAndMonitoring?.includes("/status"));
     record("pricing endpoint exposes buyer guardrails", pricing.buyerGuardrails?.some((item) => item.includes("/api/policy/check")));
   }
 

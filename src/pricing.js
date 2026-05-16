@@ -84,7 +84,7 @@ export function publicPricing({ baseUrl = config.publicBaseUrl } = {}) {
         "/api/proofs/recent",
         "/proof/{jobOrReceiptId}"
       ],
-      trustAndMonitoring: ["/api/trust", "/api/monitoring/executions"]
+      trustAndMonitoring: ["/status", "/health", "/api/trust", "/api/monitoring/executions"]
     },
     buyerGuardrails: [
       "Read /api/pricing and reject unexpected price, network, route, or payTo before paying.",
@@ -118,6 +118,8 @@ export function publicPricing({ baseUrl = config.publicBaseUrl } = {}) {
       capabilities: absoluteUrl("/api/capabilities", baseUrl),
       bazaar: absoluteUrl("/api/bazaar", baseUrl),
       snippets: absoluteUrl("/api/snippets", baseUrl),
+      status: absoluteUrl("/status", baseUrl),
+      health: absoluteUrl("/health", baseUrl),
       trust: absoluteUrl("/api/trust", baseUrl),
       openapi: absoluteUrl("/openapi.json", baseUrl)
     }

@@ -221,6 +221,8 @@ test("api index gives agents a compact entry map", async () => {
   assert.ok(body.free.discovery.includes("/api/mcp"));
   assert.ok(body.free.preflight.includes("/api/policy/check"));
   assert.ok(body.free.verification.includes("/api/verify/jobs/{id}"));
+  assert.ok(body.free.trustAndMonitoring.includes("/status"));
+  assert.ok(body.free.trustAndMonitoring.includes("/health"));
   assert.equal(body.browserAccess.credentialsRequired, false);
   assert.equal(body.browserAccess.cors.enabled, true);
   assert.ok(body.cachePolicy.stableDiscoveryPaths.includes("/api"));
@@ -231,6 +233,8 @@ test("api index gives agents a compact entry map", async () => {
   assert.equal(body.links.bazaar.endsWith("/api/bazaar"), true);
   assert.equal(body.links.pricing.endsWith("/api/pricing"), true);
   assert.equal(body.links.mcpManifest.endsWith("/api/mcp"), true);
+  assert.equal(body.links.status.endsWith("/status"), true);
+  assert.equal(body.links.health.endsWith("/health"), true);
 
   const wrongMethod = await request("/api", {
     method: "POST"
@@ -352,8 +356,12 @@ test("pricing endpoint gives agents machine-readable payment guardrails", async 
   assert.equal(body.paidActions[0].method, "POST");
   assert.ok(body.freeSurfaces.discovery.includes("/api/pricing"));
   assert.ok(body.freeSurfaces.preflight.includes("/api/policy/check"));
+  assert.ok(body.freeSurfaces.trustAndMonitoring.includes("/status"));
+  assert.ok(body.freeSurfaces.trustAndMonitoring.includes("/health"));
   assert.ok(body.buyerGuardrails.some((item) => item.includes("max spend cap")));
   assert.equal(body.links.humanPricing.endsWith("/pricing"), true);
+  assert.equal(body.links.status.endsWith("/status"), true);
+  assert.equal(body.links.health.endsWith("/health"), true);
   assert.equal(body.links.openapi.endsWith("/openapi.json"), true);
 
   const wrongMethod = await request("/api/pricing", {

@@ -69,7 +69,7 @@ export function publicApiIndex() {
         "/api/schedules/preview",
         "/api/secrets/policy"
       ],
-      trustAndMonitoring: ["/api/trust", "/api/monitoring/executions"]
+      trustAndMonitoring: ["/status", "/health", "/api/trust", "/api/monitoring/executions"]
     },
     browserAccess: {
       cors: publicCorsPolicy(),
@@ -94,6 +94,8 @@ export function publicApiIndex() {
       policyCheck: absoluteUrl("/api/policy/check"),
       canaryEcho: absoluteUrl("/api/canary/echo"),
       snippets: absoluteUrl("/api/snippets"),
+      status: absoluteUrl("/status"),
+      health: absoluteUrl("/health"),
       trust: absoluteUrl("/api/trust"),
       monitoring: absoluteUrl("/api/monitoring/executions")
     }

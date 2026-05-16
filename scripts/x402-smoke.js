@@ -166,6 +166,7 @@ async function main() {
     record("API index points to paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
     record("API index points to pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
     record("API index points to MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
+    record("API index points to status", apiIndex.free?.trustAndMonitoring?.includes("/status"));
   }
 
   if (agentManifest) {
@@ -199,6 +200,7 @@ async function main() {
   if (pricing) {
     record("Pricing endpoint is published", pricing.payment?.route?.endsWith("/api/execute/webhook"));
     record("Pricing endpoint matches health price", pricing.payment?.price?.display === health?.price);
+    record("Pricing endpoint exposes status surface", pricing.freeSurfaces?.trustAndMonitoring?.includes("/status"));
     record("Pricing endpoint exposes buyer guardrails", pricing.buyerGuardrails?.some((item) => item.includes("/api/policy/check")));
   }
 
