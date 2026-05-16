@@ -24,6 +24,7 @@ const CORS_EXPOSE_HEADERS = [
   "x-payment-response",
   "payment-response",
   "payment-required",
+  "x-action402-cache-policy",
   "www-authenticate",
   "allow"
 ];

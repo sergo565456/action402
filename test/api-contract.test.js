@@ -94,8 +94,10 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.ok(body.browserAccess.cors.requestHeaders.includes("x-payment"));
   assert.ok(body.browserAccess.cors.requestHeaders.includes("payment-signature"));
   assert.ok(body.browserAccess.cors.exposedHeaders.includes("x-payment-response"));
+  assert.ok(body.browserAccess.cors.exposedHeaders.includes("x-action402-cache-policy"));
   assert.ok(body.cachePolicy.stableDiscoveryCacheControl.includes("s-maxage=300"));
   assert.equal(body.cachePolicy.dynamicCacheControl, "no-store");
+  assert.equal(body.cachePolicy.responseHeader, "X-Action402-Cache-Policy");
   assert.ok(body.x402.requestPaymentHeaders.includes("X-PAYMENT"));
   assert.ok(body.x402.requestPaymentHeaders.includes("payment-signature"));
   assert.ok(body.x402.settlementResponseHeaders.includes("X-PAYMENT-RESPONSE"));
@@ -201,21 +203,27 @@ test("api index gives agents a compact entry map", async () => {
 test("cache policy separates stable discovery from runtime state", async () => {
   const apiIndex = await request("/api");
   assert.ok(apiIndex.response.headers.get("cache-control").includes("s-maxage=300"));
+  assert.ok(apiIndex.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
 
   const capabilities = await request("/api/capabilities");
   assert.ok(capabilities.response.headers.get("cache-control").includes("s-maxage=300"));
+  assert.ok(capabilities.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
 
   const openapi = await request("/openapi.json");
   assert.ok(openapi.response.headers.get("cache-control").includes("s-maxage=300"));
+  assert.ok(openapi.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
 
   const llms = await requestText("/llms.txt");
   assert.ok(llms.response.headers.get("cache-control").includes("s-maxage=300"));
+  assert.ok(llms.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
 
   const health = await request("/health");
   assert.equal(health.response.headers.get("cache-control"), "no-store");
+  assert.equal(health.response.headers.get("x-action402-cache-policy"), "no-store");
 
   const proofs = await request("/api/proofs/recent");
   assert.equal(proofs.response.headers.get("cache-control"), "no-store");
+  assert.equal(proofs.response.headers.get("x-action402-cache-policy"), "no-store");
 
   const policy = await request("/api/policy/check", {
     method: "POST",
@@ -228,10 +236,12 @@ test("cache policy separates stable discovery from runtime state", async () => {
     })
   });
   assert.equal(policy.response.headers.get("cache-control"), "no-store");
+  assert.equal(policy.response.headers.get("x-action402-cache-policy"), "no-store");
 
   const unknown = await request("/api/cache-policy-missing-route");
   assert.equal(unknown.response.status, 404);
   assert.equal(unknown.response.headers.get("cache-control"), "no-store");
+  assert.equal(unknown.response.headers.get("x-action402-cache-policy"), "no-store");
 });
 
 test("machine-readable endpoints support browser agent CORS preflight", async () => {
@@ -252,6 +262,7 @@ test("machine-readable endpoints support browser agent CORS preflight", async ()
   assert.ok(preflight.response.headers.get("access-control-allow-headers").includes("payment-signature"));
   assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("x-payment-response"));
   assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("payment-response"));
+  assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("x-action402-cache-policy"));
 
   const capabilities = await request("/api/capabilities", {
     headers: {

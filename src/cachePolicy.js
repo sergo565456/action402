@@ -1,5 +1,6 @@
 const STABLE_DISCOVERY_CACHE_CONTROL = "public, max-age=60, s-maxage=300, stale-while-revalidate=600";
 const NO_STORE_CACHE_CONTROL = "no-store";
+const CACHE_POLICY_HEADER = "X-Action402-Cache-Policy";
 
 const STABLE_DISCOVERY_PATHS = [
   "/api",
@@ -59,11 +60,12 @@ export function publicCachePolicy() {
   return {
     stableDiscoveryCacheControl: STABLE_DISCOVERY_CACHE_CONTROL,
     dynamicCacheControl: NO_STORE_CACHE_CONTROL,
+    responseHeader: CACHE_POLICY_HEADER,
     stableDiscoveryPaths: STABLE_DISCOVERY_PATHS,
     noStorePaths: NO_STORE_EXACT_PATHS,
     noStorePathPrefixes: NO_STORE_PREFIXES,
     notes:
-      "Stable discovery contracts are short-cacheable for crawlers and agent clients. Runtime health, execution, verification, monitoring, and proof data are no-store."
+      "Stable discovery contracts are short-cacheable for crawlers and agent clients. Runtime health, execution, verification, monitoring, and proof data are no-store. Some CDNs consume s-maxage internally, so the full intended policy is also exposed through X-Action402-Cache-Policy."
   };
 }
 
@@ -71,6 +73,7 @@ export function cacheControlMiddleware(req, res, next) {
   const cacheControl = cacheControlFor(requestPath(req), req.method);
   if (cacheControl) {
     res.set("Cache-Control", cacheControl);
+    res.set(CACHE_POLICY_HEADER, cacheControl);
   }
   next();
 }

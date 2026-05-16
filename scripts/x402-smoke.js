@@ -73,13 +73,27 @@ function headerIncludes(headers, name, expectedValue) {
     .includes(expectedValue.toLowerCase());
 }
 
+function hasShortDiscoveryCache(headers) {
+  const cacheControl = headers.get("cache-control") || "";
+  const policyHeader = headers.get("x-action402-cache-policy") || "";
+  const clientCacheIsPublic = headerIncludes(headers, "cache-control", "public");
+  const clientCacheIsShort = headerIncludes(headers, "cache-control", "max-age=60");
+  const fullPolicyIsVisible =
+    cacheControl.toLowerCase().includes("s-maxage=300") || policyHeader.toLowerCase().includes("s-maxage=300");
+  return clientCacheIsPublic && clientCacheIsShort && fullPolicyIsVisible;
+}
+
+function hasNoStoreCache(headers) {
+  return headers.get("cache-control") === "no-store" && headers.get("x-action402-cache-policy") === "no-store";
+}
+
 async function checkCachePolicy() {
   try {
     const stable = await fetchJson("/api");
-    record("API index is short-cacheable", headerIncludes(stable.response.headers, "cache-control", "s-maxage=300"));
+    record("API index is short-cacheable", hasShortDiscoveryCache(stable.response.headers));
 
     const runtime = await fetchJson("/health");
-    record("Runtime health is no-store", runtime.response.headers.get("cache-control") === "no-store");
+    record("Runtime health is no-store", hasNoStoreCache(runtime.response.headers));
   } catch (error) {
     record("Cache policy is checkable", false, error.message);
   }
@@ -219,9 +233,14 @@ async function main() {
     });
     record("browser agent preflight returns 204", response.status === 204, `status=${response.status}`);
     record("browser agent preflight allows x-payment", headerIncludes(response.headers, "access-control-allow-headers", "x-payment"));
+    record(
+      "browser agent preflight exposes cache policy",
+      headerIncludes(response.headers, "access-control-expose-headers", "x-action402-cache-policy")
+    );
   } catch (error) {
     record("browser agent preflight returns 204", false, error.message);
     record("browser agent preflight allows x-payment", false, error.message);
+    record("browser agent preflight exposes cache policy", false, error.message);
   }
 
   try {

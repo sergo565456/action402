@@ -18,6 +18,23 @@ function headerIncludes(response, name, expectedValue) {
     .includes(expectedValue.toLowerCase());
 }
 
+function hasShortDiscoveryCache(response) {
+  const cacheControl = response?.headers.get("cache-control") || "";
+  const policyHeader = response?.headers.get("x-action402-cache-policy") || "";
+  const clientCacheIsPublic = headerIncludes(response, "cache-control", "public");
+  const clientCacheIsShort = headerIncludes(response, "cache-control", "max-age=60");
+  const fullPolicyIsVisible =
+    cacheControl.toLowerCase().includes("s-maxage=300") || policyHeader.toLowerCase().includes("s-maxage=300");
+  return clientCacheIsPublic && clientCacheIsShort && fullPolicyIsVisible;
+}
+
+function hasNoStoreCache(response) {
+  return (
+    response?.headers.get("cache-control") === "no-store" &&
+    response?.headers.get("x-action402-cache-policy") === "no-store"
+  );
+}
+
 async function fetchText(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, options);
   const text = await response.text();
@@ -93,6 +110,10 @@ async function checkCorsPreflight() {
       "CORS exposes x402 settlement header",
       headerIncludes(response, "access-control-expose-headers", "x-payment-response")
     );
+    record(
+      "CORS exposes cache policy header",
+      headerIncludes(response, "access-control-expose-headers", "x-action402-cache-policy")
+    );
   } catch (error) {
     record("execute route supports CORS preflight", false, error.message);
   }
@@ -103,13 +124,13 @@ async function checkCachePolicy() {
     const stablePaths = ["/api", "/api/capabilities", "/api/bazaar", "/openapi.json"];
     for (const path of stablePaths) {
       const { response } = await fetchText(path);
-      record(`${path} uses short discovery cache`, headerIncludes(response, "cache-control", "s-maxage=300"));
+      record(`${path} uses short discovery cache`, hasShortDiscoveryCache(response));
     }
 
     const noStorePaths = ["/health", "/api/proofs/recent", "/api/monitoring/executions"];
     for (const path of noStorePaths) {
       const { response } = await fetchText(path);
-      record(`${path} uses no-store cache`, response.headers.get("cache-control") === "no-store");
+      record(`${path} uses no-store cache`, hasNoStoreCache(response));
     }
   } catch (error) {
     record("cache policy is published", false, error.message);
