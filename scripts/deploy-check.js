@@ -166,6 +166,10 @@ async function main() {
   const monitoring = await checkJson("/api/monitoring/executions");
   const trust = await checkJson("/api/trust");
   const apiNotFound = await checkJsonStatus("/api/deploy-check-missing-route", 404);
+  const executeWrongMethod = await checkJsonStatus("/api/execute/webhook", 405);
+  const canaryWrongMethod = await checkJsonStatus("/api/canary/echo", 405, {
+    method: "PUT"
+  });
   await checkJson("/openapi.json");
 
   if (health) {
@@ -392,6 +396,16 @@ async function main() {
   if (apiNotFound.body) {
     record("unknown API route returns structured code", apiNotFound.body.error?.code === "api_route_not_found");
     record("unknown API route links OpenAPI", apiNotFound.body.error?.details?.openapi === "/openapi.json");
+  }
+
+  if (executeWrongMethod.body) {
+    record("execute route wrong method returns 405 code", executeWrongMethod.body.error?.code === "method_not_allowed");
+    record("execute route exposes Allow POST", executeWrongMethod.response?.headers.get("allow") === "POST");
+  }
+
+  if (canaryWrongMethod.body) {
+    record("canary route wrong method returns 405 code", canaryWrongMethod.body.error?.code === "method_not_allowed");
+    record("canary route exposes Allow GET POST", canaryWrongMethod.response?.headers.get("allow") === "GET, POST");
   }
 
   const failed = checks.filter((check) => !check.ok);

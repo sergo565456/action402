@@ -46,6 +46,28 @@ function requestPath(req) {
   return new URL(req.originalUrl || req.url || "/", "http://action402.internal").pathname;
 }
 
+function methodNotAllowed(allowedMethods) {
+  const allow = allowedMethods.join(", ");
+
+  return (req, res) => {
+    res
+      .set("Allow", allow)
+      .status(405)
+      .json(
+        errorBody(
+          new ApiError(405, "method_not_allowed", "Method not allowed", {
+            method: req.method,
+            path: requestPath(req),
+            allowedMethods,
+            openapi: "/openapi.json",
+            capabilities: "/api/capabilities",
+            quickstart: "/api/quickstart"
+          })
+        )
+      );
+  };
+}
+
 app.use(requestLogger);
 app.use(express.static("public", { extensions: ["html"] }));
 
@@ -226,6 +248,15 @@ app.get("/api/trust", async (req, res, next) => {
   }
 });
 
+app.use("/api/execute/webhook", (req, res, next) => {
+  if (req.method === "POST") {
+    next();
+    return;
+  }
+
+  methodNotAllowed(["POST"])(req, res);
+});
+
 await maybeInstallX402(app);
 
 app.use(express.json({ limit: "128kb" }));
@@ -310,9 +341,7 @@ app.post("/api/schedules/preview", async (req, res, next) => {
   }
 });
 
-app.use("/api/execute", createRateLimiter());
-
-app.post("/api/execute/webhook", async (req, res) => {
+app.post("/api/execute/webhook", createRateLimiter(), async (req, res) => {
   try {
     if (config.x402Enabled) {
       recordMetric("x402PaymentAccepted");
@@ -440,6 +469,32 @@ app.get("/api/verify/receipts/:id", async (req, res, next) => {
     next(error);
   }
 });
+
+app.all(
+  [
+    "/api/bazaar",
+    "/api/agent-manifest",
+    "/api/capabilities",
+    "/api/actions",
+    "/api/quickstart",
+    "/api/snippets",
+    "/api/handoff/capabilities",
+    "/api/schedules/capabilities",
+    "/api/secrets/policy",
+    "/api/proofs/recent",
+    "/api/monitoring/executions",
+    "/api/trust",
+    "/api/jobs/:id",
+    "/api/receipts/:id",
+    "/api/verify/jobs/:id",
+    "/api/verify/receipts/:id"
+  ],
+  methodNotAllowed(["GET"])
+);
+
+app.all("/api/canary/echo", methodNotAllowed(["GET", "POST"]));
+
+app.all(["/api/policy/check", "/api/handoff/browser", "/api/schedules/preview"], methodNotAllowed(["POST"]));
 
 app.use("/api", (req, res) => {
   res.status(404).json(

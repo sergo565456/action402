@@ -256,6 +256,27 @@ test("unknown API routes return structured JSON for agents", async () => {
   assert.equal(body.error.details.quickstart, "/api/quickstart");
 });
 
+test("known API routes return structured method errors", async () => {
+  const execute = await request("/api/execute/webhook");
+  assert.equal(execute.response.status, 405);
+  assert.equal(execute.response.headers.get("allow"), "POST");
+  assert.equal(execute.body.error.code, "method_not_allowed");
+  assert.equal(execute.body.error.details.path, "/api/execute/webhook");
+  assert.deepEqual(execute.body.error.details.allowedMethods, ["POST"]);
+
+  const policy = await request("/api/policy/check");
+  assert.equal(policy.response.status, 405);
+  assert.equal(policy.response.headers.get("allow"), "POST");
+  assert.equal(policy.body.error.code, "method_not_allowed");
+
+  const canary = await request("/api/canary/echo", {
+    method: "PUT"
+  });
+  assert.equal(canary.response.status, 405);
+  assert.equal(canary.response.headers.get("allow"), "GET, POST");
+  assert.deepEqual(canary.body.error.details.allowedMethods, ["GET", "POST"]);
+});
+
 test("snippets endpoint exposes buyer and verification examples", async () => {
   const { response, body } = await request("/api/snippets");
 
