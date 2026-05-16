@@ -75,6 +75,29 @@ async function main() {
   const actions = await checkJsonEndpoint("/api/actions");
   const quickstart = await checkJsonEndpoint("/api/quickstart");
   await checkPolicyEndpoint();
+  const canaryEcho = await fetchJson("/api/canary/echo", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      event: "x402.smoke.canary",
+      scenario: "x402-smoke",
+      runId: "x402-smoke-001",
+      source: "x402-smoke",
+      secret: "must-not-echo"
+    })
+  }).then(({ response, body }) => {
+    record(
+      "/api/canary/echo returns redacted JSON",
+      response.status === 200 && body?.ok === true && body?.acceptedFields?.secret === undefined,
+      `status=${response.status}`
+    );
+    return body;
+  }).catch((error) => {
+    record("/api/canary/echo returns redacted JSON", false, error.message);
+    return undefined;
+  });
   const handoffCapabilities = await checkJsonEndpoint("/api/handoff/capabilities");
   const scheduleCapabilities = await checkJsonEndpoint("/api/schedules/capabilities");
   const secretPolicy = await checkJsonEndpoint("/api/secrets/policy");
@@ -114,6 +137,10 @@ async function main() {
   if (quickstart) {
     record("Quickstart route is published", quickstart.payment?.route?.endsWith("/api/execute/webhook"));
     record("Quickstart proof badge is published", quickstart.verify?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
+  }
+
+  if (canaryEcho) {
+    record("Canary echo is free", canaryEcho.paid === false);
   }
 
   if (handoffCapabilities) {

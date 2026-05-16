@@ -49,7 +49,7 @@ Usage rules:
 | Receipt Cream | `#F6F1E6` | Text, logo A, high-contrast surfaces |
 | Execution Mint | `#20C997` | Primary CTA, success, paid execution |
 | Agent Cyan | `#38D9E8` | Agent nodes, links, secondary highlights |
-| Settlement Amber | `#F59F00` | Pending settlement, pricing, counters |
+| Settlement Amber | `#F59F00` | Settlement state, pricing, counters |
 | Failure Red | `#FF6B6B` | Failed jobs, rejected payments, destructive states |
 | Panel Solid | `#121714` | Product panels and dark cards |
 | Paper | `#F4EFE4` | Light documentation sections |

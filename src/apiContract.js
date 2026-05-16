@@ -507,6 +507,28 @@ const secretStoragePolicySchema = {
   }
 };
 
+const canaryEchoResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "endpoint", "paid", "acceptedFields", "redactionPolicy", "next"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    endpoint: { type: "string" },
+    paid: { type: "boolean" },
+    purpose: { type: "string" },
+    receivedAt: { type: "string" },
+    requestId: { type: ["string", "null"] },
+    acceptedFields: {
+      type: "object",
+      additionalProperties: {
+        type: ["string", "number", "boolean"]
+      }
+    },
+    redactionPolicy: { type: "object" },
+    next: { type: "object" }
+  }
+};
+
 const agentManifestSchema = {
   type: "object",
   required: ["schemaVersion", "name", "canonicalBaseUrl", "paidActions", "freeAgentSurfaces", "links"],
@@ -647,6 +669,13 @@ export function publicCapabilities() {
       description:
         "Free preflight check for method, target safety, policy, retry, timeout, and buyer warnings before paying for execution."
     },
+    canary: {
+      method: "POST",
+      path: "/api/canary/echo",
+      paid: false,
+      description:
+        "Free non-sensitive echo target for agents and local canary scripts to verify Action402 request plumbing without calling an external service."
+    },
     handoff: handoffCapabilities,
     schedules: scheduleCapabilities,
     secretStorage: secretStoragePolicy,
@@ -679,6 +708,24 @@ export function publicCapabilities() {
         ],
         requestSchema: webhookRequestSchema,
         responseSchema: executeWebhookResponseSchema
+      },
+      {
+        id: "canary.echo",
+        aliases: ["canary_echo", "self_test_target", "safe_echo_target"],
+        description:
+          "Return a redacted echo of whitelisted canary fields. Useful as a safe target URL for self-tests before running paid execution.",
+        method: "POST",
+        path: "/api/canary/echo",
+        paid: false,
+        useWhen: [
+          "An agent wants to verify Action402 routing and JSON handling without paying.",
+          "A local settlement canary needs a safe public target endpoint."
+        ],
+        avoidWhen: [
+          "The caller expects a paid execution receipt from this endpoint.",
+          "The payload contains secrets or arbitrary data that should be echoed back."
+        ],
+        responseSchema: canaryEchoResponseSchema
       },
       {
         id: "browser.handoff",
@@ -732,6 +779,7 @@ export function publicCapabilities() {
         "Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.",
         "Read /api/agent-manifest or /.well-known/agent.json for the canonical machine-readable discovery pack.",
         "Optionally POST the same payload to /api/policy/check before paying.",
+        "Use /api/canary/echo only as a free non-sensitive target check; it does not create a paid receipt.",
         "Use /api/handoff/browser only when a separate browser-capable agent will execute the browser steps.",
         "Use /api/schedules/preview only to validate future schedule shape; it will not execute or charge.",
         "Read /api/secrets/policy before sending target-side authorization headers.",
@@ -861,6 +909,7 @@ export function publicCapabilities() {
       snippets: `${config.publicBaseUrl}/api/snippets`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
+      canaryEcho: `${config.publicBaseUrl}/api/canary/echo`,
       handoff: `${config.publicBaseUrl}/handoff`,
       handoffCapabilities: `${config.publicBaseUrl}/api/handoff/capabilities`,
       schedules: `${config.publicBaseUrl}/schedules`,
@@ -1287,6 +1336,56 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/canary/echo": {
+        get: {
+          summary: "Fetch canary echo metadata",
+          description:
+            "Free non-sensitive self-test target metadata. GET returns the same redacted response shape with no accepted payload fields.",
+          responses: {
+            "200": {
+              description: "Redacted canary echo",
+              content: {
+                "application/json": {
+                  schema: canaryEchoResponseSchema
+                }
+              }
+            }
+          }
+        },
+        post: {
+          summary: "Echo whitelisted canary fields",
+          description:
+            "Free non-sensitive self-test target. It echoes only whitelisted scalar canary fields and does not create a paid execution receipt.",
+          requestBody: {
+            required: false,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  additionalProperties: true,
+                  properties: {
+                    event: { type: "string" },
+                    scenario: { type: "string" },
+                    runId: { type: "string" },
+                    source: { type: "string" },
+                    generatedAt: { type: "string" }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Redacted canary echo",
+              content: {
+                "application/json": {
+                  schema: canaryEchoResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/handoff/capabilities": {
         get: {
           summary: "Fetch browser handoff capabilities",
@@ -1482,6 +1581,7 @@ export function openApiSpec() {
         SchedulePreviewRequest: schedulePreviewRequestSchema,
         SchedulePreviewResponse: schedulePreviewResponseSchema,
         SecretStoragePolicy: secretStoragePolicySchema,
+        CanaryEchoResponse: canaryEchoResponseSchema,
         AgentManifest: agentManifestSchema,
         TrustResponse: trustResponseSchema,
         Error: errorSchema

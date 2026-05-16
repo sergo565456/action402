@@ -91,6 +91,20 @@ async function main() {
       idempotencyKey: "deploy-check-policy"
     })
   });
+  const canaryMetadata = await checkJson("/api/canary/echo");
+  const canaryEcho = await checkJson("/api/canary/echo", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      event: "deploy.canary",
+      scenario: "deploy-check",
+      runId: "deploy-check-001",
+      source: "deploy-check",
+      secret: "must-not-echo"
+    })
+  });
   const handoffCapabilities = await checkJson("/api/handoff/capabilities");
   const handoff = await checkJson("/api/handoff/browser", {
     method: "POST",
@@ -179,6 +193,7 @@ async function main() {
     );
     record("capabilities expose quickstart", capabilities.quickstart?.path === "/api/quickstart");
     record("capabilities expose policy check", capabilities.policyCheck?.path === "/api/policy/check");
+    record("capabilities expose canary echo", capabilities.canary?.path === "/api/canary/echo");
     record("capabilities expose snippets", capabilities.snippets?.path === "/api/snippets");
     record("capabilities expose browser handoff", capabilities.handoff?.path === "/api/handoff/browser");
     record("capabilities expose schedule preview", capabilities.schedules?.previewPath === "/api/schedules/preview");
@@ -234,6 +249,13 @@ async function main() {
     record("policy check endpoint returns structured result", policyCheck.allowed === false && policyCheck.ok === false);
     record("policy check rejects private targets", policyCheck.error?.code === "unsafe_target");
     record("policy check points to paid action", policyCheck.action?.path === "/api/execute/webhook");
+  }
+
+  if (canaryEcho) {
+    record("canary echo GET returns ok", canaryMetadata?.ok === true && canaryMetadata?.paid === false);
+    record("canary echo returns ok", canaryEcho.ok === true && canaryEcho.endpoint === "/api/canary/echo");
+    record("canary echo is free", canaryEcho.paid === false);
+    record("canary echo keeps secrets redacted", canaryEcho.acceptedFields?.secret === undefined);
   }
 
   if (handoffCapabilities) {
@@ -297,6 +319,7 @@ async function main() {
     record("bazaar metadata has policy check link", typeof bazaar.links?.policyCheck === "string");
     record("bazaar metadata has snippets link", typeof bazaar.links?.snippets === "string");
     record("bazaar metadata has handoff link", typeof bazaar.links?.handoffEndpoint === "string");
+    record("bazaar metadata has canary link", typeof bazaar.links?.canaryEcho === "string");
     record("bazaar metadata has schedule preview link", typeof bazaar.links?.schedulePreview === "string");
     record("bazaar metadata has secret policy link", typeof bazaar.links?.secretPolicy === "string");
     record("bazaar metadata has proof badge link", typeof bazaar.links?.proofBadge === "string");
@@ -342,6 +365,7 @@ async function main() {
     record("trust endpoint exposes well-known surface", typeof trust.publicSurfaces?.wellKnownAgent === "string");
     record("trust endpoint exposes action catalog surface", typeof trust.publicSurfaces?.actionCatalog === "string");
     record("trust endpoint exposes policy check surface", typeof trust.publicSurfaces?.policyCheck === "string");
+    record("trust endpoint exposes canary surface", typeof trust.publicSurfaces?.canaryEcho === "string");
     record("trust endpoint exposes snippets surface", typeof trust.publicSurfaces?.snippets === "string");
     record("trust endpoint exposes handoff surface", typeof trust.publicSurfaces?.handoffCapabilities === "string");
     record("trust endpoint exposes schedule preview surface", typeof trust.publicSurfaces?.schedulePreview === "string");

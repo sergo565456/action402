@@ -30,6 +30,7 @@ The first useful product is intentionally narrow:
 | `GET /.well-known/x402.json` | free | x402-specific manifest alias |
 | `GET /api/quickstart` | free | Compact agent buyer flow |
 | `POST /api/policy/check` | free | Pre-payment policy and safety check |
+| `POST /api/canary/echo` | free | Redacted self-test target for agent plumbing and local canary checks |
 | `GET /api/snippets` | free | Copy-paste buyer and verification snippets |
 | `GET /api/actions` | free | Action template catalog |
 | `GET /api/handoff/capabilities` | free | Browser/action handoff capability metadata |

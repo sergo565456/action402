@@ -199,6 +199,7 @@ export function publicBazaarMetadata() {
         "Compact quickstart endpoint is available",
         "Copy-paste integration snippets are available",
         "Free preflight policy check is available before payment",
+        "Free canary echo target is available for non-sensitive self-tests",
         "Public job and receipt verification endpoints are available",
         "Public proof badge pages are available for job and receipt ids",
         "Public redacted proof examples are available",
@@ -255,6 +256,13 @@ export function publicBazaarMetadata() {
       paid: false,
       description:
         "Free preflight check for request shape, target safety, policy, retry, timeout, and warnings before paying."
+    },
+    canary: {
+      method: "POST",
+      path: "/api/canary/echo",
+      paid: false,
+      description:
+        "Free non-sensitive echo target for agent plumbing checks and local settlement-canary target validation."
     },
     handoff: {
       method: "POST",
@@ -317,6 +325,7 @@ export function publicBazaarMetadata() {
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
+      canaryEcho: `${config.publicBaseUrl}/api/canary/echo`,
       handoffCapabilities: `${config.publicBaseUrl}/api/handoff/capabilities`,
       handoffEndpoint: `${config.publicBaseUrl}/api/handoff/browser`,
       scheduleCapabilities: `${config.publicBaseUrl}/api/schedules/capabilities`,

@@ -35,6 +35,7 @@ Discovery and contracts:
 - /.well-known/action402.json - Action402-specific well-known alias for the canonical agent manifest.
 - /.well-known/x402.json - x402-specific well-known alias for the canonical agent manifest.
 - /api/policy/check - free pre-payment POST check for target safety, policy, retry, timeout, and warnings.
+- /api/canary/echo - free POST self-test target; echoes only whitelisted non-sensitive canary fields.
 - /api/snippets - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - /api/actions - machine-readable action catalog with templates, policy modes, snippets, and scheduled-action compatibility notes.
 - /api/handoff/capabilities - machine-readable browser/action handoff capability description.
@@ -60,7 +61,7 @@ Verification:
 - GET /proof/{jobOrReceiptId} - public proof badge page for operators and browser-capable agents.
 
 Usage and pricing:
-- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /actions, /snippets, /handoff, /schedules, /secrets, /mcp, /trust, /proofs, /proof/{jobOrReceiptId}, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402.json, /api/quickstart, /api/policy/check, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
+- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /actions, /snippets, /handoff, /schedules, /secrets, /mcp, /trust, /proofs, /proof/{jobOrReceiptId}, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402.json, /api/quickstart, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
 - Paid: POST /api/execute/webhook.
 - Published price: $0.003 per paid execution request.
 - Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.
@@ -113,13 +114,14 @@ Agent decision shortcut:
 1. Read /api/quickstart for the smallest safe call flow.
 2. Read /api/agent-manifest or /.well-known/agent.json for the canonical service card.
 3. POST the intended payload to /api/policy/check to catch rejected targets before paying.
-4. Read /api/snippets for copy-paste buyer and proof verification examples.
-5. Read /api/actions to match the task to a template.
-6. Use /api/handoff/browser only if a separate browser-capable agent will execute browser steps.
-7. Use /api/schedules/preview only to validate a future schedule; it will not run.
-8. Read /api/secrets/policy before sending any target authorization headers.
-9. Pay only if the 402 requirement matches expected price, network, and route.
-10. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, or /proof/{jobOrReceiptId}.
+4. Use /api/canary/echo only for non-sensitive route/JSON self-tests; it does not create a paid receipt.
+5. Read /api/snippets for copy-paste buyer and proof verification examples.
+6. Read /api/actions to match the task to a template.
+7. Use /api/handoff/browser only if a separate browser-capable agent will execute browser steps.
+8. Use /api/schedules/preview only to validate a future schedule; it will not run.
+9. Read /api/secrets/policy before sending any target authorization headers.
+10. Pay only if the 402 requirement matches expected price, network, and route.
+11. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, or /proof/{jobOrReceiptId}.
 
 AgentCash quick start:
 npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"body\":{\"event\":\"agent.llms-test\"},\"idempotencyKey\":\"llms-test-001\",\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json

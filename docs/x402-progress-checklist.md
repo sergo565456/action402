@@ -20,6 +20,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Well-known agent manifest `/.well-known/agent.json` exists.
 - [x] Agent-readable `/api/quickstart` exists.
 - [x] Free pre-payment policy check `/api/policy/check` exists.
+- [x] Free redacted canary target `/api/canary/echo` exists.
 - [x] Copy-paste integration snippets `/api/snippets` exist.
 - [x] Action catalog `/api/actions` exists.
 - [x] OpenAPI `/openapi.json` exists.

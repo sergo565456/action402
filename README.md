@@ -19,6 +19,7 @@ Agent entry points:
 - https://action402.vercel.app/.well-known/agent.json - well-known agent manifest alias.
 - https://action402.vercel.app/api/quickstart - compact buyer flow for agents.
 - https://action402.vercel.app/api/policy/check - free pre-payment policy check.
+- https://action402.vercel.app/api/canary/echo - free redacted self-test target.
 - https://action402.vercel.app/api/snippets - copy-paste buyer and verification snippets.
 - https://action402.vercel.app/api/actions - action template catalog and policy modes.
 - https://action402.vercel.app/api/bazaar - x402/Bazaar route metadata.
@@ -39,6 +40,7 @@ Agent entry points:
 - `GET /.well-known/agent.json` - well-known manifest alias for agents and crawlers.
 - `GET /api/quickstart` - compact agent quickstart with payment guardrails and verification flow.
 - `POST /api/policy/check` - free pre-payment check for target safety, policy, retry, timeout, and warnings.
+- `POST /api/canary/echo` - free non-sensitive echo target for agent plumbing/self-tests.
 - `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - `GET /api/actions` - machine-readable action catalog, policy modes, buyer snippets, and scheduled-action compatibility notes.
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
@@ -97,6 +99,7 @@ Useful public surfaces for discovery clients:
 - `GET /api/capabilities` - canonical agent-readable contract, use-case templates, safety limits, and MCP hints.
 - `GET /api/quickstart` - shortest safe call flow for agents.
 - `POST /api/policy/check` - preflight the same payload before paying for execution.
+- `POST /api/canary/echo` - safe internal target for non-sensitive self-tests; it does not create a paid receipt.
 - `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - `GET /api/actions` - ready action templates for ChatOps, no-code automation, GitHub dispatch, ops alerts, analytics, and CRM updates.
 - `GET /api/bazaar` - x402/Bazaar route config, price, payTo, tags, examples, and quality signals.
@@ -194,6 +197,7 @@ Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 - `GET /api/capabilities` - action schema, x402 settings, safety limits, verification links, discovery keywords, and MCP hints.
 - `GET /api/quickstart` - minimal request, payment guardrails, copy-paste snippets, and proof verification links.
 - `POST /api/policy/check` - free pre-payment validation of the intended execution payload.
+- `POST /api/canary/echo` - free redacted echo target for route and JSON plumbing checks.
 - `GET /api/snippets` - dedicated copy-paste discovery, paid call, verification, and buyer policy examples.
 - `GET /api/actions` - action templates, policy modes, and the scheduled-action design path.
 - `GET /api/bazaar` - Bazaar route config and x402 discovery metadata.

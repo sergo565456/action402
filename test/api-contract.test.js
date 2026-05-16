@@ -60,6 +60,7 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
+  assert.equal(body.links.canaryEcho.endsWith("/api/canary/echo"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.links.snippetsGuide.endsWith("/snippets"), true);
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
@@ -72,6 +73,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.quickstart.path, "/api/quickstart");
   assert.equal(body.policyCheck.path, "/api/policy/check");
   assert.equal(body.policyCheck.paid, false);
+  assert.equal(body.canary.path, "/api/canary/echo");
+  assert.equal(body.canary.paid, false);
   assert.equal(body.snippets.path, "/api/snippets");
   assert.equal(body.handoff.path, "/api/handoff/browser");
   assert.equal(body.handoff.paid, false);
@@ -89,6 +92,7 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.ok(body.actionTemplates.length >= 9);
   assert.ok(body.actions.some((action) => action.id === "browser.handoff"));
   assert.ok(body.actions.some((action) => action.id === "schedule.preview"));
+  assert.ok(body.actions.some((action) => action.id === "canary.echo"));
   assert.ok(body.policyModes.some((mode) => mode.id === "open-public-https"));
   assert.equal(body.scheduledActions.status, "preview-only");
 });
@@ -109,6 +113,8 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/agent-manifest"].get);
   assert.ok(body.paths["/.well-known/agent.json"].get);
   assert.ok(body.paths["/api/policy/check"].post);
+  assert.ok(body.paths["/api/canary/echo"].get);
+  assert.ok(body.paths["/api/canary/echo"].post);
   assert.ok(body.paths["/api/snippets"].get);
   assert.ok(body.paths["/api/handoff/capabilities"].get);
   assert.ok(body.paths["/api/handoff/browser"].post);
@@ -125,6 +131,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.ActionCatalogResponse);
   assert.ok(body.components.schemas.QuickstartResponse);
   assert.ok(body.components.schemas.PolicyCheckResponse);
+  assert.ok(body.components.schemas.CanaryEchoResponse);
   assert.ok(body.components.schemas.SnippetsResponse);
   assert.ok(body.components.schemas.BrowserHandoffRequest);
   assert.ok(body.components.schemas.BrowserHandoffResponse);
@@ -198,6 +205,45 @@ test("policy check rejects unsafe payload before payment without executing", asy
   assert.equal(body.next.snippets, "/api/snippets");
 });
 
+test("canary echo returns only non-sensitive whitelisted fields", async () => {
+  const metadata = await request("/api/canary/echo");
+  assert.equal(metadata.response.status, 200);
+  assert.equal(metadata.body.ok, true);
+  assert.equal(metadata.body.paid, false);
+  assert.deepEqual(metadata.body.acceptedFields, {});
+
+  const { response, body } = await request("/api/canary/echo", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      event: "action402.canary",
+      scenario: "api-contract",
+      runId: "canary-test-001",
+      source: "test",
+      generatedAt: "2026-05-16T00:00:00.000Z",
+      token: "must-not-echo",
+      nested: {
+        secret: "must-not-echo"
+      }
+    })
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.endpoint, "/api/canary/echo");
+  assert.equal(body.paid, false);
+  assert.equal(body.acceptedFields.event, "action402.canary");
+  assert.equal(body.acceptedFields.scenario, "api-contract");
+  assert.equal(body.acceptedFields.runId, "canary-test-001");
+  assert.equal(body.acceptedFields.token, undefined);
+  assert.equal(body.acceptedFields.nested, undefined);
+  assert.equal(body.redactionPolicy.onlyWhitelistedFieldsEchoed, true);
+  assert.equal(body.next.paidExecution, "/api/execute/webhook");
+  assert.equal(JSON.stringify(body).includes("must-not-echo"), false);
+});
+
 test("snippets endpoint exposes buyer and verification examples", async () => {
   const { response, body } = await request("/api/snippets");
 
@@ -227,6 +273,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.ok(manifest.body.protocols.includes("x402"));
   assert.ok(manifest.body.paidActions.some((action) => action.path === "/api/execute/webhook"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/capabilities"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/canary/echo"));
   assert.ok(manifest.body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
 
   const wellKnownAgent = await request("/.well-known/agent.json");
@@ -252,6 +299,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(sitemap.body.includes("<urlset"), true);
   assert.equal(sitemap.body.includes("/discovery"), true);
   assert.equal(sitemap.body.includes("/api/agent-manifest"), true);
+  assert.equal(sitemap.body.includes("/api/canary/echo"), true);
 });
 
 test("advanced agent surfaces expose handoff, schedule preview, and secret policy", async () => {
@@ -349,6 +397,7 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
+  assert.equal(body.links.canaryEcho.endsWith("/api/canary/echo"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.links.handoffEndpoint.endsWith("/api/handoff/browser"), true);
   assert.equal(body.links.schedulePreview.endsWith("/api/schedules/preview"), true);
@@ -359,6 +408,7 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.ok(body.actionCatalog.templateCount >= 9);
   assert.equal(body.quickstart.path, "/api/quickstart");
   assert.equal(body.policyCheck.path, "/api/policy/check");
+  assert.equal(body.canary.path, "/api/canary/echo");
   assert.equal(body.handoff.path, "/api/handoff/browser");
   assert.equal(body.schedules.path, "/api/schedules/preview");
   assert.equal(body.secretStorage.path, "/api/secrets/policy");
@@ -388,6 +438,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/api/actions"), true);
   assert.equal(body.includes("/api/quickstart"), true);
   assert.equal(body.includes("/api/policy/check"), true);
+  assert.equal(body.includes("/api/canary/echo"), true);
   assert.equal(body.includes("/api/snippets"), true);
   assert.equal(body.includes("/snippets"), true);
   assert.equal(body.includes("/handoff"), true);
@@ -687,6 +738,7 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.publicSurfaces.wellKnownAgent.endsWith("/.well-known/agent.json"), true);
   assert.equal(body.publicSurfaces.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.publicSurfaces.policyCheck.endsWith("/api/policy/check"), true);
+  assert.equal(body.publicSurfaces.canaryEcho.endsWith("/api/canary/echo"), true);
   assert.equal(body.publicSurfaces.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.publicSurfaces.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.publicSurfaces.handoffCapabilities.endsWith("/api/handoff/capabilities"), true);
@@ -699,6 +751,7 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.trustSignals.includes("canonical agent manifest and well-known discovery aliases"), true);
   assert.equal(body.trustSignals.includes("robots.txt and sitemap.xml expose agent entry points"), true);
   assert.equal(body.trustSignals.includes("free preflight policy check before payment"), true);
+  assert.equal(body.trustSignals.includes("free redacted canary echo target for self-tests"), true);
   assert.equal(body.trustSignals.includes("copy-paste integration snippets for buyers and verifiers"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
   assert.equal(body.trustSignals.includes("browser/action handoff package endpoint is public"), true);

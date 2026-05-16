@@ -34,6 +34,7 @@ const MACHINE_SURFACES = [
   "/api/quickstart",
   "/api/snippets",
   "/api/policy/check",
+  "/api/canary/echo",
   "/api/handoff/capabilities",
   "/api/schedules/capabilities",
   "/api/secrets/policy",
@@ -79,6 +80,7 @@ function discoveryLinks(baseUrl) {
     actions: absoluteUrl("/api/actions", baseUrl),
     quickstart: absoluteUrl("/api/quickstart", baseUrl),
     snippets: absoluteUrl("/api/snippets", baseUrl),
+    canaryEcho: absoluteUrl("/api/canary/echo", baseUrl),
     trust: absoluteUrl("/api/trust", baseUrl),
     robots: absoluteUrl("/robots.txt", baseUrl),
     sitemap: absoluteUrl("/sitemap.xml", baseUrl)

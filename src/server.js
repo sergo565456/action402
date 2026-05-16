@@ -9,6 +9,7 @@ import {
   publicSecretStoragePolicy
 } from "./advancedActions.js";
 import { publicBazaarMetadata } from "./bazaar.js";
+import { createCanaryEcho } from "./canary.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
 import { publicAgentManifest, robotsTxt, sitemapXml } from "./discoveryManifest.js";
 import { publicIntegrationSnippets } from "./snippets.js";
@@ -257,6 +258,14 @@ app.post("/api/policy/check", async (req, res, next) => {
 
     next(error);
   }
+});
+
+app.post("/api/canary/echo", (req, res) => {
+  res.json(createCanaryEcho(req.body || {}, { requestId: req.requestId }));
+});
+
+app.get("/api/canary/echo", (req, res) => {
+  res.json(createCanaryEcho({}, { requestId: req.requestId }));
 });
 
 app.post("/api/handoff/browser", async (req, res, next) => {

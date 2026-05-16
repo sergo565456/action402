@@ -64,7 +64,7 @@ function buildTrustScore({ stats, store, proofStats }) {
       score: 15,
       maxScore: 15,
       details:
-        "Capabilities, agent manifest, Bazaar metadata, quickstart, snippets, policy check, action catalog, handoff, schedule preview, secret policy, llms.txt, sitemap, and OpenAPI are public."
+        "Capabilities, agent manifest, Bazaar metadata, quickstart, snippets, policy check, canary echo, action catalog, handoff, schedule preview, secret policy, llms.txt, sitemap, and OpenAPI are public."
     },
     {
       id: "safety",
@@ -149,6 +149,7 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
+      canaryEcho: `${config.publicBaseUrl}/api/canary/echo`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
@@ -178,6 +179,7 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       "public action catalog and quickstart endpoints",
       "copy-paste integration snippets for buyers and verifiers",
       "free preflight policy check before payment",
+      "free redacted canary echo target for self-tests",
       "official Bazaar discovery extension metadata",
       "public proof verification endpoints",
       "public proof badge pages",
