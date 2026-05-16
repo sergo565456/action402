@@ -10,6 +10,7 @@ const STABLE_DISCOVERY_PATHS = [
   "/.well-known/action402.json",
   "/.well-known/x402.json",
   "/api/capabilities",
+  "/api/pricing",
   "/api/actions",
   "/api/quickstart",
   "/api/snippets",

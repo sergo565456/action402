@@ -65,6 +65,7 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.pricingApi.endsWith("/api/pricing"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.canaryEcho.endsWith("/api/canary/echo"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
@@ -78,6 +79,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.discoveryPack.agentManifest.endsWith("/api/agent-manifest"), true);
   assert.ok(body.discoveryPack.wellKnown.some((url) => url.endsWith("/.well-known/agent.json")));
   assert.equal(body.quickstart.path, "/api/quickstart");
+  assert.equal(body.pricing.path, "/api/pricing");
+  assert.equal(body.pricing.payment.route.endsWith("/api/execute/webhook"), true);
   assert.equal(body.policyCheck.path, "/api/policy/check");
   assert.equal(body.policyCheck.paid, false);
   assert.equal(body.canary.path, "/api/canary/echo");
@@ -133,6 +136,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/trust"].get);
   assert.ok(body.paths["/api/actions"].get);
   assert.ok(body.paths["/api/quickstart"].get);
+  assert.ok(body.paths["/api/pricing"].get);
   assert.ok(body.paths["/api/agent-manifest"].get);
   assert.ok(body.paths["/.well-known/agent.json"].get);
   assert.ok(body.paths["/api/policy/check"].post);
@@ -159,6 +163,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.MonitoringResponse);
   assert.ok(body.components.schemas.ActionCatalogResponse);
   assert.ok(body.components.schemas.QuickstartResponse);
+  assert.ok(body.components.schemas.PricingResponse);
   assert.ok(body.components.schemas.PolicyCheckResponse);
   assert.ok(body.components.schemas.CanaryEchoResponse);
   assert.ok(body.components.schemas.ApiIndexResponse);
@@ -181,8 +186,10 @@ test("api index gives agents a compact entry map", async () => {
   assert.equal(body.paid[0].path, "/api/execute/webhook");
   assert.equal(body.paid[0].network, "eip155:84532");
   assert.ok(body.recommendedStart.includes("/api/quickstart"));
+  assert.ok(body.recommendedStart.includes("/api/pricing"));
   assert.ok(body.recommendedStart.includes("/openapi.json"));
   assert.ok(body.free.discovery.includes("/api/capabilities"));
+  assert.ok(body.free.discovery.includes("/api/pricing"));
   assert.ok(body.free.preflight.includes("/api/policy/check"));
   assert.ok(body.free.verification.includes("/api/verify/jobs/{id}"));
   assert.equal(body.browserAccess.credentialsRequired, false);
@@ -191,6 +198,7 @@ test("api index gives agents a compact entry map", async () => {
   assert.ok(body.cachePolicy.noStorePaths.includes("/health"));
   assert.equal(body.links.openapi.endsWith("/openapi.json"), true);
   assert.equal(body.links.bazaar.endsWith("/api/bazaar"), true);
+  assert.equal(body.links.pricing.endsWith("/api/pricing"), true);
 
   const wrongMethod = await request("/api", {
     method: "POST"
@@ -204,6 +212,10 @@ test("cache policy separates stable discovery from runtime state", async () => {
   const apiIndex = await request("/api");
   assert.ok(apiIndex.response.headers.get("cache-control").includes("s-maxage=300"));
   assert.ok(apiIndex.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
+
+  const pricing = await request("/api/pricing");
+  assert.ok(pricing.response.headers.get("cache-control").includes("s-maxage=300"));
+  assert.ok(pricing.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
 
   const capabilities = await request("/api/capabilities");
   assert.ok(capabilities.response.headers.get("cache-control").includes("s-maxage=300"));
@@ -283,6 +295,32 @@ test("machine-readable endpoints support browser agent CORS preflight", async ()
   assert.equal(apiIndexPreflight.response.headers.get("access-control-allow-origin"), "*");
 });
 
+test("pricing endpoint gives agents machine-readable payment guardrails", async () => {
+  const { response, body } = await request("/api/pricing");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.ok, true);
+  assert.equal(body.service, "Action402");
+  assert.equal(body.pricingModel, "pay-per-action");
+  assert.equal(body.payment.scheme, "exact");
+  assert.equal(body.payment.price.display, "$0.003");
+  assert.equal(body.payment.route.endsWith("/api/execute/webhook"), true);
+  assert.equal(body.paidActions[0].id, "execute.webhook");
+  assert.equal(body.paidActions[0].method, "POST");
+  assert.ok(body.freeSurfaces.discovery.includes("/api/pricing"));
+  assert.ok(body.freeSurfaces.preflight.includes("/api/policy/check"));
+  assert.ok(body.buyerGuardrails.some((item) => item.includes("max spend cap")));
+  assert.equal(body.links.humanPricing.endsWith("/pricing"), true);
+  assert.equal(body.links.openapi.endsWith("/openapi.json"), true);
+
+  const wrongMethod = await request("/api/pricing", {
+    method: "POST"
+  });
+  assert.equal(wrongMethod.response.status, 405);
+  assert.equal(wrongMethod.response.headers.get("allow"), "GET");
+  assert.equal(wrongMethod.body.error.code, "method_not_allowed");
+});
+
 test("action catalog exposes ready templates and safe future scheduling", async () => {
   const { response, body } = await request("/api/actions");
 
@@ -319,6 +357,7 @@ test("quickstart endpoint gives compact agent call flow", async () => {
   assert.ok(body.decisionRules.useWhen.some((step) => step.includes("public HTTPS")));
   assert.equal(body.verify.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/actions")));
+  assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/pricing")));
   assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/handoff/capabilities")));
   assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/schedules/capabilities")));
   assert.ok(body.nextDiscoverySteps.some((step) => step.endsWith("/api/secrets/policy")));
@@ -429,10 +468,12 @@ test("snippets endpoint exposes buyer and verification examples", async () => {
   assert.ok(body.groups.some((group) => group.id === "paid-call"));
   assert.ok(body.groups.some((group) => group.id === "advanced-surfaces"));
   assert.ok(body.groups.some((group) => group.snippets.some((snippet) => snippet.id === "preflight-policy-check")));
+  assert.ok(body.groups.some((group) => group.snippets.some((snippet) => snippet.code.includes("/api/pricing"))));
   const verification = body.groups.find((group) => group.id === "verification");
   assert.ok(verification);
   assert.ok(verification.snippets.some((snippet) => snippet.id === "verify-job-javascript"));
   assert.equal(body.links.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
+  assert.equal(body.links.pricing.endsWith("/api/pricing"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.handoff.endsWith("/api/handoff/capabilities"), true);
   assert.equal(body.links.schedulePreview.endsWith("/api/schedules/preview"), true);
@@ -448,6 +489,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.ok(manifest.body.paidActions.some((action) => action.path === "/api/execute/webhook"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/capabilities"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/pricing"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/canary/echo"));
   assert.ok(manifest.body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
 
@@ -468,6 +510,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(robots.response.status, 200);
   assert.equal(robots.body.includes("Allow: /api"), true);
   assert.equal(robots.body.includes("Allow: /api/agent-manifest"), true);
+  assert.equal(robots.body.includes("Allow: /api/pricing"), true);
   assert.equal(robots.body.includes("Sitemap:"), true);
 
   const sitemap = await requestText("/sitemap.xml");
@@ -475,6 +518,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(sitemap.body.includes("<urlset"), true);
   assert.equal(sitemap.body.includes("/api</loc>"), true);
   assert.equal(sitemap.body.includes("/discovery"), true);
+  assert.equal(sitemap.body.includes("/api/pricing"), true);
   assert.equal(sitemap.body.includes("/api/agent-manifest"), true);
   assert.equal(sitemap.body.includes("/api/canary/echo"), true);
 });
@@ -573,6 +617,7 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
+  assert.equal(body.links.pricingApi.endsWith("/api/pricing"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.canaryEcho.endsWith("/api/canary/echo"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
@@ -584,6 +629,7 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.ok(body.useCaseTemplates.length >= 6);
   assert.ok(body.actionCatalog.templateCount >= 9);
   assert.equal(body.quickstart.path, "/api/quickstart");
+  assert.equal(body.pricing.path, "/api/pricing");
   assert.equal(body.policyCheck.path, "/api/policy/check");
   assert.equal(body.canary.path, "/api/canary/echo");
   assert.equal(body.handoff.path, "/api/handoff/browser");
@@ -615,6 +661,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/actions"), true);
   assert.equal(body.includes("/api/actions"), true);
   assert.equal(body.includes("/api/quickstart"), true);
+  assert.equal(body.includes("/api/pricing"), true);
   assert.equal(body.includes("/api/policy/check"), true);
   assert.equal(body.includes("/api/canary/echo"), true);
   assert.equal(body.includes("/api/snippets"), true);

@@ -169,6 +169,7 @@ export function publicBazaarMetadata() {
         "verifiable execution",
         "pay per API call",
         "Action402 action catalog",
+        "Action402 pricing API",
         "agent quickstart x402",
         "Action402 integration snippets",
         "x402 verification snippets",
@@ -196,6 +197,7 @@ export function publicBazaarMetadata() {
         "Canonical agent manifest is available through /api/agent-manifest and /.well-known/agent.json",
         "robots.txt and sitemap.xml advertise agent-facing entry points",
         "Machine-readable action catalog is available",
+        "Machine-readable pricing endpoint is available for buyer guardrails",
         "Compact quickstart endpoint is available",
         "Copy-paste integration snippets are available",
         "Free preflight policy check is available before payment",
@@ -244,6 +246,12 @@ export function publicBazaarMetadata() {
       path: "/api/quickstart",
       description:
         "Compact buyer flow for agents: minimal request, payment guardrails, snippets, and proof verification links."
+    },
+    pricing: {
+      path: "/api/pricing",
+      paid: false,
+      description:
+        "Machine-readable price, payment route, free surfaces, and buyer guardrails for budget-aware agents."
     },
     snippets: {
       path: "/api/snippets",
@@ -309,6 +317,7 @@ export function publicBazaarMetadata() {
       robots: `${config.publicBaseUrl}/robots.txt`,
       sitemap: `${config.publicBaseUrl}/sitemap.xml`,
       pricing: `${config.publicBaseUrl}/pricing`,
+      pricingApi: `${config.publicBaseUrl}/api/pricing`,
       onboarding: `${config.publicBaseUrl}/onboarding`,
       useCases: `${config.publicBaseUrl}/use-cases`,
       actions: `${config.publicBaseUrl}/actions`,

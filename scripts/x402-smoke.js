@@ -107,6 +107,7 @@ async function main() {
   const agentManifest = await checkJsonEndpoint("/api/agent-manifest");
   const wellKnownAgent = await checkJsonEndpoint("/.well-known/agent.json");
   const capabilities = await checkJsonEndpoint("/api/capabilities");
+  const pricing = await checkJsonEndpoint("/api/pricing");
   const actions = await checkJsonEndpoint("/api/actions");
   const quickstart = await checkJsonEndpoint("/api/quickstart");
   await checkPolicyEndpoint();
@@ -148,6 +149,7 @@ async function main() {
   if (apiIndex) {
     record("API index is published", apiIndex.service === "Action402");
     record("API index points to paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
+    record("API index points to pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
   }
 
   if (agentManifest) {
@@ -171,10 +173,18 @@ async function main() {
     record("Browser CORS policy is published", capabilities.browserAccess?.cors?.enabled === true);
     record("Cache policy is published", capabilities.cachePolicy?.dynamicCacheControl === "no-store");
     record("x402 payment headers are published", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
+    record("Pricing surface is published", capabilities.pricing?.path === "/api/pricing");
+  }
+
+  if (pricing) {
+    record("Pricing endpoint is published", pricing.payment?.route?.endsWith("/api/execute/webhook"));
+    record("Pricing endpoint matches health price", pricing.payment?.price?.display === health?.price);
+    record("Pricing endpoint exposes buyer guardrails", pricing.buyerGuardrails?.some((item) => item.includes("/api/policy/check")));
   }
 
   if (openapi) {
     record("OpenAPI API index path is published", Boolean(openapi.paths?.["/api"]?.get));
+    record("OpenAPI pricing path is published", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("OpenAPI cache policy is published", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("OpenAPI x402 security scheme is published", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(

@@ -14,6 +14,7 @@ Agent entry points:
 - https://action402.vercel.app/mcp - MCP and Bazaar discovery-first flow.
 - https://action402.vercel.app/trust - public trust summary.
 - https://action402.vercel.app/pricing - current price and free surfaces.
+- https://action402.vercel.app/api/pricing - machine-readable pricing and buyer guardrails.
 - https://action402.vercel.app/api/capabilities - machine-readable service contract.
 - https://action402.vercel.app/api/agent-manifest - canonical agent manifest.
 - https://action402.vercel.app/.well-known/agent.json - well-known agent manifest alias.
@@ -41,6 +42,7 @@ Agent entry points:
 - `GET /api/agent-manifest` - canonical machine-readable discovery manifest.
 - `GET /.well-known/agent.json` - well-known manifest alias for agents and crawlers.
 - `GET /api/quickstart` - compact agent quickstart with payment guardrails and verification flow.
+- `GET /api/pricing` - machine-readable price, payment route, free surfaces, limits, and buyer guardrails.
 - `POST /api/policy/check` - free pre-payment check for target safety, policy, retry, timeout, and warnings.
 - `POST /api/canary/echo` - free non-sensitive echo target for agent plumbing/self-tests.
 - `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
@@ -101,6 +103,7 @@ Useful public surfaces for discovery clients:
 
 - `GET /api/capabilities` - canonical agent-readable contract, use-case templates, safety limits, and MCP hints.
 - `GET /api/quickstart` - shortest safe call flow for agents.
+- `GET /api/pricing` - exact price/network/payTo plus buyer guardrails before payment.
 - `POST /api/policy/check` - preflight the same payload before paying for execution.
 - `POST /api/canary/echo` - safe internal target for non-sensitive self-tests; it does not create a paid receipt.
 - `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
@@ -188,9 +191,9 @@ After starting an x402-enabled server, run:
 npm run smoke:x402 -- http://127.0.0.1:4021
 ```
 
-The smoke script checks `/health`, `/api/capabilities`, `/api/bazaar`, `/openapi.json`, agent discovery fields, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, public trust/proof surfaces, and proof badge routing.
+The smoke script checks `/health`, `/api/capabilities`, `/api/pricing`, `/api/bazaar`, `/openapi.json`, agent discovery fields, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, public trust/proof surfaces, and proof badge routing.
 
-Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/bazaar`, `/api/actions`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
+Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, `/api/bazaar`, `/api/actions`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
 
 ## Agent discovery
 
@@ -202,6 +205,7 @@ Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 - `GET /.well-known/agent.json` - well-known alias for the same manifest.
 - `GET /api/capabilities` - action schema, x402 settings, safety limits, verification links, discovery keywords, and MCP hints.
 - `GET /api/quickstart` - minimal request, payment guardrails, copy-paste snippets, and proof verification links.
+- `GET /api/pricing` - machine-readable price, payment route, free surfaces, limits, and buyer guardrails.
 - `POST /api/policy/check` - free pre-payment validation of the intended execution payload.
 - `POST /api/canary/echo` - free redacted echo target for route and JSON plumbing checks.
 - `GET /api/snippets` - dedicated copy-paste discovery, paid call, verification, and buyer policy examples.

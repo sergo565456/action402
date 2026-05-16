@@ -47,7 +47,7 @@ function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
             id: "metadata-fetch",
             title: "Direct metadata fetch",
             language: "bash",
-            code: `curl ${baseUrl}/api/quickstart\ncurl ${baseUrl}/api/actions\ncurl ${baseUrl}/api/bazaar`
+            code: `curl ${baseUrl}/api/quickstart\ncurl ${baseUrl}/api/pricing\ncurl ${baseUrl}/api/actions\ncurl ${baseUrl}/api/bazaar`
           }
         ]
       },
@@ -149,6 +149,7 @@ function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
     ],
     links: {
       quickstart: `${baseUrl}/api/quickstart`,
+      pricing: `${baseUrl}/api/pricing`,
       policyCheck: `${baseUrl}/api/policy/check`,
       handoff: `${baseUrl}/api/handoff/capabilities`,
       schedulePreview: `${baseUrl}/api/schedules/preview`,

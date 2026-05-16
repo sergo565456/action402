@@ -549,7 +549,7 @@ function publicQuickstart({ baseUrl, price, x402Enabled, network, maxRetryAttemp
       timeoutMs: Math.min(10000, maxWebhookTimeoutMs)
     },
     callFlow: [
-      "Read /api/quickstart, /api/actions, or /api/capabilities.",
+      "Read /api/quickstart, /api/pricing, /api/actions, or /api/capabilities.",
       "Prepare POST /api/execute/webhook with url, method, body, idempotencyKey, retry, and timeoutMs.",
       "Optionally POST the same JSON to /api/policy/check to catch rejected targets before paying.",
       "If the first response is 402, verify price/network/payTo against buyer policy.",
@@ -586,6 +586,7 @@ function publicQuickstart({ baseUrl, price, x402Enabled, network, maxRetryAttemp
     },
     nextDiscoverySteps: [
       `${baseUrl}/api/actions`,
+      `${baseUrl}/api/pricing`,
       `${baseUrl}/api/handoff/capabilities`,
       `${baseUrl}/api/schedules/capabilities`,
       `${baseUrl}/api/secrets/policy`,

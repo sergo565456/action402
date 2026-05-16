@@ -121,7 +121,7 @@ async function checkCorsPreflight() {
 
 async function checkCachePolicy() {
   try {
-    const stablePaths = ["/api", "/api/capabilities", "/api/bazaar", "/openapi.json"];
+    const stablePaths = ["/api", "/api/capabilities", "/api/pricing", "/api/bazaar", "/openapi.json"];
     for (const path of stablePaths) {
       const { response } = await fetchText(path);
       record(`${path} uses short discovery cache`, hasShortDiscoveryCache(response));
@@ -169,6 +169,7 @@ async function main() {
   const wellKnownAction402 = await checkJson("/.well-known/action402.json");
   const wellKnownX402 = await checkJson("/.well-known/x402.json");
   const capabilities = await checkJson("/api/capabilities");
+  const pricing = await checkJson("/api/pricing");
   const actions = await checkJson("/api/actions");
   const quickstart = await checkJson("/api/quickstart");
   const policyCheck = await checkJson("/api/policy/check", {
@@ -260,6 +261,7 @@ async function main() {
   if (apiIndex) {
     record("api index exposes service", apiIndex.service === "Action402");
     record("api index exposes paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
+    record("api index exposes pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
     record("api index exposes free discovery", apiIndex.free?.discovery?.includes("/api/capabilities"));
     record("api index exposes verification", apiIndex.free?.verification?.includes("/api/verify/jobs/{id}"));
   }
@@ -298,6 +300,7 @@ async function main() {
       Array.isArray(capabilities.actionTemplates) && capabilities.actionTemplates.length >= 9
     );
     record("capabilities expose quickstart", capabilities.quickstart?.path === "/api/quickstart");
+    record("capabilities expose pricing", capabilities.pricing?.path === "/api/pricing");
     record("capabilities expose policy check", capabilities.policyCheck?.path === "/api/policy/check");
     record("capabilities expose canary echo", capabilities.canary?.path === "/api/canary/echo");
     record("capabilities expose snippets", capabilities.snippets?.path === "/api/snippets");
@@ -320,11 +323,13 @@ async function main() {
     record("agent manifest has schema", agentManifest.schemaVersion === "action402.agent-manifest.v1");
     record("agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
     record("agent manifest exposes API index", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api"));
+    record("agent manifest exposes pricing", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/pricing"));
     record("agent manifest exposes free surfaces", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/capabilities"));
   }
 
   if (openapi) {
     record("openapi exposes API index", Boolean(openapi.paths?.["/api"]?.get));
+    record("openapi exposes pricing", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("openapi exposes cache policy", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("openapi exposes x402 security scheme", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");
     record(
@@ -363,6 +368,13 @@ async function main() {
     record("quickstart endpoint exposes minimal request", quickstart.minimalRequest?.url === "https://httpbin.org/anything");
     record("quickstart endpoint exposes proof badge", quickstart.verify?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
     record("quickstart endpoint exposes call flow", Array.isArray(quickstart.callFlow) && quickstart.callFlow.length >= 5);
+  }
+
+  if (pricing) {
+    record("pricing endpoint exposes paid route", pricing.payment?.route?.endsWith("/api/execute/webhook"));
+    record("pricing endpoint exposes exact price", pricing.payment?.price?.display === health?.price);
+    record("pricing endpoint exposes free surfaces", pricing.freeSurfaces?.discovery?.includes("/api/capabilities"));
+    record("pricing endpoint exposes buyer guardrails", pricing.buyerGuardrails?.some((item) => item.includes("/api/policy/check")));
   }
 
   if (policyCheck) {
@@ -436,6 +448,7 @@ async function main() {
     record("bazaar metadata has sitemap link", typeof bazaar.links?.sitemap === "string");
     record("bazaar metadata has action catalog link", typeof bazaar.links?.actionCatalog === "string");
     record("bazaar metadata has quickstart link", typeof bazaar.links?.quickstart === "string");
+    record("bazaar metadata has pricing API link", typeof bazaar.links?.pricingApi === "string");
     record("bazaar metadata has policy check link", typeof bazaar.links?.policyCheck === "string");
     record("bazaar metadata has snippets link", typeof bazaar.links?.snippets === "string");
     record("bazaar metadata has handoff link", typeof bazaar.links?.handoffEndpoint === "string");

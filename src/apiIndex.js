@@ -16,6 +16,7 @@ export function publicApiIndex() {
       "Agent-readable API index for Action402 paid x402 webhook/API execution, discovery, policy checks, and receipt verification.",
     recommendedStart: [
       "/api/quickstart",
+      "/api/pricing",
       "/api/capabilities",
       "/api/actions",
       "/api/bazaar",
@@ -39,6 +40,7 @@ export function publicApiIndex() {
         "/api/agent-manifest",
         "/.well-known/agent.json",
         "/api/capabilities",
+        "/api/pricing",
         "/api/actions",
         "/api/quickstart",
         "/api/bazaar",
@@ -74,6 +76,7 @@ export function publicApiIndex() {
       self: absoluteUrl("/api"),
       executeWebhook: absoluteUrl("/api/execute/webhook"),
       capabilities: absoluteUrl("/api/capabilities"),
+      pricing: absoluteUrl("/api/pricing"),
       agentManifest: absoluteUrl("/api/agent-manifest"),
       wellKnownAgent: absoluteUrl("/.well-known/agent.json"),
       quickstart: absoluteUrl("/api/quickstart"),

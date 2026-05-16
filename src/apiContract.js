@@ -15,6 +15,7 @@ import {
 } from "./advancedActions.js";
 import { publicCorsPolicy } from "./cors.js";
 import { publicCachePolicy } from "./cachePolicy.js";
+import { publicPricing } from "./pricing.js";
 import { publicDiscoveryPack } from "./discoveryManifest.js";
 import { publicUseCaseTemplates } from "./useCases.js";
 
@@ -305,6 +306,31 @@ const quickstartResponseSchema = {
       type: "array",
       items: { type: "string" }
     }
+  }
+};
+
+const pricingResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "pricingModel", "payment", "paidActions", "freeSurfaces", "buyerGuardrails"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    version: { type: "string" },
+    generatedAt: { type: "string" },
+    pricingModel: { type: "string" },
+    summary: { type: "string" },
+    payment: { type: "object" },
+    paidActions: {
+      type: "array",
+      items: { type: "object" }
+    },
+    freeSurfaces: { type: "object" },
+    buyerGuardrails: {
+      type: "array",
+      items: { type: "string" }
+    },
+    limits: { type: "object" },
+    links: { type: "object" }
   }
 };
 
@@ -657,6 +683,7 @@ export function publicCapabilities() {
   const scheduleCapabilities = publicScheduleCapabilities({ baseUrl: config.publicBaseUrl });
   const secretStoragePolicy = publicSecretStoragePolicy({ baseUrl: config.publicBaseUrl });
   const discoveryPack = publicDiscoveryPack({ baseUrl: config.publicBaseUrl });
+  const pricing = publicPricing({ baseUrl: config.publicBaseUrl });
 
   return {
     name: "Action402",
@@ -684,6 +711,13 @@ export function publicCapabilities() {
     quickstart: {
       path: "/api/quickstart",
       description: "Compact agent quickstart with payment guardrails, minimal request, snippets, and verification flow."
+    },
+    pricing: {
+      path: "/api/pricing",
+      description:
+        "Machine-readable price, payment route, free surfaces, limits, and buyer guardrails for budget-aware agents.",
+      payment: pricing.payment,
+      paidActions: pricing.paidActions
     },
     snippets: {
       path: "/api/snippets",
@@ -813,7 +847,7 @@ export function publicCapabilities() {
     agentInstructions: {
       oneLine: AGENT_PROMPT,
       callFlow: [
-        "Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.",
+        "Read /api/quickstart, /api/pricing, /api/actions, /api/capabilities, or /openapi.json.",
         "Read /api/agent-manifest or /.well-known/agent.json for the canonical machine-readable discovery pack.",
         "Optionally POST the same payload to /api/policy/check before paying.",
         "Use /api/canary/echo only as a free non-sensitive target check; it does not create a paid receipt.",
@@ -822,7 +856,7 @@ export function publicCapabilities() {
         "Read /api/secrets/policy before sending target-side authorization headers.",
         "Use /api/snippets for copy-paste buyer and proof verification examples.",
         "Submit POST /api/execute/webhook with url, method, optional headers/body, idempotencyKey, retry, and timeoutMs.",
-        "In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.",
+        "In x402 mode, compare the 402 Payment Required response with /api/pricing, then satisfy it with an x402 buyer client.",
         "Read links.job or links.receipt from the response.",
         "Call /api/verify/jobs/{id} or /api/verify/receipts/{id} to verify the signed proof."
       ],
@@ -937,6 +971,7 @@ export function publicCapabilities() {
       apiIndex: `${config.publicBaseUrl}/api`,
       openapi: `${config.publicBaseUrl}/openapi.json`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
+      pricingApi: `${config.publicBaseUrl}/api/pricing`,
       discovery: `${config.publicBaseUrl}/discovery`,
       agentManifest: `${config.publicBaseUrl}/api/agent-manifest`,
       wellKnownAgent: `${config.publicBaseUrl}/.well-known/agent.json`,
@@ -1000,6 +1035,23 @@ export function openApiSpec() {
               content: {
                 "application/json": {
                   schema: apiIndexResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/pricing": {
+        get: {
+          summary: "Fetch machine-readable pricing",
+          description:
+            "Returns the current paid route, exact x402 price/network/payTo, free surfaces, limits, and buyer guardrails so agents can enforce spend policy before paying.",
+          responses: {
+            "200": {
+              description: "Agent-readable pricing and buyer guardrails",
+              content: {
+                "application/json": {
+                  schema: pricingResponseSchema
                 }
               }
             }
@@ -1645,6 +1697,7 @@ export function openApiSpec() {
         ActionTemplate: actionTemplateSchema,
         ActionCatalogResponse: actionCatalogResponseSchema,
         QuickstartResponse: quickstartResponseSchema,
+        PricingResponse: pricingResponseSchema,
         SnippetsResponse: snippetsResponseSchema,
         PolicyCheckResponse: policyCheckResponseSchema,
         BrowserHandoffRequest: browserHandoffRequestSchema,

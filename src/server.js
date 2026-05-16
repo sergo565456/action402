@@ -1,6 +1,7 @@
 import express from "express";
 import { config, assertProductionConfig, runtimeSummary } from "./config.js";
 import { publicApiIndex } from "./apiIndex.js";
+import { publicPricing } from "./pricing.js";
 import { publicActionCatalog, publicQuickstart } from "./actionCatalog.js";
 import {
   createBrowserHandoff,
@@ -114,6 +115,10 @@ app.get(["/api/agent-manifest", "/.well-known/agent.json", "/.well-known/action4
 
 app.get("/api/capabilities", (req, res) => {
   res.json(publicCapabilities());
+});
+
+app.get("/api/pricing", (req, res) => {
+  res.json(publicPricing());
 });
 
 app.get("/api/actions", (req, res) => {
@@ -486,6 +491,7 @@ app.all(
     "/api/bazaar",
     "/api/agent-manifest",
     "/api/capabilities",
+    "/api/pricing",
     "/api/actions",
     "/api/quickstart",
     "/api/snippets",
