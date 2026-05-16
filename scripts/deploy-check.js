@@ -352,10 +352,18 @@ async function main() {
   }
 
   if (openapi) {
+    const operations = Object.values(openapi.paths || {}).flatMap((pathItem) =>
+      Object.values(pathItem || {}).filter((operation) => operation && typeof operation === "object" && operation.operationId)
+    );
+    const operationIds = operations.map((operation) => operation.operationId);
+
     record("openapi exposes API index", Boolean(openapi.paths?.["/api"]?.get));
     record("openapi exposes pricing", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("openapi exposes MCP manifest", Boolean(openapi.paths?.["/api/mcp"]?.get));
     record("openapi exposes well-known MCP manifest", Boolean(openapi.paths?.["/.well-known/mcp.json"]?.get));
+    record("openapi exposes stable execute operationId", openapi.paths?.["/api/execute/webhook"]?.post?.operationId === "executeWebhook");
+    record("openapi exposes stable pricing operationId", openapi.paths?.["/api/pricing"]?.get?.operationId === "getPricing");
+    record("openapi operationIds are unique", operationIds.length >= 30 && operationIds.length === new Set(operationIds).size);
     record("openapi exposes cache policy", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("openapi exposes discovery header policy", openapi["x-action402-discovery-headers"]?.enabled === true);
     record("openapi exposes x402 security scheme", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");

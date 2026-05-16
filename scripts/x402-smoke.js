@@ -211,9 +211,16 @@ async function main() {
   }
 
   if (openapi) {
+    const operations = Object.values(openapi.paths || {}).flatMap((pathItem) =>
+      Object.values(pathItem || {}).filter((operation) => operation && typeof operation === "object" && operation.operationId)
+    );
+    const operationIds = operations.map((operation) => operation.operationId);
+
     record("OpenAPI API index path is published", Boolean(openapi.paths?.["/api"]?.get));
     record("OpenAPI pricing path is published", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("OpenAPI MCP manifest path is published", Boolean(openapi.paths?.["/api/mcp"]?.get));
+    record("OpenAPI execute operationId is stable", openapi.paths?.["/api/execute/webhook"]?.post?.operationId === "executeWebhook");
+    record("OpenAPI operationIds are unique", operationIds.length >= 30 && operationIds.length === new Set(operationIds).size);
     record("OpenAPI cache policy is published", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("OpenAPI discovery header policy is published", openapi["x-action402-discovery-headers"]?.enabled === true);
     record("OpenAPI x402 security scheme is published", openapi.components?.securitySchemes?.X402Payment?.name === "X-PAYMENT");

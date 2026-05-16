@@ -55,6 +55,7 @@ Discovery and contracts:
 - /api/capabilities - agent-readable service capabilities, safety limits, payment settings, verification links, and MCP/Bazaar discovery hints.
 - /api/bazaar - Bazaar metadata and x402 route config for POST /api/execute/webhook.
 - /openapi.json - OpenAPI 3.1 API contract.
+- OpenAPI operationIds are stable for tool mapping: executeWebhook, checkWebhookPolicy, getPricing, getMcpManifest, verifyJobReceipt, and related read-only discovery operations.
 - /robots.txt - crawler and agent discovery hints.
 - /sitemap.xml - sitemap including public pages and machine-readable agent surfaces.
 - /health - runtime health and x402 status.

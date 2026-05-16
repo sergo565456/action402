@@ -131,11 +131,19 @@ test("capabilities document exposes execute webhook action", async () => {
 
 test("openapi document exposes execute webhook path", async () => {
   const { response, body } = await request("/openapi.json");
+  const operations = Object.values(body.paths).flatMap((pathItem) =>
+    Object.values(pathItem).filter((operation) => operation && typeof operation === "object" && operation.operationId)
+  );
+  const operationIds = operations.map((operation) => operation.operationId);
 
   assert.equal(response.status, 200);
   assert.equal(body.openapi, "3.1.0");
   assert.ok(body.paths["/api"].get);
+  assert.equal(body.paths["/api"].get.operationId, "getApiIndex");
+  assert.equal(body.paths["/api/pricing"].get.operationId, "getPricing");
+  assert.equal(body.paths["/api/mcp"].get.operationId, "getMcpManifest");
   assert.ok(body.paths["/api/execute/webhook"].post);
+  assert.equal(body.paths["/api/execute/webhook"].post.operationId, "executeWebhook");
   assert.deepEqual(body.paths["/api/execute/webhook"].post.security, [{ X402Payment: [] }]);
   assert.ok(body.paths["/api/verify/jobs/{id}"].get);
   assert.ok(body.paths["/api/verify/receipts/{id}"].get);
@@ -161,6 +169,11 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/proof/{id}"].get);
   assert.ok(body.paths["/robots.txt"].get);
   assert.ok(body.paths["/sitemap.xml"].get);
+  assert.ok(operationIds.includes("checkWebhookPolicy"));
+  assert.ok(operationIds.includes("verifyJobReceipt"));
+  assert.ok(operationIds.includes("getBazaarMetadata"));
+  assert.equal(operationIds.length, new Set(operationIds).size);
+  assert.equal(operationIds.length >= 30, true);
   assert.equal(body["x-action402-cors"].enabled, true);
   assert.ok(body["x-action402-cors"].exposedHeaders.includes("payment-response"));
   assert.ok(body["x-action402-cache"].stableDiscoveryCacheControl.includes("s-maxage=300"));

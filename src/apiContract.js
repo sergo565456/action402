@@ -1078,6 +1078,7 @@ export function openApiSpec() {
     paths: {
       "/api": {
         get: {
+          operationId: "getApiIndex",
           summary: "Fetch compact API index",
           description:
             "Returns a compact machine-readable map of paid action, free discovery, preflight, verification, trust, and browser-access endpoints for agents that start at the API root.",
@@ -1095,6 +1096,7 @@ export function openApiSpec() {
       },
       "/api/pricing": {
         get: {
+          operationId: "getPricing",
           summary: "Fetch machine-readable pricing",
           description:
             "Returns the current paid route, exact x402 price/network/payTo, free surfaces, limits, and buyer guardrails so agents can enforce spend policy before paying.",
@@ -1112,6 +1114,7 @@ export function openApiSpec() {
       },
       "/api/mcp": {
         get: {
+          operationId: "getMcpManifest",
           summary: "Fetch MCP wrapper manifest",
           description:
             "Returns a machine-readable manifest for agents or developers mapping Action402 HTTP/x402 routes into local MCP tools. This is a manifest, not a hosted MCP server.",
@@ -1129,6 +1132,7 @@ export function openApiSpec() {
       },
       "/api/execute/webhook": {
         post: {
+          operationId: "executeWebhook",
           summary: "Execute one paid webhook/API action",
           description:
             "Protected by x402 when X402_ENABLED=true. Executes one outbound HTTPS request and returns a signed receipt.",
@@ -1203,6 +1207,7 @@ export function openApiSpec() {
       },
       "/api/jobs/{id}": {
         get: {
+          operationId: "getJob",
           summary: "Fetch job status",
           parameters: [
             {
@@ -1227,6 +1232,7 @@ export function openApiSpec() {
       },
       "/api/receipts/{id}": {
         get: {
+          operationId: "getReceipt",
           summary: "Fetch and verify receipt",
           parameters: [
             {
@@ -1251,6 +1257,7 @@ export function openApiSpec() {
       },
       "/api/verify/jobs/{id}": {
         get: {
+          operationId: "verifyJobReceipt",
           summary: "Verify job and receipt consistency",
           description:
             "Returns an agent-readable proof report covering receipt signature validity plus consistency between the stored job and its linked receipt.",
@@ -1292,6 +1299,7 @@ export function openApiSpec() {
       },
       "/api/verify/receipts/{id}": {
         get: {
+          operationId: "verifyReceipt",
           summary: "Verify receipt proof report",
           description:
             "Returns receipt signature checks and, when the linked job is still retained, full job/receipt consistency checks.",
@@ -1325,6 +1333,7 @@ export function openApiSpec() {
       },
       "/api/proofs/recent": {
         get: {
+          operationId: "listRecentProofs",
           summary: "Fetch recent public verified proof examples",
           description:
             "Returns recent verified proof summaries with sensitive target, header, body, hash, and signature details redacted.",
@@ -1361,6 +1370,7 @@ export function openApiSpec() {
       },
       "/api/monitoring/executions": {
         get: {
+          operationId: "getExecutionMonitoring",
           summary: "Fetch execution monitoring summary",
           description:
             "Returns durable execution counters, recent failure summaries, and process-level request metrics.",
@@ -1386,6 +1396,7 @@ export function openApiSpec() {
       },
       "/api/trust": {
         get: {
+          operationId: "getTrustSummary",
           summary: "Fetch public trust summary",
           description:
             "Returns redacted public trust signals for agents evaluating whether to use the paid execution route.",
@@ -1403,6 +1414,7 @@ export function openApiSpec() {
       },
       "/api/actions": {
         get: {
+          operationId: "getActionCatalog",
           summary: "Fetch machine-readable action catalog",
           description:
             "Returns ready action templates, policy modes, buyer snippets, discovery keywords, and the safe scheduled-action design pattern.",
@@ -1420,6 +1432,7 @@ export function openApiSpec() {
       },
       "/api/quickstart": {
         get: {
+          operationId: "getQuickstart",
           summary: "Fetch compact agent quickstart",
           description:
             "Returns the shortest integration flow for agents: payment guardrails, minimal request, snippets, and proof verification links.",
@@ -1437,6 +1450,7 @@ export function openApiSpec() {
       },
       "/api/snippets": {
         get: {
+          operationId: "getSnippets",
           summary: "Fetch integration snippets",
           description:
             "Returns copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.",
@@ -1454,6 +1468,7 @@ export function openApiSpec() {
       },
       "/api/agent-manifest": {
         get: {
+          operationId: "getAgentManifest",
           summary: "Fetch canonical agent discovery manifest",
           description:
             "Returns the machine-readable discovery pack for agents, crawlers, Bazaar/MCP clients, and directories.",
@@ -1471,6 +1486,7 @@ export function openApiSpec() {
       },
       "/.well-known/agent.json": {
         get: {
+          operationId: "getWellKnownAgentManifest",
           summary: "Fetch well-known agent manifest",
           description:
             "Well-known alias for the canonical Action402 agent discovery manifest.",
@@ -1488,6 +1504,7 @@ export function openApiSpec() {
       },
       "/.well-known/mcp.json": {
         get: {
+          operationId: "getWellKnownMcpManifest",
           summary: "Fetch well-known MCP wrapper manifest",
           description:
             "Well-known alias for the Action402 MCP wrapper manifest. This is a manifest, not a hosted MCP server.",
@@ -1505,6 +1522,7 @@ export function openApiSpec() {
       },
       "/api/policy/check": {
         post: {
+          operationId: "checkWebhookPolicy",
           summary: "Preflight check a webhook execution request",
           description:
             "Free pre-payment check for request shape, method, target safety, target policy, retry, timeout, and buyer warnings. It does not execute the target and does not consume target quota.",
@@ -1538,6 +1556,7 @@ export function openApiSpec() {
       },
       "/api/canary/echo": {
         get: {
+          operationId: "getCanaryEcho",
           summary: "Fetch canary echo metadata",
           description:
             "Free non-sensitive self-test target metadata. GET returns the same redacted response shape with no accepted payload fields.",
@@ -1553,6 +1572,7 @@ export function openApiSpec() {
           }
         },
         post: {
+          operationId: "postCanaryEcho",
           summary: "Echo whitelisted canary fields",
           description:
             "Free non-sensitive self-test target. It echoes only whitelisted scalar canary fields and does not create a paid execution receipt.",
@@ -1588,6 +1608,7 @@ export function openApiSpec() {
       },
       "/api/handoff/capabilities": {
         get: {
+          operationId: "getHandoffCapabilities",
           summary: "Fetch browser handoff capabilities",
           description:
             "Returns the free browser/action handoff contract. The public MVP creates handoff packages only and does not execute browser automation.",
@@ -1600,6 +1621,7 @@ export function openApiSpec() {
       },
       "/api/handoff/browser": {
         post: {
+          operationId: "createBrowserHandoff",
           summary: "Create a browser/action handoff package",
           description:
             "Creates a structured package for an external browser-capable agent. This route is free and does not execute browser steps.",
@@ -1633,6 +1655,7 @@ export function openApiSpec() {
       },
       "/api/schedules/capabilities": {
         get: {
+          operationId: "getScheduleCapabilities",
           summary: "Fetch schedule preview capabilities",
           description:
             "Returns schedule preview capability metadata. Durable paid scheduling is intentionally not active yet.",
@@ -1645,6 +1668,7 @@ export function openApiSpec() {
       },
       "/api/schedules/preview": {
         post: {
+          operationId: "previewSchedule",
           summary: "Preview a future scheduled webhook",
           description:
             "Validates schedule shape and webhook target policy without charging, storing, waking up, or executing.",
@@ -1678,6 +1702,7 @@ export function openApiSpec() {
       },
       "/api/secrets/policy": {
         get: {
+          operationId: "getSecretPolicy",
           summary: "Fetch public secret storage policy",
           description:
             "Explains why the public MVP does not store target-side secrets and lists safe alternatives for authenticated targets.",
@@ -1695,6 +1720,7 @@ export function openApiSpec() {
       },
       "/api/capabilities": {
         get: {
+          operationId: "getCapabilities",
           summary: "Fetch agent-readable service capabilities",
           responses: {
             "200": {
@@ -1705,6 +1731,7 @@ export function openApiSpec() {
       },
       "/api/bazaar": {
         get: {
+          operationId: "getBazaarMetadata",
           summary: "Fetch Bazaar metadata",
           responses: {
             "200": {
@@ -1715,6 +1742,7 @@ export function openApiSpec() {
       },
       "/robots.txt": {
         get: {
+          operationId: "getRobotsTxt",
           summary: "Fetch robots.txt with agent discovery hints",
           responses: {
             "200": {
@@ -1725,6 +1753,7 @@ export function openApiSpec() {
       },
       "/sitemap.xml": {
         get: {
+          operationId: "getSitemapXml",
           summary: "Fetch sitemap including agent-facing surfaces",
           responses: {
             "200": {
@@ -1735,6 +1764,7 @@ export function openApiSpec() {
       },
       "/proof/{id}": {
         get: {
+          operationId: "renderProofBadge",
           summary: "Render public proof badge page",
           description:
             "Browser-friendly proof page for a job id or receipt id. The page fetches the verification API client-side.",
@@ -1755,6 +1785,7 @@ export function openApiSpec() {
       },
       "/health": {
         get: {
+          operationId: "getHealth",
           summary: "Health check",
           responses: {
             "200": {

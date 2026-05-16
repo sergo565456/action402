@@ -200,6 +200,8 @@ Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, 
 
 Agent-facing pages and machine-readable discovery endpoints also publish HTTP discovery headers: `X-Action402-Agent-Entry: /api` and a `Link` header pointing to the API index, agent manifest, OpenAPI, `llms.txt`, pricing, MCP manifest, and Bazaar metadata.
 
+OpenAPI operations include stable `operationId` values such as `executeWebhook`, `checkWebhookPolicy`, `getPricing`, and `getMcpManifest` so client generators and agent tool mappers can keep deterministic tool names.
+
 ## Agent discovery
 
 Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
