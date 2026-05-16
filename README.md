@@ -14,6 +14,7 @@ Agent entry points:
 - https://action402.vercel.app/mcp - MCP and Bazaar discovery-first flow.
 - https://action402.vercel.app/api/mcp - machine-readable MCP wrapper manifest.
 - https://action402.vercel.app/trust - public trust summary.
+- https://action402.vercel.app/status - live runtime status backed by `/health`.
 - https://action402.vercel.app/pricing - current price and free surfaces.
 - https://action402.vercel.app/api/pricing - machine-readable pricing and buyer guardrails.
 - https://action402.vercel.app/api/capabilities - machine-readable service contract.
@@ -40,6 +41,7 @@ Agent entry points:
 - `GET /api/proofs/recent` - redacted public verified proof examples.
 - `GET /api/monitoring/executions` - durable execution counters and recent failure categories.
 - `GET /api/trust` - redacted public trust summary for buyer-side inspection.
+- `/status` - browser-friendly runtime status page backed by `GET /health`.
 - `GET /api/agent-manifest` - canonical machine-readable discovery manifest.
 - `GET /.well-known/agent.json` - well-known manifest alias for agents and crawlers.
 - `GET /api/quickstart` - compact agent quickstart with payment guardrails and verification flow.
@@ -61,6 +63,7 @@ Agent entry points:
 - `/use-cases` - task templates for agent discovery.
 - `/mcp` - MCP/Bazaar discovery guide.
 - `/trust` - browser-readable trust summary.
+- `/status` - browser-readable live runtime status.
 - Landing page served from `/`.
 - Demo console served from `/demo.html`.
 

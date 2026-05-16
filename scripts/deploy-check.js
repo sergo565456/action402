@@ -173,6 +173,7 @@ async function main() {
   await checkStatic("/secrets", "Secret storage policy");
   await checkStatic("/mcp", "Discovery-first instructions");
   await checkStatic("/trust", "Trust summary");
+  await checkStatic("/status", "Runtime checks");
   await checkStatic("/proofs", "Verified proof examples");
   await checkStatic("/proof/job_deploy_check_missing", "Proof badge");
   await checkStatic("/monitoring", "Execution monitoring");
@@ -337,6 +338,7 @@ async function main() {
     record("capabilities expose proof badge", capabilities.verification?.proofBadge === "/proof/{jobOrReceiptId}");
     record("capabilities expose MCP guide link", typeof capabilities.links?.mcpGuide === "string");
     record("capabilities expose trust summary", capabilities.trust?.path === "/api/trust");
+    record("capabilities expose status page", capabilities.statusPage?.path === "/status");
     if (expectX402) {
       record("capabilities mark action paid", capabilities.actions?.[0]?.paid === true);
     }
@@ -349,6 +351,7 @@ async function main() {
     record("agent manifest exposes pricing", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/pricing"));
     record("agent manifest exposes MCP manifest", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/mcp"));
     record("agent manifest exposes free surfaces", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/capabilities"));
+    record("agent manifest exposes status page", agentManifest.browserPages?.some((page) => page.path === "/status"));
   }
 
   if (openapi) {
@@ -506,6 +509,7 @@ async function main() {
     record("bazaar metadata has secret policy link", typeof bazaar.links?.secretPolicy === "string");
     record("bazaar metadata has proof badge link", typeof bazaar.links?.proofBadge === "string");
     record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
+    record("bazaar metadata has status link", typeof bazaar.links?.status === "string");
     record("bazaar metadata has use-case link", typeof bazaar.links?.useCases === "string");
     record(
       "bazaar metadata has use-case templates",
@@ -553,6 +557,7 @@ async function main() {
     record("trust endpoint exposes schedule preview surface", typeof trust.publicSurfaces?.schedulePreview === "string");
     record("trust endpoint exposes secret policy surface", typeof trust.publicSurfaces?.secretPolicy === "string");
     record("trust endpoint exposes trust signals", Array.isArray(trust.trustSignals) && trust.trustSignals.length >= 6);
+    record("trust endpoint exposes status surface", typeof trust.publicSurfaces?.status === "string");
   }
 
   if (apiNotFound.body) {

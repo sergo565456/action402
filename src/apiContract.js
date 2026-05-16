@@ -949,6 +949,12 @@ export function publicCapabilities() {
       description:
         "Public trust summary combining x402 settings, storage durability, execution counters, proof example counts, and redaction policy."
     },
+    statusPage: {
+      path: "/status",
+      rawHealthPath: "/health",
+      description:
+        "Browser-friendly runtime status page backed by the raw /health endpoint for operators and human reviewers."
+    },
     mcp: {
       recommendedToolName: "execute_webhook",
       discoveryQueries: [
@@ -1050,6 +1056,7 @@ export function publicCapabilities() {
       useCases: `${config.publicBaseUrl}/use-cases`,
       mcpGuide: `${config.publicBaseUrl}/mcp`,
       trust: `${config.publicBaseUrl}/trust`,
+      status: `${config.publicBaseUrl}/status`,
       proofs: `${config.publicBaseUrl}/proofs`,
       proofBadge: `${config.publicBaseUrl}/proof/{jobOrReceiptId}`,
       monitoring: `${config.publicBaseUrl}/monitoring`,

@@ -17,6 +17,7 @@ const PUBLIC_PAGES = [
   { path: "/secrets", priority: "0.75", changefreq: "monthly" },
   { path: "/mcp", priority: "0.8", changefreq: "weekly" },
   { path: "/trust", priority: "0.8", changefreq: "daily" },
+  { path: "/status", priority: "0.75", changefreq: "daily" },
   { path: "/proofs", priority: "0.75", changefreq: "daily" },
   { path: "/monitoring", priority: "0.65", changefreq: "daily" },
   { path: "/demo.html", priority: "0.55", changefreq: "monthly" },
@@ -90,6 +91,7 @@ function discoveryLinks(baseUrl) {
     snippets: absoluteUrl("/api/snippets", baseUrl),
     canaryEcho: absoluteUrl("/api/canary/echo", baseUrl),
     trust: absoluteUrl("/api/trust", baseUrl),
+    statusPage: absoluteUrl("/status", baseUrl),
     robots: absoluteUrl("/robots.txt", baseUrl),
     sitemap: absoluteUrl("/sitemap.xml", baseUrl)
   };
@@ -210,6 +212,7 @@ export function robotsTxt({ baseUrl = config.publicBaseUrl } = {}) {
   return [
     "User-agent: *",
     "Allow: /",
+    "Allow: /status",
     "Allow: /api",
     "Allow: /llms.txt",
     "Allow: /api/agent-manifest",

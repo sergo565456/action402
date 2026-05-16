@@ -330,6 +330,7 @@ export function publicBazaarMetadata() {
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
       mcpGuide: `${config.publicBaseUrl}/mcp`,
       trust: `${config.publicBaseUrl}/trust`,
+      status: `${config.publicBaseUrl}/status`,
       proofs: `${config.publicBaseUrl}/proofs`,
       proofBadge: `${config.publicBaseUrl}/proof/{jobOrReceiptId}`,
       monitoring: `${config.publicBaseUrl}/monitoring`,

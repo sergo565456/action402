@@ -75,7 +75,9 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.equal(body.links.trust.endsWith("/trust"), true);
+  assert.equal(body.links.status.endsWith("/status"), true);
   assert.equal(body.trust.path, "/api/trust");
+  assert.equal(body.statusPage.path, "/status");
   assert.equal(body.discoveryPack.status, "active");
   assert.equal(body.discoveryPack.apiIndex.endsWith("/api"), true);
   assert.equal(body.discoveryPack.agentManifest.endsWith("/api/agent-manifest"), true);
@@ -562,6 +564,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/mcp"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/.well-known/mcp.json"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/canary/echo"));
+  assert.ok(manifest.body.browserPages.some((page) => page.path === "/status"));
   assert.ok(manifest.body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
 
   const wellKnownAgent = await request("/.well-known/agent.json");
@@ -584,6 +587,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   const robots = await requestText("/robots.txt");
   assert.equal(robots.response.status, 200);
   assert.equal(robots.body.includes("Allow: /api"), true);
+  assert.equal(robots.body.includes("Allow: /status"), true);
   assert.equal(robots.body.includes("Allow: /api/agent-manifest"), true);
   assert.equal(robots.body.includes("Allow: /api/pricing"), true);
   assert.equal(robots.body.includes("Allow: /api/mcp"), true);
@@ -595,6 +599,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(sitemap.body.includes("<urlset"), true);
   assert.equal(sitemap.body.includes("/api</loc>"), true);
   assert.equal(sitemap.body.includes("/discovery"), true);
+  assert.equal(sitemap.body.includes("/status"), true);
   assert.equal(sitemap.body.includes("/api/pricing"), true);
   assert.equal(sitemap.body.includes("/api/mcp"), true);
   assert.equal(sitemap.body.includes("/.well-known/mcp.json"), true);
@@ -757,6 +762,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/api/secrets/policy"), true);
   assert.equal(body.includes("/mcp"), true);
   assert.equal(body.includes("/api/trust"), true);
+  assert.equal(body.includes("/status"), true);
   assert.equal(body.includes("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.includes("pay per API call"), true);
   assert.equal(body.includes("Action402 action catalog"), true);
@@ -778,6 +784,7 @@ test("public product pages load", async () => {
     ["/secrets", "Secret storage policy"],
     ["/mcp", "Discovery-first instructions"],
     ["/trust", "Trust summary"],
+    ["/status", "Runtime checks"],
     ["/proofs", "Verified proof examples"],
     ["/proof/job_test_missing", "Proof badge"],
     ["/monitoring", "Execution monitoring"]
@@ -795,6 +802,7 @@ test("vercel rewrites expose extensionless product pages", () => {
   const rewrites = new Map(vercelConfig.rewrites.map((rewrite) => [rewrite.source, rewrite.destination]));
 
   assert.equal(rewrites.get("/handoff"), "/handoff.html");
+  assert.equal(rewrites.get("/status"), "/status.html");
   assert.equal(rewrites.get("/discovery"), "/discovery.html");
   assert.equal(rewrites.get("/schedules"), "/schedules.html");
   assert.equal(rewrites.get("/secrets"), "/secrets.html");
@@ -1055,6 +1063,7 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.publicSurfaces.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.publicSurfaces.useCases.endsWith("/use-cases"), true);
   assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
+  assert.equal(body.publicSurfaces.status.endsWith("/status"), true);
   assert.equal(body.trustSignals.includes("public action catalog and quickstart endpoints"), true);
   assert.equal(body.trustSignals.includes("canonical agent manifest and well-known discovery aliases"), true);
   assert.equal(body.trustSignals.includes("robots.txt and sitemap.xml expose agent entry points"), true);

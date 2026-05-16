@@ -31,13 +31,14 @@
       <section class="hero">
         <div>
           <p class="eyebrow">Service status</p>
-          <h1>Action402 is running in demo mode locally.</h1>
+          <h1 id="status-title">Action402 runtime status.</h1>
           <p>
-            This browser page mirrors the local health check in a clickable format. Programmatic
-            clients can still call the raw JSON endpoint directly.
+            This browser page mirrors the live health check in a clickable format. Programmatic
+            clients and agents should use the raw JSON endpoint directly.
           </p>
           <div class="actions">
             <a class="button primary" href="/demo">Open Demo Console</a>
+            <a class="button secondary" href="/health">Raw Health JSON</a>
             <a class="button secondary" href="/capabilities">Capabilities</a>
             <a class="button secondary" href="/trust">Trust Summary</a>
           </div>
@@ -50,11 +51,19 @@
             </div>
             <div>
               <dt>status</dt>
-              <dd>ok</dd>
+              <dd data-status-field="status">loading</dd>
             </div>
             <div>
               <dt>x402 mode</dt>
-              <dd>demo</dd>
+              <dd data-status-field="mode">loading</dd>
+            </div>
+            <div>
+              <dt>network</dt>
+              <dd data-status-field="network">loading</dd>
+            </div>
+            <div>
+              <dt>store</dt>
+              <dd data-status-field="store">loading</dd>
             </div>
             <div>
               <dt>raw endpoint</dt>
@@ -66,11 +75,11 @@
 
       <section class="content-band">
         <div class="content-copy">
-          <p class="eyebrow">Local runtime</p>
-          <h2>Use the demo console for live checks.</h2>
+          <p class="eyebrow">Runtime checks</p>
+          <h2>Use health, trust, and monitoring before paying.</h2>
           <p>
-            The demo console fetches health and capability JSON internally, then lets you run a paid
-            action simulation and a safety-block check.
+            The public status surface gives humans a quick view while agents can inspect
+            machine-readable health, trust, and monitoring endpoints before making a paid call.
           </p>
         </div>
         <div class="endpoint-list">
@@ -80,9 +89,14 @@
             <p>Returns service name, x402 mode, network, store, and rate-limit status.</p>
           </article>
           <article class="endpoint">
-            <span>interactive</span>
-            <h3>GET /demo</h3>
-            <p>Runs the browser-friendly local test console.</p>
+            <span>trust</span>
+            <h3>GET /api/trust</h3>
+            <p>Returns public buyer signals, storage status, proof counts, and redaction policy.</p>
+          </article>
+          <article class="endpoint">
+            <span>monitoring</span>
+            <h3>GET /api/monitoring/executions</h3>
+            <p>Returns durable execution counters and recent redacted failure categories.</p>
           </article>
         </div>
       </section>
@@ -92,5 +106,6 @@
       <span>Action402</span>
       <span>Raw API path: /health</span>
     </footer>
+    <script src="/status.js" type="module"></script>
   </body>
 </html>

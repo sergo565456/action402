@@ -171,6 +171,7 @@ async function main() {
   if (agentManifest) {
     record("Agent manifest is published", agentManifest.schemaVersion === "action402.agent-manifest.v1");
     record("Agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
+    record("Agent manifest exposes status page", agentManifest.browserPages?.some((page) => page.path === "/status"));
   }
 
   if (wellKnownAgent) {
@@ -192,6 +193,7 @@ async function main() {
     record("x402 payment headers are published", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
     record("Pricing surface is published", capabilities.pricing?.path === "/api/pricing");
     record("MCP manifest surface is published", capabilities.mcpManifest?.path === "/api/mcp");
+    record("Status page surface is published", capabilities.statusPage?.path === "/status");
   }
 
   if (pricing) {
