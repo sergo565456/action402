@@ -155,6 +155,8 @@ npm run db:migrate -- mainnet
 
 `privacy:check` fails if local paid settlement automation, wallet-adjacent files, `data/`, or settlement workflow files are tracked by Git.
 
+GitHub CI runs the same privacy guard plus the test suite on pushes and pull requests. It does not run paid checks, does not use secrets, and does not restore AgentCash wallets.
+
 See `docs/deployment.md` for the Vercel deployment flow.
 
 After creating a demo job, verify its proof report:
