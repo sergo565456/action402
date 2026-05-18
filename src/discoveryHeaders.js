@@ -8,6 +8,7 @@ const DISCOVERY_HEADER_PATHS = [
   "/snippets",
   "/api",
   "/api/",
+  "/api/discovery",
   "/api/agent-manifest",
   "/.well-known/agent.json",
   "/.well-known/mcp.json",
@@ -28,6 +29,12 @@ const DISCOVERY_LINKS = [
     rel: "index",
     type: "application/json",
     title: "Action402 API index"
+  },
+  {
+    path: "/api/discovery",
+    rel: "service-meta",
+    type: "application/json",
+    title: "Action402 discovery pack"
   },
   {
     path: "/api/agent-manifest",

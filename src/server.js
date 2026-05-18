@@ -14,7 +14,7 @@ import {
 import { publicBazaarMetadata } from "./bazaar.js";
 import { createCanaryEcho } from "./canary.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
-import { publicAgentManifest, robotsTxt, sitemapXml } from "./discoveryManifest.js";
+import { publicAgentManifest, publicDiscoveryPack, robotsTxt, sitemapXml } from "./discoveryManifest.js";
 import { publicIntegrationSnippets } from "./snippets.js";
 import { executeWebhookAction, preflightWebhookAction } from "./webhook.js";
 import { executionStats, getJob, getReceipt, initStore, listRecentJobs, storeStats } from "./store.js";
@@ -106,6 +106,10 @@ app.get("/health", async (req, res, next) => {
 
 app.get(["/api", "/api/"], (req, res) => {
   res.json(publicApiIndex());
+});
+
+app.get("/api/discovery", (req, res) => {
+  res.json(publicDiscoveryPack({ baseUrl: config.publicBaseUrl }));
 });
 
 app.get("/api/bazaar", (req, res) => {
@@ -495,6 +499,7 @@ app.all(
   [
     "/api",
     "/api/",
+    "/api/discovery",
     "/api/bazaar",
     "/api/agent-manifest",
     "/api/mcp",

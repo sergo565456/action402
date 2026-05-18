@@ -26,6 +26,7 @@ const PUBLIC_PAGES = [
 
 const MACHINE_SURFACES = [
   "/api",
+  "/api/discovery",
   "/api/agent-manifest",
   "/.well-known/agent.json",
   "/.well-known/action402.json",
@@ -74,6 +75,7 @@ function discoveryLinks(baseUrl) {
   return {
     homepage: absoluteUrl("/", baseUrl),
     discoveryPage: absoluteUrl("/discovery", baseUrl),
+    discoveryApi: absoluteUrl("/api/discovery", baseUrl),
     apiIndex: absoluteUrl("/api", baseUrl),
     apiManifest: absoluteUrl("/api/agent-manifest", baseUrl),
     wellKnownAgent: absoluteUrl("/.well-known/agent.json", baseUrl),
@@ -101,9 +103,19 @@ export function publicDiscoveryPack({ baseUrl = config.publicBaseUrl } = {}) {
   const links = discoveryLinks(baseUrl);
 
   return {
+    service: "Action402",
+    schemaVersion: "action402.discovery.v1",
     status: "active",
     description:
       "Canonical discovery pack for agents, crawlers, Bazaar/MCP clients, and directories that need to inspect Action402 before paying.",
+    recommendedFetchOrder: [
+      links.apiIndex,
+      links.discoveryApi,
+      links.apiManifest,
+      links.pricing,
+      links.openapi,
+      links.bazaar
+    ],
     agentManifest: links.apiManifest,
     wellKnown: [links.wellKnownAgent, links.wellKnownAction402, links.wellKnownX402, links.wellKnownMcp],
     textContext: links.llms,
@@ -114,7 +126,9 @@ export function publicDiscoveryPack({ baseUrl = config.publicBaseUrl } = {}) {
     robots: links.robots,
     sitemap: links.sitemap,
     discoveryPage: links.discoveryPage,
-    apiIndex: links.apiIndex
+    discoveryApi: links.discoveryApi,
+    apiIndex: links.apiIndex,
+    links
   };
 }
 
@@ -214,6 +228,7 @@ export function robotsTxt({ baseUrl = config.publicBaseUrl } = {}) {
     "Allow: /",
     "Allow: /status",
     "Allow: /api",
+    "Allow: /api/discovery",
     "Allow: /llms.txt",
     "Allow: /api/agent-manifest",
     "Allow: /.well-known/agent.json",

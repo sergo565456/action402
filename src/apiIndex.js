@@ -16,6 +16,7 @@ export function publicApiIndex() {
     purpose:
       "Agent-readable API index for Action402 paid x402 webhook/API execution, discovery, policy checks, and receipt verification.",
     recommendedStart: [
+      "/api/discovery",
       "/api/quickstart",
       "/api/pricing",
       "/api/mcp",
@@ -39,6 +40,7 @@ export function publicApiIndex() {
     free: {
       discovery: [
         "/api",
+        "/api/discovery",
         "/api/agent-manifest",
         "/.well-known/agent.json",
         "/.well-known/mcp.json",
@@ -79,6 +81,7 @@ export function publicApiIndex() {
     discoveryHeaders: publicDiscoveryHeaderPolicy(),
     links: {
       self: absoluteUrl("/api"),
+      discovery: absoluteUrl("/api/discovery"),
       executeWebhook: absoluteUrl("/api/execute/webhook"),
       capabilities: absoluteUrl("/api/capabilities"),
       pricing: absoluteUrl("/api/pricing"),

@@ -617,6 +617,37 @@ const apiIndexResponseSchema = {
   }
 };
 
+const discoveryPackSchema = {
+  type: "object",
+  required: ["service", "schemaVersion", "status", "recommendedFetchOrder", "agentManifest", "apiIndex"],
+  properties: {
+    service: { type: "string" },
+    schemaVersion: { type: "string" },
+    status: { type: "string" },
+    description: { type: "string" },
+    recommendedFetchOrder: {
+      type: "array",
+      items: { type: "string" }
+    },
+    agentManifest: { type: "string" },
+    wellKnown: {
+      type: "array",
+      items: { type: "string" }
+    },
+    textContext: { type: "string" },
+    openapi: { type: "string" },
+    bazaar: { type: "string" },
+    pricing: { type: "string" },
+    mcpManifest: { type: "string" },
+    robots: { type: "string" },
+    sitemap: { type: "string" },
+    discoveryPage: { type: "string" },
+    discoveryApi: { type: "string" },
+    apiIndex: { type: "string" },
+    links: { type: "object" }
+  }
+};
+
 const agentManifestSchema = {
   type: "object",
   required: ["schemaVersion", "name", "canonicalBaseUrl", "paidActions", "freeAgentSurfaces", "links"],
@@ -1027,6 +1058,7 @@ export function publicCapabilities() {
       openapi: `${config.publicBaseUrl}/openapi.json`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       pricingApi: `${config.publicBaseUrl}/api/pricing`,
+      discoveryApi: `${config.publicBaseUrl}/api/discovery`,
       mcpManifest: `${config.publicBaseUrl}/api/mcp`,
       wellKnownMcp: `${config.publicBaseUrl}/.well-known/mcp.json`,
       discovery: `${config.publicBaseUrl}/discovery`,
@@ -1095,6 +1127,24 @@ export function openApiSpec() {
               content: {
                 "application/json": {
                   schema: apiIndexResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/discovery": {
+        get: {
+          operationId: "getDiscoveryPack",
+          summary: "Fetch machine-readable discovery pack",
+          description:
+            "Returns canonical discovery links and recommended fetch order for agents, crawlers, Bazaar/MCP clients, and directories inspecting Action402 before payment.",
+          responses: {
+            "200": {
+              description: "Action402 discovery pack",
+              content: {
+                "application/json": {
+                  schema: discoveryPackSchema
                 }
               }
             }
@@ -1832,6 +1882,7 @@ export function openApiSpec() {
         SecretStoragePolicy: secretStoragePolicySchema,
         CanaryEchoResponse: canaryEchoResponseSchema,
         ApiIndexResponse: apiIndexResponseSchema,
+        DiscoveryPack: discoveryPackSchema,
         AgentManifest: agentManifestSchema,
         TrustResponse: trustResponseSchema,
         Error: errorSchema

@@ -138,7 +138,15 @@ async function checkCorsPreflight() {
 
 async function checkCachePolicy() {
   try {
-    const stablePaths = ["/api", "/api/capabilities", "/api/pricing", "/api/mcp", "/api/bazaar", "/openapi.json"];
+    const stablePaths = [
+      "/api",
+      "/api/discovery",
+      "/api/capabilities",
+      "/api/pricing",
+      "/api/mcp",
+      "/api/bazaar",
+      "/openapi.json"
+    ];
     for (const path of stablePaths) {
       const { response } = await fetchText(path);
       record(`${path} uses short discovery cache`, hasShortDiscoveryCache(response));
@@ -183,6 +191,7 @@ async function main() {
 
   const health = await checkJson("/health");
   const apiIndex = await checkJson("/api");
+  const discovery = await checkJson("/api/discovery");
   const agentManifest = await checkJson("/api/agent-manifest");
   const wellKnownAgent = await checkJson("/.well-known/agent.json");
   const wellKnownAction402 = await checkJson("/.well-known/action402.json");
@@ -282,6 +291,7 @@ async function main() {
   if (apiIndex) {
     record("api index exposes service", apiIndex.service === "Action402");
     record("api index exposes paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
+    record("api index recommends discovery pack", apiIndex.recommendedStart?.includes("/api/discovery"));
     record("api index exposes pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
     record("api index exposes MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
     record("api index exposes free discovery", apiIndex.free?.discovery?.includes("/api/capabilities"));
@@ -290,9 +300,19 @@ async function main() {
     record("api index exposes health endpoint", apiIndex.free?.trustAndMonitoring?.includes("/health"));
   }
 
+  if (discovery) {
+    record("discovery pack has schema", discovery.schemaVersion === "action402.discovery.v1");
+    record("discovery pack exposes fetch order", discovery.recommendedFetchOrder?.some((url) => url.endsWith("/api/discovery")));
+    record("discovery pack exposes agent manifest", discovery.agentManifest?.endsWith("/api/agent-manifest"));
+    record("discovery pack exposes pricing", discovery.pricing?.endsWith("/api/pricing"));
+    record("discovery pack exposes OpenAPI", discovery.openapi?.endsWith("/openapi.json"));
+    record("discovery pack exposes Bazaar metadata", discovery.bazaar?.endsWith("/api/bazaar"));
+  }
+
   if (capabilities) {
     record("capabilities expose execute.webhook", capabilities.actions?.[0]?.id === "execute.webhook");
     record("capabilities expose api index", capabilities.apiIndex?.path === "/api");
+    record("capabilities expose discovery API", capabilities.discoveryPack?.discoveryApi?.endsWith("/api/discovery"));
     record("capabilities expose discovery pack", capabilities.discoveryPack?.agentManifest?.endsWith("/api/agent-manifest"));
     record("capabilities expose well-known manifest", capabilities.links?.wellKnownAgent?.endsWith("/.well-known/agent.json"));
     record(
@@ -363,10 +383,12 @@ async function main() {
     const operationIds = operations.map((operation) => operation.operationId);
 
     record("openapi exposes API index", Boolean(openapi.paths?.["/api"]?.get));
+    record("openapi exposes discovery pack", Boolean(openapi.paths?.["/api/discovery"]?.get));
     record("openapi exposes pricing", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("openapi exposes MCP manifest", Boolean(openapi.paths?.["/api/mcp"]?.get));
     record("openapi exposes well-known MCP manifest", Boolean(openapi.paths?.["/.well-known/mcp.json"]?.get));
     record("openapi exposes stable execute operationId", openapi.paths?.["/api/execute/webhook"]?.post?.operationId === "executeWebhook");
+    record("openapi exposes stable discovery operationId", openapi.paths?.["/api/discovery"]?.get?.operationId === "getDiscoveryPack");
     record("openapi exposes stable pricing operationId", openapi.paths?.["/api/pricing"]?.get?.operationId === "getPricing");
     record("openapi operationIds are unique", operationIds.length >= 30 && operationIds.length === new Set(operationIds).size);
     record("openapi exposes cache policy", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");

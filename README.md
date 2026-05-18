@@ -10,6 +10,7 @@ Agent entry points:
 
 - https://action402.vercel.app/agents - human-readable agent guide.
 - https://action402.vercel.app/discovery - canonical discovery pack.
+- https://action402.vercel.app/api/discovery - machine-readable discovery pack.
 - https://action402.vercel.app/use-cases - task templates agents can match against.
 - https://action402.vercel.app/mcp - MCP and Bazaar discovery-first flow.
 - https://action402.vercel.app/api/mcp - machine-readable MCP wrapper manifest.
@@ -34,6 +35,7 @@ Agent entry points:
 - `POST /api/execute/webhook` - paid action endpoint in x402 mode.
   Compatible x402 buyers retry with `X-PAYMENT` or `payment-signature`; settlement headers are exposed as `X-PAYMENT-RESPONSE` or `PAYMENT-RESPONSE`.
 - `GET /api` - compact machine-readable API index for agents that probe the API root first.
+- `GET /api/discovery` - canonical machine-readable discovery pack and recommended fetch order.
 - `GET /api/jobs/:id` - public job status.
 - `GET /api/receipts/:id` - public receipt verification.
 - `GET /api/verify/jobs/:id` - proof report linking job, receipt, signature, target, method, status, and attempts.

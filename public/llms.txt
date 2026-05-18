@@ -21,6 +21,7 @@ Discovery and contracts:
 - /api - compact machine-readable API index for agents that probe the API root first.
 - /agents - human-readable agent integration guide.
 - /discovery - canonical discovery pack page for agents, crawlers, Bazaar clients, and MCP clients.
+- /api/discovery - machine-readable discovery pack with recommended fetch order and canonical links.
 - /pricing - usage and pricing page. Current paid action price: $0.003.
 - /api/pricing - machine-readable pricing, payment route, free surfaces, limits, and buyer guardrails.
 - /onboarding - copy-paste buyer examples for AgentCash and generic x402/CDP-style signer integrations.
@@ -72,7 +73,7 @@ Verification:
 - GET /proof/{jobOrReceiptId} - public proof badge page for operators and browser-capable agents.
 
 Usage and pricing:
-- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /actions, /snippets, /handoff, /schedules, /secrets, /mcp, /trust, /status, /proofs, /proof/{jobOrReceiptId}, /api, /api/pricing, /api/mcp, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402.json, /.well-known/mcp.json, /api/quickstart, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
+- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /actions, /snippets, /handoff, /schedules, /secrets, /mcp, /trust, /status, /proofs, /proof/{jobOrReceiptId}, /api, /api/discovery, /api/pricing, /api/mcp, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402.json, /.well-known/mcp.json, /api/quickstart, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
 - Paid: POST /api/execute/webhook.
 - Published price: $0.003 per paid execution request.
 - Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.

@@ -5,6 +5,7 @@ const CACHE_POLICY_HEADER = "X-Action402-Cache-Policy";
 const STABLE_DISCOVERY_PATHS = [
   "/api",
   "/api/",
+  "/api/discovery",
   "/api/agent-manifest",
   "/.well-known/agent.json",
   "/.well-known/action402.json",

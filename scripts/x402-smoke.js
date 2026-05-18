@@ -117,6 +117,7 @@ async function main() {
 
   const health = await checkJsonEndpoint("/health");
   const apiIndex = await checkJsonEndpoint("/api");
+  const discovery = await checkJsonEndpoint("/api/discovery");
   const agentManifest = await checkJsonEndpoint("/api/agent-manifest");
   const wellKnownAgent = await checkJsonEndpoint("/.well-known/agent.json");
   const capabilities = await checkJsonEndpoint("/api/capabilities");
@@ -164,9 +165,17 @@ async function main() {
   if (apiIndex) {
     record("API index is published", apiIndex.service === "Action402");
     record("API index points to paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
+    record("API index points to discovery", apiIndex.recommendedStart?.includes("/api/discovery"));
     record("API index points to pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
     record("API index points to MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
     record("API index points to status", apiIndex.free?.trustAndMonitoring?.includes("/status"));
+  }
+
+  if (discovery) {
+    record("Discovery pack is published", discovery.schemaVersion === "action402.discovery.v1");
+    record("Discovery pack points to agent manifest", discovery.agentManifest?.endsWith("/api/agent-manifest"));
+    record("Discovery pack points to pricing", discovery.pricing?.endsWith("/api/pricing"));
+    record("Discovery pack points to Bazaar metadata", discovery.bazaar?.endsWith("/api/bazaar"));
   }
 
   if (agentManifest) {
@@ -221,6 +230,7 @@ async function main() {
     const operationIds = operations.map((operation) => operation.operationId);
 
     record("OpenAPI API index path is published", Boolean(openapi.paths?.["/api"]?.get));
+    record("OpenAPI discovery path is published", Boolean(openapi.paths?.["/api/discovery"]?.get));
     record("OpenAPI pricing path is published", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("OpenAPI MCP manifest path is published", Boolean(openapi.paths?.["/api/mcp"]?.get));
     record("OpenAPI execute operationId is stable", openapi.paths?.["/api/execute/webhook"]?.post?.operationId === "executeWebhook");
