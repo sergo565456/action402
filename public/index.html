@@ -45,7 +45,8 @@
           <p class="eyebrow">x402 paid execution layer</p>
           <h1>Pay. Execute. Prove.</h1>
           <p class="hero-lede">
-            Reliable webhook and API execution for autonomous AI agents using x402 payments on Base.
+            Reliable webhook and API execution for autonomous AI agents, with a free
+            decision graph before every guided x402 payment.
           </p>
           <div class="hero-actions">
             <a class="button primary" href="#api">View API</a>
@@ -65,13 +66,15 @@
           <div class="terminal-bar">
             <span></span><span></span><span></span>
           </div>
-          <pre><code>POST /api/execute/webhook
-402 Payment Required
-X-PAYMENT: signed
+          <pre><code>POST /api/decide/webhook
+recommendation = "pay_and_execute"
+
+POST /api/execute/guided-webhook
+402 Payment Required -> X-PAYMENT
 
 job.status = "succeeded"
-receipt.signature = "hmac-sha256:..."
-proof = "request + response hashes"</code></pre>
+receipt.links.decision = "/api/decisions/..."
+proof = "decision + request/response hashes"</code></pre>
         </div>
       </section>
 
@@ -79,6 +82,10 @@ proof = "request + response hashes"</code></pre>
         <div>
           <strong>Built for agents</strong>
           <span>No accounts, no dashboards required for the buyer path.</span>
+        </div>
+        <div>
+          <strong>Decide before payment</strong>
+          <span>Free policy, trust, payment, and execution readiness checks.</span>
         </div>
         <div>
           <strong>Paid per action</strong>
@@ -90,13 +97,46 @@ proof = "request + response hashes"</code></pre>
         </div>
       </section>
 
+      <section class="decision-section" aria-label="Decision-linked execution">
+        <div class="decision-copy">
+          <p class="eyebrow">Decision-linked execution</p>
+          <h2>Agents can inspect the action before spending.</h2>
+          <p>
+            Action402 now publishes a deterministic decision graph before the paid call. A buyer agent
+            can ask whether the action is worth paying for, inspect the reasons, then execute only when
+            the approved decision matches the paid payload.
+          </p>
+        </div>
+        <div class="decision-flow">
+          <article class="decision-card">
+            <span>01</span>
+            <h3>Decide</h3>
+            <p><code>POST /api/decide/webhook</code> checks price, network, target policy, trust signals, and idempotency.</p>
+          </article>
+          <article class="decision-card">
+            <span>02</span>
+            <h3>Pay guided</h3>
+            <p><code>POST /api/execute/guided-webhook</code> requires x402 payment and the matching approved decision id.</p>
+          </article>
+          <article class="decision-card">
+            <span>03</span>
+            <h3>Verify</h3>
+            <p>Job, receipt, and decision links stay connected, so agents can verify why payment happened.</p>
+          </article>
+        </div>
+        <div class="decision-proof">
+          <strong>Agent-facing value:</strong>
+          <span>Action402 is not only a paid webhook relay. It is a decision-linked paid action layer for agent commerce.</span>
+        </div>
+      </section>
+
       <section class="section-grid" id="api">
         <div class="section-copy">
           <p class="eyebrow">MVP API</p>
-          <h2>One paid endpoint, two public verification endpoints.</h2>
+          <h2>Decision-first API for paid side effects.</h2>
           <p>
-            The first product surface is intentionally narrow: accept a paid execution request,
-            deliver it safely, then make the result inspectable.
+            The core surface remains narrow: decide for free, execute one bounded paid action,
+            then make the result inspectable through public redacted proof links.
           </p>
         </div>
         <div class="endpoint-list">
@@ -186,18 +226,18 @@ proof = "request + response hashes"</code></pre>
       <section class="workflow" id="receipts">
         <div class="workflow-step">
           <span>01</span>
-          <h3>Agent pays</h3>
-          <p>The protected route uses x402 middleware and advertises Bazaar metadata.</p>
+          <h3>Agent decides</h3>
+          <p>The free decision graph returns a pay, review, or do-not-pay recommendation before funds move.</p>
         </div>
         <div class="workflow-step">
           <span>02</span>
-          <h3>Relay executes</h3>
-          <p>Action402 validates the target, retries transient failures, and prevents duplicates.</p>
+          <h3>Agent pays</h3>
+          <p>The guided route uses x402 middleware and only accepts payloads matching the approved decision.</p>
         </div>
         <div class="workflow-step">
           <span>03</span>
           <h3>Receipt proves</h3>
-          <p>The response includes a signed receipt over the request hash, response hash, and outcome.</p>
+          <p>The response links the decision, job, receipt, request hash, response hash, and outcome.</p>
         </div>
       </section>
     </main>
