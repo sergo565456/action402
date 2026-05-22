@@ -39,6 +39,17 @@ async function requestText(path) {
   return requestRaw(path);
 }
 
+function freshJobTimes() {
+  const startedAt = new Date().toISOString();
+  const completedAt = new Date(Date.now() + 1000).toISOString();
+  return {
+    startedAt,
+    completedAt,
+    createdAt: startedAt,
+    updatedAt: completedAt
+  };
+}
+
 test("capabilities document exposes execute webhook action", async () => {
   const { response, body } = await request("/api/capabilities");
 
@@ -897,6 +908,7 @@ test("vercel rewrite handles absolute URLs without leaving a legacy parser input
 
 test("verification endpoint returns consistency report for stored job receipt", async () => {
   await resetStoreForTests();
+  const times = freshJobTimes();
 
   const job = {
     id: "job_api_verify_1",
@@ -908,15 +920,15 @@ test("verification endpoint returns consistency report for stored job receipt", 
     attempts: [
       {
         attempt: 1,
-        startedAt: "2026-05-14T00:00:00.000Z",
-        completedAt: "2026-05-14T00:00:01.000Z",
+        startedAt: times.startedAt,
+        completedAt: times.completedAt,
         status: 200,
         ok: true
       }
     ],
     receiptId: null,
-    createdAt: "2026-05-14T00:00:00.000Z",
-    updatedAt: "2026-05-14T00:00:01.000Z"
+    createdAt: times.createdAt,
+    updatedAt: times.updatedAt
   };
   const receipt = buildReceipt({
     job,
@@ -946,6 +958,7 @@ test("verification endpoint returns consistency report for stored job receipt", 
 
 test("recent proofs endpoint returns redacted verified examples", async () => {
   await resetStoreForTests();
+  const times = freshJobTimes();
 
   const job = {
     id: "job_public_proof_1",
@@ -957,15 +970,15 @@ test("recent proofs endpoint returns redacted verified examples", async () => {
     attempts: [
       {
         attempt: 1,
-        startedAt: "2026-05-14T00:00:00.000Z",
-        completedAt: "2026-05-14T00:00:01.000Z",
+        startedAt: times.startedAt,
+        completedAt: times.completedAt,
         status: 200,
         ok: true
       }
     ],
     receiptId: null,
-    createdAt: "2026-05-14T00:00:00.000Z",
-    updatedAt: "2026-05-14T00:00:01.000Z"
+    createdAt: times.createdAt,
+    updatedAt: times.updatedAt
   };
   const receipt = buildReceipt({
     job,

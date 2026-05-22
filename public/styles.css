@@ -350,10 +350,26 @@ pre {
 .footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 16px;
   padding: 26px clamp(18px, 5vw, 76px);
   color: var(--muted);
   border-top: 1px solid var(--line);
+}
+
+.footer-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footer a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--green);
 }
 
 @media (max-width: 860px) {

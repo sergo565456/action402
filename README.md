@@ -2,9 +2,29 @@
 
 Pay. Execute. Prove.
 
-Action402 is a small x402-native execution relay for autonomous agents. Agents pay per action, submit a webhook/API call, and receive a signed receipt that records what was attempted, when it happened, and what the target returned.
+[![Production](https://img.shields.io/badge/Production-action402.vercel.app-20c997?style=flat-square)](https://action402.vercel.app)
+[![Agent guide](https://img.shields.io/badge/Agents-guide-38d9e8?style=flat-square)](https://action402.vercel.app/agents)
+[![Bazaar metadata](https://img.shields.io/badge/x402-Bazaar-f59f00?style=flat-square)](https://action402.vercel.app/api/bazaar)
+[![Telegram](https://img.shields.io/badge/Telegram-FOMO__boy1-229ED9?style=flat-square&logo=telegram&logoColor=white)](https://t.me/FOMO_boy1)
+[![X](https://img.shields.io/badge/X-@Serg0716-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/Serg0716)
 
-Production: https://action402.vercel.app
+Action402 is an x402-native paid execution relay for autonomous agents. Agents pay per action, submit a webhook/API call, and receive a signed receipt that records what was attempted, when it happened, and what the target returned.
+
+## Project links
+
+- Production: https://action402.vercel.app
+- Agent guide: https://action402.vercel.app/agents
+- Discovery pack: https://action402.vercel.app/api/discovery
+- OpenAPI: https://action402.vercel.app/openapi.json
+- Bazaar metadata: https://action402.vercel.app/api/bazaar
+- GitHub: https://github.com/sergo565456/action402
+- Contact: [Telegram](https://t.me/FOMO_boy1) / [X](https://x.com/Serg0716)
+
+Recommended GitHub repository metadata:
+
+- Description: `x402 paid execution relay for AI agents with verifiable receipts`
+- Website: `https://action402.vercel.app`
+- Topics: `x402`, `ai-agents`, `base`, `micropayments`, `webhook`, `receipts`, `agent-infrastructure`
 
 Agent entry points:
 

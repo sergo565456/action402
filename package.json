@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Paid webhook execution with verifiable receipts for AI agents using x402.",
+  "description": "x402 paid execution relay for AI agents with verifiable receipts.",
   "scripts": {
     "dev": "node src/server.js",
     "dev:demo": "node scripts/start-profile.js demo",
