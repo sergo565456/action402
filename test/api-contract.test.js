@@ -925,7 +925,7 @@ test("vercel rewrites expose extensionless product pages", () => {
   assert.equal(rewrites.get("/status"), "/status.html");
   assert.equal(rewrites.get("/discovery"), "/discovery.html");
   assert.equal(rewrites.get("/decisions"), "/decisions.html");
-  assert.equal(rewrites.get("/decision/:id"), "/api/index?__action402_path=/decision/:id");
+  assert.equal(rewrites.get("/decision/:id"), "/decision.html");
   assert.equal(rewrites.get("/schedules"), "/schedules.html");
   assert.equal(rewrites.get("/secrets"), "/secrets.html");
   assert.equal(rewrites.get("/robots.txt"), "/api/index?__action402_path=/robots.txt");

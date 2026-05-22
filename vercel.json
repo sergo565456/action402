@@ -90,7 +90,7 @@
     },
     {
       "source": "/decision/:id",
-      "destination": "/api/index?__action402_path=/decision/:id"
+      "destination": "/decision.html"
     },
     {
       "source": "/handoff",
