@@ -30,6 +30,10 @@ function statNumber(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function decisionUpdatedAt(decision) {
+  return timestampOrNow(decision?.updatedAt || decision?.createdAt);
+}
+
 export function createPostgresStore(config) {
   const pool = new Pool({
     connectionString: config.databaseUrl,
@@ -66,12 +70,33 @@ export function createPostgresStore(config) {
       CREATE INDEX IF NOT EXISTS action402_receipts_created_at_idx
       ON action402_receipts (created_at);
     `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS action402_decisions (
+        id TEXT PRIMARY KEY,
+        recommendation TEXT NOT NULL,
+        action_hash TEXT NOT NULL,
+        linked_job_id TEXT,
+        linked_receipt_id TEXT,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL,
+        body JSONB NOT NULL
+      );
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS action402_decisions_updated_at_idx
+      ON action402_decisions (updated_at);
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS action402_decisions_action_hash_idx
+      ON action402_decisions (action_hash);
+    `);
   }
 
   async function pruneExpired(now = Date.now()) {
     const client = await pool.connect();
     let removedJobs = 0;
     let removedReceipts = 0;
+    let removedDecisions = 0;
 
     try {
       await client.query("BEGIN");
@@ -99,6 +124,15 @@ export function createPostgresStore(config) {
         removedReceipts = result.rowCount;
       }
 
+      if (config.decisionRetentionMs > 0) {
+        const cutoff = new Date(now - config.decisionRetentionMs);
+        const result = await client.query(
+          "DELETE FROM action402_decisions WHERE updated_at < $1 RETURNING id;",
+          [cutoff]
+        );
+        removedDecisions = result.rowCount;
+      }
+
       await client.query("COMMIT");
     } catch (error) {
       await client.query("ROLLBACK");
@@ -107,11 +141,11 @@ export function createPostgresStore(config) {
       client.release();
     }
 
-    if (removedJobs > 0 || removedReceipts > 0) {
+    if (removedJobs > 0 || removedReceipts > 0 || removedDecisions > 0) {
       lastCleanupAt = new Date(now).toISOString();
     }
 
-    return { removedJobs, removedReceipts };
+    return { removedJobs, removedReceipts, removedDecisions };
   }
 
   return {
@@ -192,6 +226,67 @@ export function createPostgresStore(config) {
       return result.rows[0] ? asJson(result.rows[0].body) : undefined;
     },
 
+    async createDecision(decision) {
+      await pruneExpired(Date.now());
+      await pool.query(
+        `INSERT INTO action402_decisions
+           (id, recommendation, action_hash, linked_job_id, linked_receipt_id, created_at, updated_at, body)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb);`,
+        [
+          decision.id,
+          decision.decision?.recommendation || "manual_review",
+          decision.actionHash,
+          nullable(decision.outcome?.linkedJobId),
+          nullable(decision.outcome?.linkedReceiptId),
+          timestampOrNow(decision.createdAt),
+          decisionUpdatedAt(decision),
+          JSON.stringify(decision)
+        ]
+      );
+      return decision;
+    },
+
+    async updateDecision(id, patch) {
+      await pruneExpired(Date.now());
+      const current = await this.getDecision(id);
+      if (!current) return undefined;
+      const next = { ...current, ...patch, updatedAt: new Date().toISOString() };
+      await pool.query(
+        `UPDATE action402_decisions
+         SET recommendation = $2,
+             action_hash = $3,
+             linked_job_id = $4,
+             linked_receipt_id = $5,
+             updated_at = $6,
+             body = $7::jsonb
+         WHERE id = $1;`,
+        [
+          id,
+          next.decision?.recommendation || "manual_review",
+          next.actionHash,
+          nullable(next.outcome?.linkedJobId),
+          nullable(next.outcome?.linkedReceiptId),
+          decisionUpdatedAt(next),
+          JSON.stringify(next)
+        ]
+      );
+      return next;
+    },
+
+    async getDecision(id) {
+      const result = await pool.query("SELECT body FROM action402_decisions WHERE id = $1;", [id]);
+      return result.rows[0] ? asJson(result.rows[0].body) : undefined;
+    },
+
+    async listRecentDecisions(limit = 20) {
+      await pruneExpired(Date.now());
+      const result = await pool.query(
+        "SELECT body FROM action402_decisions ORDER BY updated_at DESC LIMIT $1;",
+        [clampLimit(limit)]
+      );
+      return result.rows.map((row) => asJson(row.body));
+    },
+
     async listRecentJobs(limit = 20) {
       await pruneExpired(Date.now());
       const result = await pool.query(
@@ -238,14 +333,15 @@ export function createPostgresStore(config) {
     },
 
     async resetForTests() {
-      await pool.query("TRUNCATE action402_jobs, action402_receipts;");
+      await pool.query("TRUNCATE action402_jobs, action402_receipts, action402_decisions;");
       lastCleanupAt = null;
     },
 
     async stats() {
-      const [jobCount, receiptCount] = await Promise.all([
+      const [jobCount, receiptCount, decisionCount] = await Promise.all([
         pool.query("SELECT COUNT(*)::int AS count FROM action402_jobs;"),
-        pool.query("SELECT COUNT(*)::int AS count FROM action402_receipts;")
+        pool.query("SELECT COUNT(*)::int AS count FROM action402_receipts;"),
+        pool.query("SELECT COUNT(*)::int AS count FROM action402_decisions;")
       ]);
 
       return {
@@ -255,10 +351,12 @@ export function createPostgresStore(config) {
         postgresSsl: config.postgresSsl,
         jobs: jobCount.rows[0]?.count || 0,
         receipts: receiptCount.rows[0]?.count || 0,
+        decisions: decisionCount.rows[0]?.count || 0,
         lastCleanupAt,
         retention: {
           jobRetentionMs: config.jobRetentionMs,
-          receiptRetentionMs: config.receiptRetentionMs
+          receiptRetentionMs: config.receiptRetentionMs,
+          decisionRetentionMs: config.decisionRetentionMs
         }
       };
     },

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Decision Record</title>
+    <meta
+      name="description"
+      content="Redacted Action402 decision graph record for one pre-payment evaluation."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Decision record navigation">
+        <a href="/decisions">Recent Decisions</a>
+        <a href="/trust">Trust</a>
+        <a href="/api/capabilities">Capabilities</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Decision record</p>
+          <h1 id="decision-heading">Loading decision.</h1>
+          <p id="decision-summary">
+            Fetching the redacted decision graph result.
+          </p>
+          <div class="actions">
+            <a class="button primary" id="decision-json-link" href="/api/decisions/recent">Open JSON</a>
+            <a class="button secondary" href="/decisions">Recent Decisions</a>
+            <a class="button secondary" href="/api/trust">Trust JSON</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Decision quick facts">
+          <dl>
+            <div>
+              <dt>id</dt>
+              <dd><code id="decision-id">loading</code></dd>
+            </div>
+            <div>
+              <dt>recommendation</dt>
+              <dd><code id="decision-recommendation">loading</code></dd>
+            </div>
+            <div>
+              <dt>confidence</dt>
+              <dd><code id="decision-confidence">loading</code></dd>
+            </div>
+            <div>
+              <dt>outcome</dt>
+              <dd><code id="decision-outcome">pending</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Roles</p>
+          <h2>Bounded role ledger.</h2>
+          <p>
+            The decision is built from deterministic role reports. These records avoid raw target
+            URLs, request bodies, headers, hashes, and receipt signatures.
+          </p>
+        </div>
+        <div class="proof-list" id="decision-roles" aria-live="polite">
+          <div class="empty-state">Loading role reports...</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Decision record: /decision/{id}</span>
+    </footer>
+
+    <script src="/decision.js"></script>
+  </body>
+</html>

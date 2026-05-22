@@ -17,6 +17,7 @@ const STABLE_DISCOVERY_PATHS = [
   "/api/actions",
   "/api/quickstart",
   "/api/snippets",
+  "/decisions",
   "/api/bazaar",
   "/api/handoff/capabilities",
   "/api/schedules/capabilities",
@@ -30,7 +31,10 @@ const STABLE_DISCOVERY_PATHS = [
 const NO_STORE_EXACT_PATHS = [
   "/health",
   "/api/execute/webhook",
+  "/api/execute/guided-webhook",
+  "/api/decide/webhook",
   "/api/canary/echo",
+  "/api/decisions/recent",
   "/api/proofs/recent",
   "/api/monitoring/executions",
   "/api/trust",
@@ -45,6 +49,8 @@ const NO_STORE_PREFIXES = [
   "/api/jobs/",
   "/api/receipts/",
   "/api/verify/",
+  "/api/decisions/",
+  "/decision/",
   "/proof/"
 ];
 

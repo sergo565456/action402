@@ -35,6 +35,15 @@ export function publicApiIndex() {
         price: config.x402Price,
         network: config.x402Network,
         description: "Execute one bounded public HTTPS request and return job plus signed receipt links."
+      },
+      {
+        id: "execute.guided_webhook",
+        method: "POST",
+        path: "/api/execute/guided-webhook",
+        paid: config.x402Enabled,
+        price: config.x402Price,
+        network: config.x402Network,
+        description: "Execute one approved decision-linked public HTTPS request and return job plus signed receipt links."
       }
     ],
     free: {
@@ -56,6 +65,7 @@ export function publicApiIndex() {
         "/sitemap.xml"
       ],
       preflight: ["/api/policy/check", "/api/canary/echo"],
+      decision: ["/api/decide/webhook", "/api/decisions/{id}", "/api/decisions/recent", "/decision/{id}", "/decisions"],
       verification: [
         "/api/jobs/{id}",
         "/api/receipts/{id}",
@@ -83,6 +93,9 @@ export function publicApiIndex() {
       self: absoluteUrl("/api"),
       discovery: absoluteUrl("/api/discovery"),
       executeWebhook: absoluteUrl("/api/execute/webhook"),
+      guidedWebhook: absoluteUrl("/api/execute/guided-webhook"),
+      decideWebhook: absoluteUrl("/api/decide/webhook"),
+      recentDecisions: absoluteUrl("/api/decisions/recent"),
       capabilities: absoluteUrl("/api/capabilities"),
       pricing: absoluteUrl("/api/pricing"),
       mcpManifest: absoluteUrl("/api/mcp"),

@@ -16,7 +16,7 @@
     "start": "node src/server.js",
     "smoke:testnet:unpaid": "node scripts/testnet-unpaid-smoke.js",
     "smoke:x402": "node scripts/x402-smoke.js",
-    "test": "node --import ./scripts/test-env.js --test test/receipt.test.js test/receipt-verification.test.js test/api-contract.test.js test/rate-limit.test.js test/target-policy.test.js test/target-quota.test.js test/config.test.js test/store.test.js test/observability.test.js",
+    "test": "node --import ./scripts/test-env.js --test test/receipt.test.js test/receipt-verification.test.js test/api-contract.test.js test/decision-graph.test.js test/rate-limit.test.js test/target-policy.test.js test/target-quota.test.js test/config.test.js test/store.test.js test/observability.test.js",
     "verify:receipt": "node scripts/verify-receipt.js"
   },
   "dependencies": {

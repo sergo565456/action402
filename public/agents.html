@@ -23,6 +23,7 @@
         <a href="/use-cases">Use Cases</a>
         <a href="/actions">Actions</a>
         <a href="/snippets">Snippets</a>
+        <a href="/decisions">Decisions</a>
         <a href="/mcp">MCP</a>
         <a href="/trust">Trust</a>
         <a href="/proofs">Proofs</a>
@@ -42,6 +43,7 @@
             <a class="button primary" href="/onboarding">Copy-Paste Onboarding</a>
             <a class="button secondary" href="/actions">Action Catalog</a>
             <a class="button secondary" href="/snippets">Snippets</a>
+            <a class="button secondary" href="/decisions">Decision Graph</a>
             <a class="button secondary" href="/use-cases">Use Cases</a>
             <a class="button secondary" href="/mcp">MCP Guide</a>
             <a class="button secondary" href="/api/bazaar">Bazaar Metadata</a>
@@ -54,8 +56,12 @@
               <dd>one paid public HTTPS action is needed</dd>
             </div>
             <div>
+              <dt>decision route</dt>
+              <dd><code>POST /api/decide/webhook</code></dd>
+            </div>
+            <div>
               <dt>paid route</dt>
-              <dd><code>POST /api/execute/webhook</code></dd>
+              <dd><code>POST /api/execute/guided-webhook</code></dd>
             </div>
             <div>
               <dt>payment</dt>
@@ -113,12 +119,12 @@ before treating the action as complete.</code></pre>
         <p class="eyebrow">Call flow</p>
         <h2>Minimal integration path.</h2>
         <pre><code>1. Read /api/quickstart, /api/actions, /api/capabilities, or /openapi.json.
-2. Optionally POST the same JSON to /api/policy/check before paying.
+2. POST { action, buyerPolicy } to /api/decide/webhook before paying.
 3. Use /api/snippets for copy-paste buyer and proof verification examples.
-4. POST /api/execute/webhook with url, method, body, idempotencyKey, retry, timeoutMs.
+4. If recommendation is pay_and_execute, POST the matching action plus decisionId to /api/execute/guided-webhook.
 5. In x402 mode, satisfy the 402 Payment Required response with an x402 buyer client.
-6. Read links.job or links.receipt from the response.
-7. Verify with /api/verify/jobs/{id} or /api/verify/receipts/{id}.</code></pre>
+6. Read links.job, links.receipt, and links.decision from the response.
+7. Verify with /api/verify/jobs/{id}, /api/verify/receipts/{id}, and /api/decisions/{id}.</code></pre>
       </section>
 
       <section class="code-section">
@@ -149,6 +155,16 @@ verify /api/verify/jobs/{id}</code></pre>
           </p>
         </div>
         <div class="endpoint-list">
+          <article class="endpoint">
+            <span>machine readable</span>
+            <h3>POST /api/decide/webhook</h3>
+            <p>Free deterministic payment, policy, trust, and execution readiness decision before payment.</p>
+          </article>
+          <article class="endpoint">
+            <span>machine readable</span>
+            <h3>GET /api/decisions/recent</h3>
+            <p>Redacted recent decision summaries with outcome linkage when a paid job exists.</p>
+          </article>
           <article class="endpoint">
             <span>machine readable</span>
             <h3>GET /llms.txt</h3>

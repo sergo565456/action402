@@ -153,7 +153,7 @@ async function checkCachePolicy() {
       record(`${path} exposes discovery headers`, hasDiscoveryHeaders(response));
     }
 
-    const noStorePaths = ["/health", "/api/proofs/recent", "/api/monitoring/executions"];
+    const noStorePaths = ["/health", "/api/proofs/recent", "/api/decisions/recent", "/api/monitoring/executions"];
     for (const path of noStorePaths) {
       const { response } = await fetchText(path);
       record(`${path} uses no-store cache`, hasNoStoreCache(response));
@@ -176,6 +176,8 @@ async function main() {
   await checkStatic("/use-cases", "Use-case templates");
   await checkStatic("/actions", "Action catalog");
   await checkStatic("/snippets", "Integration snippets");
+  await checkStatic("/decisions", "Decision graph");
+  await checkStatic("/decision/dec_deploy_check_missing", "Decision record");
   await checkStatic("/handoff", "Browser handoff");
   await checkStatic("/schedules", "Schedule preview");
   await checkStatic("/secrets", "Secret storage policy");
@@ -268,12 +270,33 @@ async function main() {
   });
   const secretPolicy = await checkJson("/api/secrets/policy");
   const snippets = await checkJson("/api/snippets");
+  const decision = await checkJson("/api/decide/webhook", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      action: {
+        url: "https://127.0.0.1/internal",
+        method: "POST",
+        idempotencyKey: "deploy-check-decision"
+      },
+      buyerPolicy: {
+        maxPriceUsd: "0.01",
+        requireReceipt: true,
+        requirePolicyPass: true,
+        requireIdempotencyKey: true
+      }
+    })
+  });
+  const recentDecisions = await checkJson("/api/decisions/recent");
   const bazaar = await checkJson("/api/bazaar");
   const proofs = await checkJson("/api/proofs/recent");
   const monitoring = await checkJson("/api/monitoring/executions");
   const trust = await checkJson("/api/trust");
   const apiNotFound = await checkJsonStatus("/api/deploy-check-missing-route", 404);
   const executeWrongMethod = await checkJsonStatus("/api/execute/webhook", 405);
+  const guidedWrongMethod = await checkJsonStatus("/api/execute/guided-webhook", 405);
   const canaryWrongMethod = await checkJsonStatus("/api/canary/echo", 405, {
     method: "PUT"
   });
@@ -291,6 +314,8 @@ async function main() {
   if (apiIndex) {
     record("api index exposes service", apiIndex.service === "Action402");
     record("api index exposes paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
+    record("api index exposes guided paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/guided-webhook"));
+    record("api index exposes decision graph", apiIndex.free?.decision?.includes("/api/decide/webhook"));
     record("api index recommends discovery pack", apiIndex.recommendedStart?.includes("/api/discovery"));
     record("api index exposes pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
     record("api index exposes MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
@@ -349,6 +374,11 @@ async function main() {
     record("capabilities expose policy check", capabilities.policyCheck?.path === "/api/policy/check");
     record("capabilities expose canary echo", capabilities.canary?.path === "/api/canary/echo");
     record("capabilities expose snippets", capabilities.snippets?.path === "/api/snippets");
+    record("capabilities expose decision graph", capabilities.decisionGraph?.path === "/api/decide/webhook");
+    record(
+      "capabilities expose guided execution",
+      capabilities.actions?.some((action) => action.id === "execute.guided_webhook")
+    );
     record("capabilities expose browser handoff", capabilities.handoff?.path === "/api/handoff/browser");
     record("capabilities expose schedule preview", capabilities.schedules?.previewPath === "/api/schedules/preview");
     record("capabilities expose secret policy", capabilities.secretStorage?.status === "not-supported-in-public-mvp");
@@ -369,6 +399,14 @@ async function main() {
   if (agentManifest) {
     record("agent manifest has schema", agentManifest.schemaVersion === "action402.agent-manifest.v1");
     record("agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
+    record(
+      "agent manifest exposes guided paid action",
+      agentManifest.paidActions?.some((action) => action.path === "/api/execute/guided-webhook")
+    );
+    record(
+      "agent manifest exposes decision graph",
+      agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/decide/webhook")
+    );
     record("agent manifest exposes API index", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api"));
     record("agent manifest exposes pricing", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/pricing"));
     record("agent manifest exposes MCP manifest", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/mcp"));
@@ -388,6 +426,12 @@ async function main() {
     record("openapi exposes MCP manifest", Boolean(openapi.paths?.["/api/mcp"]?.get));
     record("openapi exposes well-known MCP manifest", Boolean(openapi.paths?.["/.well-known/mcp.json"]?.get));
     record("openapi exposes stable execute operationId", openapi.paths?.["/api/execute/webhook"]?.post?.operationId === "executeWebhook");
+    record("openapi exposes decision graph", openapi.paths?.["/api/decide/webhook"]?.post?.operationId === "decideWebhook");
+    record(
+      "openapi exposes guided execution",
+      openapi.paths?.["/api/execute/guided-webhook"]?.post?.operationId === "executeGuidedWebhook"
+    );
+    record("openapi exposes decision records", Boolean(openapi.paths?.["/api/decisions/{id}"]?.get));
     record("openapi exposes stable discovery operationId", openapi.paths?.["/api/discovery"]?.get?.operationId === "getDiscoveryPack");
     record("openapi exposes stable pricing operationId", openapi.paths?.["/api/pricing"]?.get?.operationId === "getPricing");
     record("openapi operationIds are unique", operationIds.length >= 30 && operationIds.length === new Set(operationIds).size);
@@ -419,6 +463,7 @@ async function main() {
 
   if (actions) {
     record("actions endpoint exposes active primitive", actions.activePrimitive?.id === "execute.webhook");
+    record("actions endpoint exposes guided primitive", actions.guidedPrimitive?.path === "/api/execute/guided-webhook");
     record("actions endpoint exposes templates", Array.isArray(actions.templates) && actions.templates.length >= 9);
     record(
       "actions endpoint exposes policy modes",
@@ -432,6 +477,7 @@ async function main() {
 
   if (quickstart) {
     record("quickstart endpoint exposes payment route", quickstart.payment?.route?.endsWith("/api/execute/webhook"));
+    record("quickstart endpoint exposes decision flow", quickstart.callFlow?.some((step) => step.includes("/api/decide/webhook")));
     record("quickstart endpoint exposes minimal request", quickstart.minimalRequest?.url === "https://httpbin.org/anything");
     record("quickstart endpoint exposes proof badge", quickstart.verify?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
     record("quickstart endpoint exposes call flow", Array.isArray(quickstart.callFlow) && quickstart.callFlow.length >= 5);
@@ -439,6 +485,8 @@ async function main() {
 
   if (pricing) {
     record("pricing endpoint exposes paid route", pricing.payment?.route?.endsWith("/api/execute/webhook"));
+    record("pricing endpoint exposes guided paid route", pricing.paidActions?.some((action) => action.path === "/api/execute/guided-webhook"));
+    record("pricing endpoint exposes free decision graph", pricing.freeSurfaces?.decision?.includes("/api/decide/webhook"));
     record("pricing endpoint exposes exact price", pricing.payment?.price?.display === health?.price);
     record("pricing endpoint exposes free surfaces", pricing.freeSurfaces?.discovery?.includes("/api/capabilities"));
     record("pricing endpoint exposes status surface", pricing.freeSurfaces?.trustAndMonitoring?.includes("/status"));
@@ -495,11 +543,25 @@ async function main() {
     record("snippets endpoint exposes payment route", snippets.payment?.route?.endsWith("/api/execute/webhook"));
     record("snippets endpoint exposes groups", Array.isArray(snippets.groups) && snippets.groups.length >= 4);
     record("snippets endpoint exposes advanced surfaces", snippets.groups?.some((group) => group.id === "advanced-surfaces"));
+    record("snippets endpoint exposes decision-first flow", snippets.groups?.some((group) => group.id === "decision-first"));
     record(
       "snippets endpoint exposes verification examples",
       snippets.groups?.some((group) => group.id === "verification" && Array.isArray(group.snippets) && group.snippets.length >= 2)
     );
     record("snippets endpoint exposes proof badge link", snippets.links?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
+    record("snippets endpoint exposes decision link", snippets.links?.decisionGraph?.endsWith("/api/decide/webhook"));
+  }
+
+  if (decision) {
+    record("decision endpoint returns structured recommendation", typeof decision.recommendation === "string");
+    record("decision endpoint blocks unsafe target", decision.recommendation === "do_not_pay");
+    record("decision endpoint redacts public record", decision.publicRecord?.publicFieldsOnly === true);
+    record("decision endpoint links record", decision.links?.decision?.includes("/api/decisions/"));
+  }
+
+  if (recentDecisions) {
+    record("recent decisions endpoint returns array", Array.isArray(recentDecisions.decisions));
+    record("recent decisions endpoint publishes redaction policy", Array.isArray(recentDecisions.redactionPolicy?.redactedFields));
   }
 
   if (bazaar) {
@@ -528,6 +590,8 @@ async function main() {
     record("bazaar metadata has MCP manifest link", typeof bazaar.links?.mcpManifest === "string");
     record("bazaar metadata has policy check link", typeof bazaar.links?.policyCheck === "string");
     record("bazaar metadata has snippets link", typeof bazaar.links?.snippets === "string");
+    record("bazaar metadata has decision graph link", typeof bazaar.links?.decisionGraph === "string");
+    record("bazaar metadata has guided execution link", typeof bazaar.links?.guidedExecution === "string");
     record("bazaar metadata has handoff link", typeof bazaar.links?.handoffEndpoint === "string");
     record("bazaar metadata has canary link", typeof bazaar.links?.canaryEcho === "string");
     record("bazaar metadata has schedule preview link", typeof bazaar.links?.schedulePreview === "string");
@@ -578,6 +642,8 @@ async function main() {
     record("trust endpoint exposes policy check surface", typeof trust.publicSurfaces?.policyCheck === "string");
     record("trust endpoint exposes canary surface", typeof trust.publicSurfaces?.canaryEcho === "string");
     record("trust endpoint exposes snippets surface", typeof trust.publicSurfaces?.snippets === "string");
+    record("trust endpoint exposes decision surface", typeof trust.publicSurfaces?.decisionGraph === "string");
+    record("trust endpoint exposes recent decisions surface", typeof trust.publicSurfaces?.recentDecisions === "string");
     record("trust endpoint exposes handoff surface", typeof trust.publicSurfaces?.handoffCapabilities === "string");
     record("trust endpoint exposes schedule preview surface", typeof trust.publicSurfaces?.schedulePreview === "string");
     record("trust endpoint exposes secret policy surface", typeof trust.publicSurfaces?.secretPolicy === "string");
@@ -593,6 +659,11 @@ async function main() {
   if (executeWrongMethod.body) {
     record("execute route wrong method returns 405 code", executeWrongMethod.body.error?.code === "method_not_allowed");
     record("execute route exposes Allow POST", executeWrongMethod.response?.headers.get("allow") === "POST");
+  }
+
+  if (guidedWrongMethod.body) {
+    record("guided route wrong method returns 405 code", guidedWrongMethod.body.error?.code === "method_not_allowed");
+    record("guided route exposes Allow POST", guidedWrongMethod.response?.headers.get("allow") === "POST");
   }
 
   if (canaryWrongMethod.body) {

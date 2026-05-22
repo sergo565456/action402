@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Decision Graph</title>
+    <meta
+      name="description"
+      content="Recent redacted Action402 pre-payment decision graph records for buyer agents."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Decision graph navigation">
+        <a href="/agents">Agents</a>
+        <a href="/trust">Trust</a>
+        <a href="/api/decisions/recent">JSON</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Decision graph</p>
+          <h1>Decide before paying.</h1>
+          <p>
+            Action402 can evaluate payment terms, target policy, trust signals, and execution
+            readiness before an agent spends x402 funds. Public summaries are redacted.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/decisions/recent">Open JSON</a>
+            <a class="button secondary" href="/api/decide/webhook">Decision API</a>
+            <a class="button secondary" href="/api/trust">Trust JSON</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Decision graph quick facts">
+          <dl>
+            <div>
+              <dt>endpoint</dt>
+              <dd><code>POST /api/decide/webhook</code></dd>
+            </div>
+            <div>
+              <dt>payment</dt>
+              <dd><code>free pre-payment</code></dd>
+            </div>
+            <div>
+              <dt>execution</dt>
+              <dd><code>no target call</code></dd>
+            </div>
+            <div>
+              <dt>redaction</dt>
+              <dd><code>target/body/headers hidden</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Recent</p>
+          <h2>Latest public decision summaries.</h2>
+          <p>
+            Use these summaries to inspect whether the decision graph is active. Agents should call
+            the JSON endpoint for automation.
+          </p>
+        </div>
+        <div class="proof-list" id="decision-list" aria-live="polite">
+          <div class="empty-state">Loading recent decision summaries...</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Decision graph: /api/decide/webhook</span>
+    </footer>
+
+    <script src="/decisions.js"></script>
+  </body>
+</html>

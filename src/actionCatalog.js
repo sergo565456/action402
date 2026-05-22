@@ -426,12 +426,23 @@ function agentCashNetworkFlag(network) {
 
 function buyerSnippets({ baseUrl, price, network }) {
   const endpoint = `${baseUrl}/api/execute/webhook`;
+  const guidedEndpoint = `${baseUrl}/api/execute/guided-webhook`;
+  const decideEndpoint = `${baseUrl}/api/decide/webhook`;
   const body =
     '{"url":"https://httpbin.org/anything","method":"POST","body":{"event":"agent.quickstart"},"idempotencyKey":"agent-quickstart-001","timeoutMs":10000}';
+  const decisionBody =
+    '{"action":{"url":"https://httpbin.org/anything","method":"POST","body":{"event":"agent.decision-first"},"idempotencyKey":"agent-decision-first-001","timeoutMs":10000},"buyerPolicy":{"maxPriceUsd":"0.01","requireReceipt":true,"requirePolicyPass":true,"requireIdempotencyKey":true,"minTrustScore":55}}';
   const networkFlag = agentCashNetworkFlag(network);
   const networkName = paymentNetworkName(network);
 
   return [
+    {
+      id: "decision-first-flow",
+      title: "Decision-first flow",
+      language: "bash",
+      description: "Evaluate the action for free, then pay the guided route only when recommendation is pay_and_execute.",
+      code: `curl ${decideEndpoint} -H "content-type: application/json" -d '${decisionBody}'\n# If recommendation is pay_and_execute, call ${guidedEndpoint} through an x402 buyer client with the returned decisionId.`
+    },
     {
       id: "agentcash-cli",
       title: "AgentCash CLI",
@@ -458,7 +469,7 @@ function buyerSnippets({ baseUrl, price, network }) {
       title: "Buyer budget guardrail",
       language: "text",
       description: "Agents should reject unexpected payment requirements before retrying with payment.",
-      code: `Expected price: ${price}\nExpected route: POST /api/execute/webhook\nExpected network: ${networkName}`
+      code: `Expected price: ${price}\nExpected routes: POST /api/execute/webhook or POST /api/execute/guided-webhook\nExpected network: ${networkName}`
     }
   ];
 }
@@ -487,6 +498,17 @@ function publicActionCatalog({ baseUrl, price, x402Enabled, network, targetPolic
       executionModel: "immediate one-shot public HTTPS action",
       proofModel: "signed receipt plus job/receipt verification endpoints"
     },
+    guidedPrimitive: {
+      id: "execute.guided_webhook",
+      method: "POST",
+      path: "/api/execute/guided-webhook",
+      paid: x402Enabled,
+      price,
+      network,
+      decisionRoute: "/api/decide/webhook",
+      executionModel: "decision-linked one-shot public HTTPS action",
+      proofModel: "signed receipt linked to a redacted decision record"
+    },
     categories,
     templates,
     policyModes: POLICY_MODES,
@@ -497,6 +519,9 @@ function publicActionCatalog({ baseUrl, price, x402Enabled, network, targetPolic
     discoveryKeywords,
     links: {
       quickstart: `${baseUrl}/api/quickstart`,
+      decisionGraph: `${baseUrl}/api/decide/webhook`,
+      recentDecisions: `${baseUrl}/api/decisions/recent`,
+      decisionsPage: `${baseUrl}/decisions`,
       capabilities: `${baseUrl}/api/capabilities`,
       bazaar: `${baseUrl}/api/bazaar`,
       openapi: `${baseUrl}/openapi.json`,
@@ -550,10 +575,11 @@ function publicQuickstart({ baseUrl, price, x402Enabled, network, maxRetryAttemp
     },
     callFlow: [
       "Read /api/quickstart, /api/pricing, /api/actions, or /api/capabilities.",
-      "Prepare POST /api/execute/webhook with url, method, body, idempotencyKey, retry, and timeoutMs.",
-      "Optionally POST the same JSON to /api/policy/check to catch rejected targets before paying.",
+      "Prepare the webhook action with url, method, body, idempotencyKey, retry, and timeoutMs.",
+      "POST { action, buyerPolicy } to /api/decide/webhook for a free deterministic pay/do-not-pay recommendation.",
+      "Optionally POST the action JSON to /api/policy/check to inspect lower-level target policy details.",
       "If the first response is 402, verify price/network/payTo against buyer policy.",
-      "Pay through an x402 buyer client and retry with the payment header.",
+      "Pay /api/execute/guided-webhook through an x402 buyer client when the decision recommendation is pay_and_execute, or call /api/execute/webhook directly for the classic path.",
       "Read links.job or links.receipt from the response.",
       "Verify /api/verify/jobs/{id} or /api/verify/receipts/{id}.",
       "Store the receipt id with the caller's task record."
@@ -587,6 +613,8 @@ function publicQuickstart({ baseUrl, price, x402Enabled, network, maxRetryAttemp
     nextDiscoverySteps: [
       `${baseUrl}/api/actions`,
       `${baseUrl}/api/pricing`,
+      `${baseUrl}/api/decide/webhook`,
+      `${baseUrl}/api/decisions/recent`,
       `${baseUrl}/api/handoff/capabilities`,
       `${baseUrl}/api/schedules/capabilities`,
       `${baseUrl}/api/secrets/policy`,

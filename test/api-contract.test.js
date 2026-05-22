@@ -82,6 +82,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.links.canaryEcho.endsWith("/api/canary/echo"), true);
   assert.equal(body.links.snippets.endsWith("/api/snippets"), true);
+  assert.equal(body.links.decideWebhook.endsWith("/api/decide/webhook"), true);
+  assert.equal(body.links.recentDecisions.endsWith("/api/decisions/recent"), true);
   assert.equal(body.links.snippetsGuide.endsWith("/snippets"), true);
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
@@ -130,6 +132,9 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.actionCatalog.path, "/api/actions");
   assert.equal(body.verification.proofBadge, "/proof/{jobOrReceiptId}");
   assert.equal(body.verification.integrationSnippets, "/api/snippets");
+  assert.equal(body.decisionGraph.path, "/api/decide/webhook");
+  assert.ok(body.actions.some((action) => action.id === "decide.webhook"));
+  assert.ok(body.actions.some((action) => action.id === "execute.guided_webhook"));
   assert.ok(body.discoveryKeywords.includes("pay per API call"));
   assert.ok(body.discoveryKeywords.includes("Action402 action catalog"));
   assert.ok(body.discoveryKeywords.includes("Discord webhook x402"));
@@ -161,6 +166,12 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/execute/webhook"].post);
   assert.equal(body.paths["/api/execute/webhook"].post.operationId, "executeWebhook");
   assert.deepEqual(body.paths["/api/execute/webhook"].post.security, [{ X402Payment: [] }]);
+  assert.ok(body.paths["/api/decide/webhook"].post);
+  assert.equal(body.paths["/api/decide/webhook"].post.operationId, "decideWebhook");
+  assert.ok(body.paths["/api/execute/guided-webhook"].post);
+  assert.equal(body.paths["/api/execute/guided-webhook"].post.operationId, "executeGuidedWebhook");
+  assert.ok(body.paths["/api/decisions/recent"].get);
+  assert.ok(body.paths["/api/decisions/{id}"].get);
   assert.ok(body.paths["/api/verify/jobs/{id}"].get);
   assert.ok(body.paths["/api/verify/receipts/{id}"].get);
   assert.ok(body.paths["/api/proofs/recent"].get);
@@ -218,6 +229,9 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.SecretStoragePolicy);
   assert.ok(body.components.schemas.AgentManifest);
   assert.ok(body.components.schemas.TrustResponse);
+  assert.ok(body.components.schemas.DecisionRequest);
+  assert.ok(body.components.schemas.DecisionResponse);
+  assert.ok(body.components.schemas.DecisionRecord);
 });
 
 test("api index gives agents a compact entry map", async () => {
@@ -238,6 +252,8 @@ test("api index gives agents a compact entry map", async () => {
   assert.ok(body.free.discovery.includes("/api/pricing"));
   assert.ok(body.free.discovery.includes("/api/mcp"));
   assert.ok(body.free.preflight.includes("/api/policy/check"));
+  assert.ok(body.free.decision.includes("/api/decide/webhook"));
+  assert.ok(body.free.decision.includes("/api/decisions/recent"));
   assert.ok(body.free.verification.includes("/api/verify/jobs/{id}"));
   assert.ok(body.free.trustAndMonitoring.includes("/status"));
   assert.ok(body.free.trustAndMonitoring.includes("/health"));
@@ -331,6 +347,11 @@ test("cache policy separates stable discovery from runtime state", async () => {
   assert.equal(proofs.response.headers.get("cache-control"), "no-store");
   assert.equal(proofs.response.headers.get("x-action402-cache-policy"), "no-store");
 
+  const recentDecisions = await request("/api/decisions/recent");
+  assert.equal(recentDecisions.response.headers.get("cache-control"), "no-store");
+  assert.equal(recentDecisions.response.headers.get("x-action402-cache-policy"), "no-store");
+  assert.equal(recentDecisions.response.headers.get("x-action402-agent-entry"), "/api");
+
   const policy = await request("/api/policy/check", {
     method: "POST",
     headers: {
@@ -371,6 +392,18 @@ test("machine-readable endpoints support browser agent CORS preflight", async ()
   assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("x-action402-cache-policy"));
   assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("link"));
   assert.ok(preflight.response.headers.get("access-control-expose-headers").includes("x-action402-agent-entry"));
+
+  const guidedPreflight = await requestRaw("/api/execute/guided-webhook", {
+    method: "OPTIONS",
+    headers: {
+      origin: "https://agent.example",
+      "access-control-request-method": "POST",
+      "access-control-request-headers": "content-type,x-payment,payment-signature"
+    }
+  });
+  assert.equal(guidedPreflight.response.status, 204);
+  assert.equal(guidedPreflight.response.headers.get("access-control-allow-origin"), "*");
+  assert.ok(guidedPreflight.response.headers.get("access-control-allow-headers").includes("x-payment"));
 
   const capabilities = await request("/api/capabilities", {
     headers: {
@@ -456,6 +489,8 @@ test("action catalog exposes ready templates and safe future scheduling", async 
   assert.equal(body.ok, true);
   assert.equal(body.activePrimitive.id, "execute.webhook");
   assert.equal(body.activePrimitive.path, "/api/execute/webhook");
+  assert.equal(body.guidedPrimitive.path, "/api/execute/guided-webhook");
+  assert.equal(body.guidedPrimitive.decisionRoute, "/api/decide/webhook");
   assert.ok(body.categories.includes("chatops"));
   assert.ok(body.templates.length >= 9);
   assert.ok(body.templates.some((template) => template.id === "chatops.slack_message"));
@@ -577,6 +612,16 @@ test("known API routes return structured method errors", async () => {
   assert.equal(policy.response.headers.get("allow"), "POST");
   assert.equal(policy.body.error.code, "method_not_allowed");
 
+  const decide = await request("/api/decide/webhook");
+  assert.equal(decide.response.status, 405);
+  assert.equal(decide.response.headers.get("allow"), "POST");
+  assert.equal(decide.body.error.code, "method_not_allowed");
+
+  const guided = await request("/api/execute/guided-webhook");
+  assert.equal(guided.response.status, 405);
+  assert.equal(guided.response.headers.get("allow"), "POST");
+  assert.equal(guided.body.error.code, "method_not_allowed");
+
   const canary = await request("/api/canary/echo", {
     method: "PUT"
   });
@@ -594,7 +639,9 @@ test("snippets endpoint exposes buyer and verification examples", async () => {
   assert.ok(body.groups.length >= 4);
   assert.ok(body.groups.some((group) => group.id === "discovery"));
   assert.ok(body.groups.some((group) => group.id === "paid-call"));
+  assert.ok(body.groups.some((group) => group.id === "decision-first"));
   assert.ok(body.groups.some((group) => group.id === "advanced-surfaces"));
+  assert.ok(body.groups.some((group) => group.snippets.some((snippet) => snippet.id === "free-decision")));
   assert.ok(body.groups.some((group) => group.snippets.some((snippet) => snippet.id === "preflight-policy-check")));
   assert.ok(body.groups.some((group) => group.snippets.some((snippet) => snippet.code.includes("/api/pricing"))));
   const verification = body.groups.find((group) => group.id === "verification");
@@ -603,6 +650,8 @@ test("snippets endpoint exposes buyer and verification examples", async () => {
   assert.equal(body.links.proofBadge.endsWith("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.links.pricing.endsWith("/api/pricing"), true);
   assert.equal(body.links.policyCheck.endsWith("/api/policy/check"), true);
+  assert.equal(body.links.decisionGraph.endsWith("/api/decide/webhook"), true);
+  assert.equal(body.links.recentDecisions.endsWith("/api/decisions/recent"), true);
   assert.equal(body.links.handoff.endsWith("/api/handoff/capabilities"), true);
   assert.equal(body.links.schedulePreview.endsWith("/api/schedules/preview"), true);
   assert.equal(body.links.secretPolicy.endsWith("/api/secrets/policy"), true);
@@ -615,6 +664,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(manifest.body.name, "Action402");
   assert.ok(manifest.body.protocols.includes("x402"));
   assert.ok(manifest.body.paidActions.some((action) => action.path === "/api/execute/webhook"));
+  assert.ok(manifest.body.paidActions.some((action) => action.path === "/api/execute/guided-webhook"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/discovery"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/capabilities"));
@@ -622,6 +672,8 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/mcp"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/.well-known/mcp.json"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/canary/echo"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/decide/webhook"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/decisions/recent"));
   assert.ok(manifest.body.browserPages.some((page) => page.path === "/status"));
   assert.ok(manifest.body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
 
@@ -813,6 +865,10 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/.well-known/mcp.json"), true);
   assert.equal(body.includes("/api/policy/check"), true);
   assert.equal(body.includes("/api/canary/echo"), true);
+  assert.equal(body.includes("/api/decide/webhook"), true);
+  assert.equal(body.includes("/api/execute/guided-webhook"), true);
+  assert.equal(body.includes("/api/decisions/recent"), true);
+  assert.equal(body.includes("/decisions"), true);
   assert.equal(body.includes("/api/snippets"), true);
   assert.equal(body.includes("/snippets"), true);
   assert.equal(body.includes("/handoff"), true);
@@ -830,6 +886,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/api/proofs/recent"), true);
   assert.equal(body.includes("/api/monitoring/executions"), true);
   assert.equal(body.includes("MCP/Bazaar guidance"), true);
+  assert.equal(body.includes("Decision-first quick start"), true);
 });
 
 test("public product pages load", async () => {
@@ -840,6 +897,8 @@ test("public product pages load", async () => {
     ["/use-cases", "Use-case templates"],
     ["/actions", "Action catalog"],
     ["/snippets", "Integration snippets"],
+    ["/decisions", "Decision graph"],
+    ["/decision/dec_test_missing", "Decision record"],
     ["/handoff", "Browser handoff"],
     ["/schedules", "Schedule preview"],
     ["/secrets", "Secret storage policy"],
@@ -865,6 +924,8 @@ test("vercel rewrites expose extensionless product pages", () => {
   assert.equal(rewrites.get("/handoff"), "/handoff.html");
   assert.equal(rewrites.get("/status"), "/status.html");
   assert.equal(rewrites.get("/discovery"), "/discovery.html");
+  assert.equal(rewrites.get("/decisions"), "/decisions.html");
+  assert.equal(rewrites.get("/decision/:id"), "/api/index?__action402_path=/decision/:id");
   assert.equal(rewrites.get("/schedules"), "/schedules.html");
   assert.equal(rewrites.get("/secrets"), "/secrets.html");
   assert.equal(rewrites.get("/robots.txt"), "/api/index?__action402_path=/robots.txt");
@@ -1118,6 +1179,8 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.publicSurfaces.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.publicSurfaces.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.publicSurfaces.canaryEcho.endsWith("/api/canary/echo"), true);
+  assert.equal(body.publicSurfaces.decisionGraph.endsWith("/api/decide/webhook"), true);
+  assert.equal(body.publicSurfaces.recentDecisions.endsWith("/api/decisions/recent"), true);
   assert.equal(body.publicSurfaces.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.publicSurfaces.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.publicSurfaces.handoffCapabilities.endsWith("/api/handoff/capabilities"), true);
@@ -1132,6 +1195,7 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.trustSignals.includes("robots.txt and sitemap.xml expose agent entry points"), true);
   assert.equal(body.trustSignals.includes("free preflight policy check before payment"), true);
   assert.equal(body.trustSignals.includes("free redacted canary echo target for self-tests"), true);
+  assert.equal(body.trustSignals.includes("free deterministic decision graph before payment"), true);
   assert.equal(body.trustSignals.includes("copy-paste integration snippets for buyers and verifiers"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
   assert.equal(body.trustSignals.includes("browser/action handoff package endpoint is public"), true);

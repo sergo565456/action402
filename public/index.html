@@ -25,6 +25,7 @@
         <a href="/discovery">Discovery</a>
         <a href="/actions">Actions</a>
         <a href="/snippets">Snippets</a>
+        <a href="/decisions">Decisions</a>
         <a href="/handoff">Handoff</a>
         <a href="/schedules">Schedules</a>
         <a href="/use-cases">Use Cases</a>
@@ -52,6 +53,7 @@
             <a class="button secondary" href="/discovery">Discovery Pack</a>
             <a class="button secondary" href="/actions">Action Catalog</a>
             <a class="button secondary" href="/snippets">Snippets</a>
+            <a class="button secondary" href="/decisions">Decisions</a>
             <a class="button secondary" href="/handoff">Handoff</a>
             <a class="button secondary" href="/use-cases">Use Cases</a>
             <a class="button secondary" href="/trust">Trust</a>
@@ -102,6 +104,16 @@ proof = "request + response hashes"</code></pre>
             <span>paid</span>
             <h3>POST /api/execute/webhook</h3>
             <p>Runs one outbound HTTPS action with retries, timeout control, and idempotency.</p>
+          </article>
+          <article class="endpoint">
+            <span>free</span>
+            <h3>POST /api/decide/webhook</h3>
+            <p>Runs a deterministic payment, policy, trust, and execution readiness decision before payment.</p>
+          </article>
+          <article class="endpoint">
+            <span>paid</span>
+            <h3>POST /api/execute/guided-webhook</h3>
+            <p>Executes only when the stored decision approves the matching action, then links the receipt.</p>
           </article>
           <article class="endpoint">
             <span>agent</span>

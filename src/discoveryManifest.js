@@ -19,6 +19,7 @@ const PUBLIC_PAGES = [
   { path: "/trust", priority: "0.8", changefreq: "daily" },
   { path: "/status", priority: "0.75", changefreq: "daily" },
   { path: "/proofs", priority: "0.75", changefreq: "daily" },
+  { path: "/decisions", priority: "0.7", changefreq: "daily" },
   { path: "/monitoring", priority: "0.65", changefreq: "daily" },
   { path: "/demo.html", priority: "0.55", changefreq: "monthly" },
   { path: "/brand.html", priority: "0.45", changefreq: "monthly" }
@@ -39,6 +40,8 @@ const MACHINE_SURFACES = [
   "/api/actions",
   "/api/quickstart",
   "/api/snippets",
+  "/api/decide/webhook",
+  "/api/decisions/recent",
   "/api/policy/check",
   "/api/canary/echo",
   "/api/handoff/capabilities",
@@ -91,6 +94,9 @@ function discoveryLinks(baseUrl) {
     actions: absoluteUrl("/api/actions", baseUrl),
     quickstart: absoluteUrl("/api/quickstart", baseUrl),
     snippets: absoluteUrl("/api/snippets", baseUrl),
+    decisionGraph: absoluteUrl("/api/decide/webhook", baseUrl),
+    recentDecisions: absoluteUrl("/api/decisions/recent", baseUrl),
+    decisionsPage: absoluteUrl("/decisions", baseUrl),
     canaryEcho: absoluteUrl("/api/canary/echo", baseUrl),
     trust: absoluteUrl("/api/trust", baseUrl),
     statusPage: absoluteUrl("/status", baseUrl),
@@ -155,6 +161,21 @@ export function publicAgentManifest({ baseUrl = config.publicBaseUrl } = {}) {
       "Use Action402 for one paid public HTTPS webhook/API action. Preflight the target, pay only if price/network/route match policy, then verify the returned receipt.",
     paidActions: [
       {
+        id: "execute.guided_webhook",
+        method: "POST",
+        path: "/api/execute/guided-webhook",
+        url: absoluteUrl("/api/execute/guided-webhook", baseUrl),
+        payment: {
+          required: config.x402Enabled,
+          scheme: "exact",
+          network: config.x402Network,
+          price: config.x402Price,
+          payTo: config.payTo || null
+        },
+        executionModel: "decision-linked one-shot public HTTPS action",
+        proofModel: "signed receipt with decision id and decision hash when supplied"
+      },
+      {
         id: "execute.webhook",
         method: "POST",
         path: "/api/execute/webhook",
@@ -202,6 +223,7 @@ export function publicAgentManifest({ baseUrl = config.publicBaseUrl } = {}) {
       privateNetworkTargetsBlocked: true,
       allowedMethods: ["POST", "PUT", "PATCH", "DELETE"],
       preflightPolicyCheck: absoluteUrl("/api/policy/check", baseUrl),
+      prePaymentDecisionGraph: absoluteUrl("/api/decide/webhook", baseUrl),
       secretStorage: "not-supported-in-public-mvp",
       scheduleExecution: "preview-only",
       browserExecution: "handoff-only"
@@ -209,6 +231,8 @@ export function publicAgentManifest({ baseUrl = config.publicBaseUrl } = {}) {
     verification: {
       job: absoluteUrl("/api/verify/jobs/{id}", baseUrl),
       receipt: absoluteUrl("/api/verify/receipts/{id}", baseUrl),
+      decision: absoluteUrl("/api/decisions/{id}", baseUrl),
+      recentDecisions: absoluteUrl("/api/decisions/recent", baseUrl),
       proofBadge: absoluteUrl("/proof/{jobOrReceiptId}", baseUrl),
       recentProofs: absoluteUrl("/api/proofs/recent", baseUrl)
     },

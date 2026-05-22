@@ -74,6 +74,14 @@ export function verifyJobReceipt({ job, receipt }) {
     check("receipt attempt count matches job", payload.attempts === jobAttemptCount, {
       receiptAttempts: payload.attempts ?? null,
       jobAttempts: jobAttemptCount
+    }),
+    check("receipt decision id matches job when present", (payload.decisionId || null) === (job?.decisionId || null), {
+      receiptDecisionId: payload.decisionId || null,
+      jobDecisionId: job?.decisionId || null
+    }),
+    check("receipt decision hash matches job when present", (payload.decisionHash || null) === (job?.decisionHash || null), {
+      receiptDecisionHashPresent: Boolean(payload.decisionHash),
+      jobDecisionHashPresent: Boolean(job?.decisionHash)
     })
   ];
   const checks = [...base.checks, ...consistencyChecks];
@@ -82,6 +90,8 @@ export function verifyJobReceipt({ job, receipt }) {
     ok: checks.every((item) => item.ok),
     jobId: job?.id || payload.jobId || null,
     receiptId: receipt?.id || null,
+    decisionId: payload.decisionId || job?.decisionId || null,
+    decisionHashPresent: Boolean(payload.decisionHash || job?.decisionHash),
     keyId: receipt?.keyId || null,
     signatureVerified: base.signatureVerified,
     checks

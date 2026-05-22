@@ -2,11 +2,13 @@ import dns from "node:dns/promises";
 import net from "node:net";
 import { config } from "./config.js";
 import { createId, sha256Json, buildReceipt } from "./receipt.js";
-import { createJob, getJobByIdempotencyKey, saveReceipt, updateJob } from "./store.js";
+import { createJob, getDecision, getJobByIdempotencyKey, saveReceipt, updateDecision, updateJob } from "./store.js";
 import { ApiError } from "./errors.js";
 import { assertTargetPolicy } from "./targetPolicy.js";
 import { assertTargetQuota } from "./targetQuota.js";
 import { logEvent, recordMetric } from "./observability.js";
+import { actionHashForWebhook } from "./decisionState.js";
+import { decisionOutcomePatch } from "./decisionMemory.js";
 
 const ALLOWED_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const BLOCKED_HEADER_NAMES = new Set([
@@ -159,6 +161,24 @@ export async function executeWebhookAction(input, context = {}) {
     throw new ApiError(400, "invalid_idempotency_key", "idempotencyKey must be 160 characters or fewer.");
   }
 
+  let linkedDecision = null;
+  const decisionId = input.decisionId ? String(input.decisionId) : "";
+  if (decisionId) {
+    linkedDecision = await getDecision(decisionId);
+    if (!linkedDecision) {
+      throw new ApiError(409, "decision_not_found", "decisionId does not match a stored Action402 decision.");
+    }
+    if (linkedDecision.decision?.recommendation !== "pay_and_execute") {
+      throw new ApiError(409, "decision_not_approved", "decision did not approve paid execution.", {
+        decisionId,
+        recommendation: linkedDecision.decision?.recommendation || "unknown"
+      });
+    }
+    if (linkedDecision.actionHash !== actionHashForWebhook(input)) {
+      throw new ApiError(409, "decision_action_mismatch", "decisionId was created for a different webhook action.");
+    }
+  }
+
   const existing = idempotencyKey ? await getJobByIdempotencyKey(idempotencyKey) : undefined;
 
   if (existing) {
@@ -181,6 +201,8 @@ export async function executeWebhookAction(input, context = {}) {
     target: `${target.protocol}//${target.host}${target.pathname}`,
     method,
     idempotencyKey,
+    decisionId: linkedDecision?.id || null,
+    decisionHash: linkedDecision?.decisionHash || null,
     attempts: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -274,6 +296,10 @@ export async function executeWebhookAction(input, context = {}) {
   const finalJob = await updateJob(job.id, {
     receiptId: receipt.id
   });
+
+  if (linkedDecision) {
+    await updateDecision(linkedDecision.id, decisionOutcomePatch({ job: finalJob, receipt }));
+  }
 
   logEvent(finalResponse.ok ? "info" : "warn", finalResponse.ok ? "execution.succeeded" : "execution.failed", {
     requestId: context.requestId,

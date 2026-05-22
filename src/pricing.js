@@ -35,7 +35,7 @@ export function publicPricing({ baseUrl = config.publicBaseUrl } = {}) {
     generatedAt: new Date().toISOString(),
     pricingModel: "pay-per-action",
     summary:
-      "Agents pay only for POST /api/execute/webhook. Discovery, preflight, canary echo, snippets, proof verification, trust, and monitoring surfaces are free.",
+      "Agents pay only for POST /api/execute/webhook or POST /api/execute/guided-webhook. Discovery, decision graph, preflight, canary echo, snippets, proof verification, trust, and monitoring surfaces are free.",
     payment: {
       required: config.x402Enabled,
       protocol: "x402",
@@ -60,6 +60,19 @@ export function publicPricing({ baseUrl = config.publicBaseUrl } = {}) {
           "If the downstream target fails after accepted payment, Action402 returns a failed job plus a signed receipt/proof for the attempt.",
         idempotency:
           "Send idempotencyKey so repeated buyer retries can reuse the retained job instead of intentionally creating duplicate target effects."
+      },
+      {
+        id: "execute.guided_webhook",
+        method: "POST",
+        path: "/api/execute/guided-webhook",
+        price: price.display,
+        unit: "one decision-linked public HTTPS request attempt with retries and a signed receipt",
+        chargeTiming:
+          "Buyer agents should first call free POST /api/decide/webhook, then pay this route only when the decision recommendation is pay_and_execute.",
+        failurePolicy:
+          "If the downstream target fails after accepted payment, Action402 still links the paid job, receipt, and decision outcome for later trust reflection.",
+        idempotency:
+          "The execution body must match the approved decision id so buyer retries cannot silently change the target action."
       }
     ],
     freeSurfaces: {
@@ -75,7 +88,8 @@ export function publicPricing({ baseUrl = config.publicBaseUrl } = {}) {
         "/openapi.json",
         "/llms.txt"
       ],
-      preflight: ["/api/policy/check", "/api/canary/echo"],
+      preflight: ["/api/decide/webhook", "/api/policy/check", "/api/canary/echo"],
+      decision: ["/api/decide/webhook", "/api/decisions/{id}", "/api/decisions/recent", "/decisions", "/decision/{id}"],
       verification: [
         "/api/jobs/{id}",
         "/api/receipts/{id}",
@@ -88,6 +102,7 @@ export function publicPricing({ baseUrl = config.publicBaseUrl } = {}) {
     },
     buyerGuardrails: [
       "Read /api/pricing and reject unexpected price, network, route, or payTo before paying.",
+      "POST the intended payload to /api/decide/webhook and prefer guided execution when it returns pay_and_execute.",
       "POST the intended payload to /api/policy/check before payment.",
       "Use a buyer-side max spend cap that is above the listed price and below the caller's budget.",
       "Always pass idempotencyKey for retryable buyer flows.",
@@ -113,6 +128,10 @@ export function publicPricing({ baseUrl = config.publicBaseUrl } = {}) {
       self: absoluteUrl("/api/pricing", baseUrl),
       humanPricing: absoluteUrl("/pricing", baseUrl),
       executeWebhook: absoluteUrl("/api/execute/webhook", baseUrl),
+      guidedWebhook: absoluteUrl("/api/execute/guided-webhook", baseUrl),
+      decideWebhook: absoluteUrl("/api/decide/webhook", baseUrl),
+      recentDecisions: absoluteUrl("/api/decisions/recent", baseUrl),
+      decisionsPage: absoluteUrl("/decisions", baseUrl),
       policyCheck: absoluteUrl("/api/policy/check", baseUrl),
       quickstart: absoluteUrl("/api/quickstart", baseUrl),
       capabilities: absoluteUrl("/api/capabilities", baseUrl),

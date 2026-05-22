@@ -106,11 +106,33 @@ async function recentVerifiedProofStats({ jobs, getReceipt }) {
   return { recentVerifiedProofs, latestVerifiedProofAt };
 }
 
-export async function buildTrustSummary({ executionStats, storeStats, listRecentJobs, getReceipt }) {
-  const [stats, store, recentJobs] = await Promise.all([
+async function recentDecisionStats({ listRecentDecisions }) {
+  if (!listRecentDecisions) {
+    return {
+      recentDecisions: 0,
+      payAndExecute: 0,
+      manualReview: 0,
+      doNotPay: 0,
+      linkedOutcomes: 0
+    };
+  }
+
+  const decisions = await listRecentDecisions(50);
+  return {
+    recentDecisions: decisions.length,
+    payAndExecute: decisions.filter((decision) => decision.decision?.recommendation === "pay_and_execute").length,
+    manualReview: decisions.filter((decision) => decision.decision?.recommendation === "manual_review").length,
+    doNotPay: decisions.filter((decision) => decision.decision?.recommendation === "do_not_pay").length,
+    linkedOutcomes: decisions.filter((decision) => decision.outcome?.linkedJobId).length
+  };
+}
+
+export async function buildTrustSummary({ executionStats, storeStats, listRecentJobs, listRecentDecisions, getReceipt }) {
+  const [stats, store, recentJobs, decisionStats] = await Promise.all([
     executionStats({ windowMs: TRUST_WINDOW_MS }),
     storeStats(),
-    listRecentJobs(50)
+    listRecentJobs(50),
+    recentDecisionStats({ listRecentDecisions })
   ]);
   const proofStats = await recentVerifiedProofStats({ jobs: recentJobs, getReceipt });
   const recentFailureRate = stats.recentTotal > 0 ? stats.recentFailed / stats.recentTotal : 0;
@@ -141,6 +163,16 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       stats
     },
     proofExamples: proofStats,
+    decisionGraph: {
+      enabled: true,
+      llmEnabled: config.decisionLlmEnabled,
+      recentDecisionStats: decisionStats,
+      ...decisionStats,
+      summary:
+        decisionStats.recentDecisions > 0
+          ? `${decisionStats.recentDecisions} recent decision record(s), ${decisionStats.linkedOutcomes} linked to paid outcomes.`
+          : "No recent decision records yet."
+    },
     publicSurfaces: {
       capabilities: `${config.publicBaseUrl}/api/capabilities`,
       discovery: `${config.publicBaseUrl}/discovery`,
@@ -149,6 +181,9 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
+      decisionGraph: `${config.publicBaseUrl}/api/decide/webhook`,
+      decision: `${config.publicBaseUrl}/api/decide/webhook`,
+      recentDecisions: `${config.publicBaseUrl}/api/decisions/recent`,
       canaryEcho: `${config.publicBaseUrl}/api/canary/echo`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
@@ -180,6 +215,7 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       "public action catalog and quickstart endpoints",
       "copy-paste integration snippets for buyers and verifiers",
       "free preflight policy check before payment",
+      "free deterministic decision graph before payment",
       "free redacted canary echo target for self-tests",
       "official Bazaar discovery extension metadata",
       "public proof verification endpoints",

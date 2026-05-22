@@ -35,6 +35,7 @@ Agent entry points:
 - https://action402.vercel.app/mcp - MCP and Bazaar discovery-first flow.
 - https://action402.vercel.app/api/mcp - machine-readable MCP wrapper manifest.
 - https://action402.vercel.app/trust - public trust summary.
+- https://action402.vercel.app/decisions - public redacted decision graph history.
 - https://action402.vercel.app/status - live runtime status backed by `/health`.
 - https://action402.vercel.app/pricing - current price and free surfaces.
 - https://action402.vercel.app/api/pricing - machine-readable pricing and buyer guardrails.
@@ -44,6 +45,9 @@ Agent entry points:
 - https://action402.vercel.app/api/quickstart - compact buyer flow for agents.
 - https://action402.vercel.app/api/policy/check - free pre-payment policy check.
 - https://action402.vercel.app/api/canary/echo - free redacted self-test target.
+- https://action402.vercel.app/api/decide/webhook - free deterministic decision graph before payment.
+- https://action402.vercel.app/api/execute/guided-webhook - paid decision-linked execution.
+- https://action402.vercel.app/api/decisions/recent - recent redacted decisions.
 - https://action402.vercel.app/api/snippets - copy-paste buyer and verification snippets.
 - https://action402.vercel.app/api/actions - action template catalog and policy modes.
 - https://action402.vercel.app/api/bazaar - x402/Bazaar route metadata.
@@ -54,6 +58,8 @@ Agent entry points:
 
 - `POST /api/execute/webhook` - paid action endpoint in x402 mode.
   Compatible x402 buyers retry with `X-PAYMENT` or `payment-signature`; settlement headers are exposed as `X-PAYMENT-RESPONSE` or `PAYMENT-RESPONSE`.
+- `POST /api/decide/webhook` - free deterministic pay/do-not-pay decision graph for one intended webhook/API action.
+- `POST /api/execute/guided-webhook` - paid endpoint that executes only when the supplied decision id approves the matching action.
 - `GET /api` - compact machine-readable API index for agents that probe the API root first.
 - `GET /api/discovery` - canonical machine-readable discovery pack and recommended fetch order.
 - `GET /api/jobs/:id` - public job status.
@@ -62,6 +68,7 @@ Agent entry points:
 - `GET /api/verify/receipts/:id` - proof report by receipt id.
 - `GET /api/proofs/recent` - redacted public verified proof examples.
 - `GET /api/monitoring/executions` - durable execution counters and recent failure categories.
+- `GET /api/decisions/:id` and `GET /api/decisions/recent` - redacted decision records and recent summaries.
 - `GET /api/trust` - redacted public trust summary for buyer-side inspection.
 - `/status` - browser-friendly runtime status page backed by `GET /health`.
 - `GET /api/agent-manifest` - canonical machine-readable discovery manifest.
@@ -83,6 +90,7 @@ Agent entry points:
 - `/agents` - browser-readable guide for autonomous agents.
 - `/discovery` - browser-readable discovery pack.
 - `/use-cases` - task templates for agent discovery.
+- `/decisions` and `/decision/{id}` - browser-friendly decision graph history.
 - `/mcp` - MCP/Bazaar discovery guide.
 - `/trust` - browser-readable trust summary.
 - `/status` - browser-readable live runtime status.
@@ -113,6 +121,10 @@ Search phrases intentionally present in capabilities, Bazaar metadata, and `llms
 - `Zapier webhook x402`
 - `GitHub Actions dispatch x402`
 - `agent-safe webhook execution`
+- `x402 payment decision graph`
+- `decision-linked paid execution`
+- `decision-linked receipts`
+- `agent trust reflection memory`
 
 ## MCP and Bazaar discovery
 
@@ -132,6 +144,9 @@ Useful public surfaces for discovery clients:
 - `GET /api/quickstart` - shortest safe call flow for agents.
 - `GET /api/pricing` - exact price/network/payTo plus buyer guardrails before payment.
 - `GET /api/mcp` - MCP wrapper manifest with tool candidates, buyer flow, and x402 guardrails.
+- `POST /api/decide/webhook` - free role-based recommendation before paying.
+- `POST /api/execute/guided-webhook` - preferred paid path when a decision returns `pay_and_execute`.
+- `GET /api/decisions/recent` - redacted decision history for trust inspection.
 - `POST /api/policy/check` - preflight the same payload before paying for execution.
 - `POST /api/canary/echo` - safe internal target for non-sensitive self-tests; it does not create a paid receipt.
 - `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
@@ -224,9 +239,9 @@ After starting an x402-enabled server, run:
 npm run smoke:x402 -- http://127.0.0.1:4021
 ```
 
-The smoke script checks `/health`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/openapi.json`, agent discovery fields, and verifies that an unpaid `POST /api/execute/webhook` returns `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, public trust/proof surfaces, and proof badge routing.
+The smoke script checks `/health`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/decide/webhook`, `/api/decisions/recent`, `/openapi.json`, agent discovery fields, and verifies that unpaid `POST /api/execute/webhook` and `POST /api/execute/guided-webhook` return `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, public trust/proof/decision surfaces, and proof badge routing.
 
-Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/actions`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
+Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/actions`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, decisions, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
 
 Agent-facing pages and machine-readable discovery endpoints also publish HTTP discovery headers: `X-Action402-Agent-Entry: /api` and a `Link` header pointing to the API index, agent manifest, OpenAPI, `llms.txt`, pricing, MCP manifest, and Bazaar metadata.
 
@@ -244,6 +259,8 @@ Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 - `GET /api/quickstart` - minimal request, payment guardrails, copy-paste snippets, and proof verification links.
 - `GET /api/pricing` - machine-readable price, payment route, free surfaces, limits, and buyer guardrails.
 - `GET /api/mcp` and `GET /.well-known/mcp.json` - MCP wrapper manifest for mapping Action402 routes into local tools.
+- `POST /api/decide/webhook` - free deterministic decision graph before payment.
+- `GET /api/decisions/recent` - redacted recent decision summaries.
 - `POST /api/policy/check` - free pre-payment validation of the intended execution payload.
 - `POST /api/canary/echo` - free redacted echo target for route and JSON plumbing checks.
 - `GET /api/snippets` - dedicated copy-paste discovery, paid call, verification, and buyer policy examples.
@@ -256,7 +273,7 @@ Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 Recommended agent prompt:
 
 ```text
-Use Action402 for one paid public HTTPS webhook/API action. Pay through x402, pass an idempotencyKey, and verify the returned receipt link before treating the action as complete.
+Use Action402 for one paid public HTTPS webhook/API action. First call /api/decide/webhook for a free deterministic recommendation. If it returns pay_and_execute, pay /api/execute/guided-webhook through x402 with the matching decisionId and verify the returned receipt plus decision link before treating the action as complete.
 ```
 
 User-owned values before testnet/mainnet:

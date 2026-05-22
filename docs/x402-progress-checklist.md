@@ -23,6 +23,9 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Free redacted canary target `/api/canary/echo` exists.
 - [x] Copy-paste integration snippets `/api/snippets` exist.
 - [x] Action catalog `/api/actions` exists.
+- [x] Decision graph `/api/decide/webhook` exists.
+- [x] Guided paid execution `/api/execute/guided-webhook` exists.
+- [x] Redacted decision history `/api/decisions/recent` and `/decisions` exists.
 - [x] OpenAPI `/openapi.json` exists.
 - [x] Bazaar metadata `/api/bazaar` exists.
 - [x] Agent guide `/agents` exists.
@@ -145,3 +148,14 @@ Latest production proof:
 - [x] Add `/discovery` as the browser-readable discovery pack.
 - [x] Add `/robots.txt` and `/sitemap.xml`.
 - [x] Add discovery pack checks to deploy and x402 smoke scripts.
+
+## Phase 8: Agent Decision Graph
+
+- [x] Add free deterministic decision endpoint `POST /api/decide/webhook`.
+- [x] Persist decision records in JSON and Postgres stores.
+- [x] Redact public decision records and recent summaries.
+- [x] Add browser pages `/decisions` and `/decision/{id}`.
+- [x] Add paid guided route `POST /api/execute/guided-webhook`.
+- [x] Link guided paid jobs, receipts, proof reports, and decision records.
+- [x] Feed linked decision outcomes into trust/reflection summaries.
+- [x] Publish decision graph surfaces through capabilities, API index, Bazaar metadata, OpenAPI, sitemap, `llms.txt`, snippets, and deploy checks.

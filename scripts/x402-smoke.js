@@ -154,6 +154,36 @@ async function main() {
   const scheduleCapabilities = await checkJsonEndpoint("/api/schedules/capabilities");
   const secretPolicy = await checkJsonEndpoint("/api/secrets/policy");
   const snippets = await checkJsonEndpoint("/api/snippets");
+  const decision = await fetchJson("/api/decide/webhook", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      action: {
+        url: "https://127.0.0.1/internal",
+        method: "POST",
+        idempotencyKey: "x402-smoke-decision"
+      },
+      buyerPolicy: {
+        maxPriceUsd: "0.01",
+        requireReceipt: true,
+        requirePolicyPass: true,
+        requireIdempotencyKey: true
+      }
+    })
+  }).then(({ response, body }) => {
+    record(
+      "/api/decide/webhook returns decision JSON",
+      response.status === 200 && typeof body?.recommendation === "string",
+      `status=${response.status}`
+    );
+    return body;
+  }).catch((error) => {
+    record("/api/decide/webhook returns decision JSON", false, error.message);
+    return undefined;
+  });
+  const recentDecisions = await checkJsonEndpoint("/api/decisions/recent");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
   const openapi = await checkJsonEndpoint("/openapi.json");
   await checkCachePolicy();
@@ -165,6 +195,8 @@ async function main() {
   if (apiIndex) {
     record("API index is published", apiIndex.service === "Action402");
     record("API index points to paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/webhook"));
+    record("API index points to guided paid action", apiIndex.paid?.some((action) => action.path === "/api/execute/guided-webhook"));
+    record("API index points to decision graph", apiIndex.free?.decision?.includes("/api/decide/webhook"));
     record("API index points to discovery", apiIndex.recommendedStart?.includes("/api/discovery"));
     record("API index points to pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
     record("API index points to MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
@@ -181,6 +213,14 @@ async function main() {
   if (agentManifest) {
     record("Agent manifest is published", agentManifest.schemaVersion === "action402.agent-manifest.v1");
     record("Agent manifest exposes paid action", agentManifest.paidActions?.some((action) => action.path === "/api/execute/webhook"));
+    record(
+      "Agent manifest exposes guided paid action",
+      agentManifest.paidActions?.some((action) => action.path === "/api/execute/guided-webhook")
+    );
+    record(
+      "Agent manifest exposes decision graph",
+      agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/decide/webhook")
+    );
     record("Agent manifest exposes status page", agentManifest.browserPages?.some((page) => page.path === "/status"));
   }
 
@@ -204,6 +244,11 @@ async function main() {
     record("Pricing surface is published", capabilities.pricing?.path === "/api/pricing");
     record("MCP manifest surface is published", capabilities.mcpManifest?.path === "/api/mcp");
     record("Status page surface is published", capabilities.statusPage?.path === "/status");
+    record("Decision graph surface is published", capabilities.decisionGraph?.path === "/api/decide/webhook");
+    record(
+      "Guided execution action is published",
+      capabilities.actions?.some((action) => action.id === "execute.guided_webhook")
+    );
   }
 
   if (pricing) {
@@ -234,6 +279,11 @@ async function main() {
     record("OpenAPI pricing path is published", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("OpenAPI MCP manifest path is published", Boolean(openapi.paths?.["/api/mcp"]?.get));
     record("OpenAPI execute operationId is stable", openapi.paths?.["/api/execute/webhook"]?.post?.operationId === "executeWebhook");
+    record("OpenAPI decision operationId is published", openapi.paths?.["/api/decide/webhook"]?.post?.operationId === "decideWebhook");
+    record(
+      "OpenAPI guided operationId is published",
+      openapi.paths?.["/api/execute/guided-webhook"]?.post?.operationId === "executeGuidedWebhook"
+    );
     record("OpenAPI operationIds are unique", operationIds.length >= 30 && operationIds.length === new Set(operationIds).size);
     record("OpenAPI cache policy is published", openapi["x-action402-cache"]?.dynamicCacheControl === "no-store");
     record("OpenAPI discovery header policy is published", openapi["x-action402-discovery-headers"]?.enabled === true);
@@ -251,6 +301,7 @@ async function main() {
 
   if (quickstart) {
     record("Quickstart route is published", quickstart.payment?.route?.endsWith("/api/execute/webhook"));
+    record("Quickstart decision flow is published", quickstart.callFlow?.some((step) => step.includes("/api/decide/webhook")));
     record("Quickstart proof badge is published", quickstart.verify?.proofBadge?.endsWith("/proof/{jobOrReceiptId}"));
   }
 
@@ -273,6 +324,17 @@ async function main() {
   if (snippets) {
     record("Integration snippets are published", Array.isArray(snippets.groups) && snippets.groups.length >= 4);
     record("Verification snippets are published", snippets.groups?.some((group) => group.id === "verification"));
+    record("Decision snippets are published", snippets.groups?.some((group) => group.id === "decision-first"));
+  }
+
+  if (decision) {
+    record("Decision endpoint blocks unsafe target", decision.recommendation === "do_not_pay");
+    record("Decision endpoint returns redacted public record", decision.publicRecord?.publicFieldsOnly === true);
+  }
+
+  if (recentDecisions) {
+    record("Recent decisions are published", Array.isArray(recentDecisions.decisions));
+    record("Recent decisions redaction policy is published", Array.isArray(recentDecisions.redactionPolicy?.redactedFields));
   }
 
   if (bazaar) {
@@ -281,6 +343,8 @@ async function main() {
       "Bazaar discovery keywords are published",
       Array.isArray(bazaar.discoveryKeywords) && bazaar.discoveryKeywords.includes("paid webhook execution")
     );
+    record("Bazaar decision graph link is published", typeof bazaar.links?.decisionGraph === "string");
+    record("Bazaar guided execution link is published", typeof bazaar.links?.guidedExecution === "string");
   }
 
   try {
@@ -304,6 +368,39 @@ async function main() {
     record("browser agent preflight allows x-payment", false, error.message);
     record("browser agent preflight exposes cache policy", false, error.message);
     record("browser agent preflight exposes Link", false, error.message);
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/api/execute/guided-webhook`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://agent.example"
+      },
+      body: JSON.stringify({
+        decisionId: "dec_smoke_missing",
+        action: {
+          url: "https://example.com/webhook",
+          method: "POST",
+          body: {
+            event: "action402.guided-unpaid-smoke"
+          },
+          idempotencyKey: `x402-guided-smoke-${Date.now()}`
+        }
+      })
+    });
+    const headers = paymentHeaders(response.headers);
+    const body = await response.text();
+
+    record("unpaid guided execution returns 402", response.status === 402, `status=${response.status}`);
+    record(
+      "guided x402 payment header is present",
+      headers.length > 0,
+      headers.length > 0 ? headers.map(([name]) => name).join(", ") : body.slice(0, 160)
+    );
+  } catch (error) {
+    record("unpaid guided execution returns 402", false, error.message);
+    record("guided x402 payment header is present", false, error.message);
   }
 
   try {

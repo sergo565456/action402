@@ -111,22 +111,33 @@ function discoveryExtension() {
 
 export function executeWebhookRouteConfig() {
   const extensions = discoveryExtension();
+  const accepts = [
+    {
+      scheme: "exact",
+      price: config.x402Price,
+      network: config.x402Network,
+      payTo: config.payTo || "0xYourReceivingWallet"
+    }
+  ];
 
   return {
     "POST /api/execute/webhook": {
-      accepts: [
-        {
-          scheme: "exact",
-          price: config.x402Price,
-          network: config.x402Network,
-          payTo: config.payTo || "0xYourReceivingWallet"
-        }
-      ],
+      accepts,
       description:
         "Paid webhook/API execution for autonomous agents. Executes one public HTTPS action after x402 payment, applies retries and idempotency, then returns a signed receipt with request hash, response hash, target, status, and attempt count.",
       mimeType: "application/json",
       serviceName: "Action402",
       tags: SERVICE_TAGS,
+      iconUrl: `${config.publicBaseUrl}/logo-action402.svg`,
+      extensions
+    },
+    "POST /api/execute/guided-webhook": {
+      accepts,
+      description:
+        "Decision-linked paid webhook/API execution. Buyer agents should call the free /api/decide/webhook endpoint first, then pay for guided execution with the approved decision id.",
+      mimeType: "application/json",
+      serviceName: "Action402",
+      tags: [...SERVICE_TAGS, "decision-graph", "buyer-policy"],
       iconUrl: `${config.publicBaseUrl}/logo-action402.svg`,
       extensions
     }
@@ -173,6 +184,8 @@ export function publicBazaarMetadata() {
         "Action402 MCP manifest",
         "agent quickstart x402",
         "Action402 integration snippets",
+        "Action402 decision graph",
+        "x402 pre payment decision",
         "x402 verification snippets",
         "x402 action templates",
         "Action402 agent manifest",
@@ -203,6 +216,7 @@ export function publicBazaarMetadata() {
         "Compact quickstart endpoint is available",
         "Copy-paste integration snippets are available",
         "Free preflight policy check is available before payment",
+        "Free deterministic decision graph is available before payment",
         "Free canary echo target is available for non-sensitive self-tests",
         "Public job and receipt verification endpoints are available",
         "Public proof badge pages are available for job and receipt ids",
@@ -224,6 +238,8 @@ export function publicBazaarMetadata() {
       verification: {
         job: "/api/verify/jobs/{id}",
         receipt: "/api/verify/receipts/{id}",
+        decision: "/api/decisions/{id}",
+        recentDecisions: "/api/decisions/recent",
         recentProofs: "/api/proofs/recent"
       },
       monitoring: {
@@ -266,6 +282,20 @@ export function publicBazaarMetadata() {
       paid: false,
       description:
         "Free preflight check for request shape, target safety, policy, retry, timeout, and warnings before paying."
+    },
+    decisionGraph: {
+      method: "POST",
+      path: "/api/decide/webhook",
+      paid: false,
+      description:
+        "Free deterministic buyer-side decision graph. It returns pay_and_execute, manual_review, or do_not_pay before the agent spends x402 funds."
+    },
+    guidedExecution: {
+      method: "POST",
+      path: "/api/execute/guided-webhook",
+      paid: config.x402Enabled,
+      description:
+        "Decision-linked paid execution. Agents should call /api/decide/webhook first and pass the approved decision id."
     },
     canary: {
       method: "POST",
@@ -341,6 +371,9 @@ export function publicBazaarMetadata() {
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
+      decisionGraph: `${config.publicBaseUrl}/api/decide/webhook`,
+      recentDecisions: `${config.publicBaseUrl}/api/decisions/recent`,
+      guidedExecution: `${config.publicBaseUrl}/api/execute/guided-webhook`,
       canaryEcho: `${config.publicBaseUrl}/api/canary/echo`,
       handoffCapabilities: `${config.publicBaseUrl}/api/handoff/capabilities`,
       handoffEndpoint: `${config.publicBaseUrl}/api/handoff/browser`,

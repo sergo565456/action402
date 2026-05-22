@@ -20,9 +20,14 @@ function jobUpdatedAtMs(job) {
   return timestampMs(job?.updatedAt || job?.createdAt);
 }
 
+function decisionUpdatedAtMs(decision) {
+  return timestampMs(decision?.updatedAt || decision?.createdAt);
+}
+
 export function createJsonStore(config) {
   const jobs = new Map();
   const receipts = new Map();
+  const decisions = new Map();
   const idempotencyIndex = new Map();
   const useMemory = config.storeDriver === "memory" || config.storeFile === ":memory:";
   let lastCleanupAt = null;
@@ -53,6 +58,9 @@ export function createJsonStore(config) {
     for (const receipt of parsed.receipts || []) {
       receipts.set(receipt.id, receipt);
     }
+    for (const decision of parsed.decisions || []) {
+      decisions.set(decision.id, decision);
+    }
     rebuildIndexes();
   }
 
@@ -66,7 +74,8 @@ export function createJsonStore(config) {
       version: 1,
       updatedAt: new Date().toISOString(),
       jobs: Array.from(jobs.values()),
-      receipts: Array.from(receipts.values())
+      receipts: Array.from(receipts.values()),
+      decisions: Array.from(decisions.values())
     };
     const tempFile = `${file}.tmp`;
     fs.writeFileSync(tempFile, `${JSON.stringify(payload, null, 2)}\n`);
@@ -105,13 +114,24 @@ export function createJsonStore(config) {
       }
     }
 
-    if (removedJobs > 0 || removedReceipts > 0) {
+    let removedDecisions = 0;
+    if (config.decisionRetentionMs > 0) {
+      for (const decision of decisions.values()) {
+        const updatedAt = decisionUpdatedAtMs(decision);
+        if (updatedAt > 0 && now - updatedAt > config.decisionRetentionMs) {
+          decisions.delete(decision.id);
+          removedDecisions += 1;
+        }
+      }
+    }
+
+    if (removedJobs > 0 || removedReceipts > 0 || removedDecisions > 0) {
       rebuildIndexes();
       lastCleanupAt = new Date(now).toISOString();
       if (persist) persistStore();
     }
 
-    return { removedJobs, removedReceipts };
+    return { removedJobs, removedReceipts, removedDecisions };
   }
 
   return {
@@ -167,6 +187,34 @@ export function createJsonStore(config) {
       return receipts.get(id);
     },
 
+    async createDecision(decision) {
+      await pruneExpired(Date.now(), { persist: false });
+      decisions.set(decision.id, decision);
+      persistStore();
+      return decision;
+    },
+
+    async updateDecision(id, patch) {
+      await pruneExpired(Date.now(), { persist: false });
+      const current = decisions.get(id);
+      if (!current) return undefined;
+      const next = { ...current, ...patch, updatedAt: new Date().toISOString() };
+      decisions.set(id, next);
+      persistStore();
+      return next;
+    },
+
+    async getDecision(id) {
+      return decisions.get(id);
+    },
+
+    async listRecentDecisions(limit = 20) {
+      await pruneExpired(Date.now(), { persist: false });
+      return Array.from(decisions.values())
+        .sort((a, b) => decisionUpdatedAtMs(b) - decisionUpdatedAtMs(a))
+        .slice(0, clampLimit(limit));
+    },
+
     async listRecentJobs(limit = 20) {
       await pruneExpired(Date.now(), { persist: false });
       return Array.from(jobs.values())
@@ -219,6 +267,7 @@ export function createJsonStore(config) {
     async resetForTests() {
       jobs.clear();
       receipts.clear();
+      decisions.clear();
       idempotencyIndex.clear();
       lastCleanupAt = null;
       persistStore();
@@ -231,10 +280,12 @@ export function createJsonStore(config) {
         storeFile: useMemory ? ":memory:" : resolvedStoreFile(),
         jobs: jobs.size,
         receipts: receipts.size,
+        decisions: decisions.size,
         lastCleanupAt,
         retention: {
           jobRetentionMs: config.jobRetentionMs,
-          receiptRetentionMs: config.receiptRetentionMs
+          receiptRetentionMs: config.receiptRetentionMs,
+          decisionRetentionMs: config.decisionRetentionMs
         }
       };
     },

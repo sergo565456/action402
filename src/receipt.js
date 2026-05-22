@@ -63,6 +63,8 @@ export function buildReceipt({ job, requestHash, responseHash, target, response 
     responseStatus: response.status,
     responseOk: response.ok,
     idempotencyKey: job.idempotencyKey || null,
+    decisionId: job.decisionId || null,
+    decisionHash: job.decisionHash || null,
     createdAt: new Date().toISOString()
   };
 

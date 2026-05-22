@@ -12,10 +12,14 @@ function agentCashNetworkFlag(network) {
 
 function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
   const endpoint = `${baseUrl}/api/execute/webhook`;
+  const guidedEndpoint = `${baseUrl}/api/execute/guided-webhook`;
+  const decisionEndpoint = `${baseUrl}/api/decide/webhook`;
   const networkFlag = agentCashNetworkFlag(network);
   const networkName = paymentNetworkName(network);
   const powershellBody =
     '{\\"url\\":\\"https://httpbin.org/anything\\",\\"method\\":\\"POST\\",\\"body\\":{\\"event\\":\\"agent.snippet\\"},\\"idempotencyKey\\":\\"agent-snippet-001\\",\\"timeoutMs\\":10000}';
+  const guidedPowershellBody =
+    '{\\"decisionId\\":\\"dec_...\\",\\"action\\":{\\"url\\":\\"https://httpbin.org/anything\\",\\"method\\":\\"POST\\",\\"body\\":{\\"event\\":\\"agent.decision-first\\"},\\"idempotencyKey\\":\\"agent-decision-first-001\\",\\"timeoutMs\\":10000}}';
 
   return {
     ok: true,
@@ -73,6 +77,32 @@ function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
             title: "Unpaid 402 check",
             language: "bash",
             code: `curl -i ${endpoint} \\\n  -H "content-type: application/json" \\\n  -d '{"url":"https://httpbin.org/anything","method":"POST","body":{"event":"agent.unpaid-check"},"idempotencyKey":"unpaid-check-001"}'`
+          }
+        ]
+      },
+      {
+        id: "decision-first",
+        title: "Decision graph",
+        description:
+          "Ask Action402 for a free deterministic recommendation before paying, then use guided execution to link the decision, job, receipt, and outcome.",
+        snippets: [
+          {
+            id: "free-decision",
+            title: "Create a free decision record",
+            language: "bash",
+            code: `curl ${decisionEndpoint} \\\n  -H "content-type: application/json" \\\n  -d '{"action":{"url":"https://httpbin.org/anything","method":"POST","body":{"event":"agent.decision-first"},"idempotencyKey":"agent-decision-first-001","timeoutMs":10000},"buyerPolicy":{"maxPriceUsd":"0.01","requireReceipt":true,"requirePolicyPass":true,"requireIdempotencyKey":true,"minTrustScore":55}}'`
+          },
+          {
+            id: "guided-agentcash-powershell",
+            title: "Guided paid execution from Windows PowerShell",
+            language: "powershell",
+            code: `npx --% agentcash fetch ${guidedEndpoint} -m POST -H "content-type: application/json" -b "${guidedPowershellBody}" --payment-protocol x402 --payment-network ${networkFlag} --max-amount 0.01 -y --format json`
+          },
+          {
+            id: "recent-decisions",
+            title: "Inspect recent public decisions",
+            language: "bash",
+            code: `curl ${baseUrl}/api/decisions/recent\ncurl ${baseUrl}/decisions`
           }
         ]
       },
@@ -152,6 +182,10 @@ function publicIntegrationSnippets({ baseUrl, price, network, x402Enabled }) {
       pricing: `${baseUrl}/api/pricing`,
       mcpManifest: `${baseUrl}/api/mcp`,
       policyCheck: `${baseUrl}/api/policy/check`,
+      decisionGraph: `${baseUrl}/api/decide/webhook`,
+      guidedWebhook: `${baseUrl}/api/execute/guided-webhook`,
+      recentDecisions: `${baseUrl}/api/decisions/recent`,
+      decisionsPage: `${baseUrl}/decisions`,
       handoff: `${baseUrl}/api/handoff/capabilities`,
       schedulePreview: `${baseUrl}/api/schedules/preview`,
       secretPolicy: `${baseUrl}/api/secrets/policy`,

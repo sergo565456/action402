@@ -54,6 +54,22 @@ export async function getReceipt(id) {
   return (await activeStore()).getReceipt(id);
 }
 
+export async function createDecision(decision) {
+  return (await activeStore()).createDecision(decision);
+}
+
+export async function updateDecision(id, patch) {
+  return (await activeStore()).updateDecision(id, patch);
+}
+
+export async function getDecision(id) {
+  return (await activeStore()).getDecision(id);
+}
+
+export async function listRecentDecisions(limit) {
+  return (await activeStore()).listRecentDecisions(limit);
+}
+
 export async function listRecentJobs(limit) {
   return (await activeStore()).listRecentJobs(limit);
 }

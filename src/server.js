@@ -15,9 +15,19 @@ import { publicBazaarMetadata } from "./bazaar.js";
 import { createCanaryEcho } from "./canary.js";
 import { openApiSpec, publicCapabilities } from "./apiContract.js";
 import { publicAgentManifest, publicDiscoveryPack, robotsTxt, sitemapXml } from "./discoveryManifest.js";
+import { decideWebhook, publicDecisionRecord, publicDecisionSummary, renderDecisionResponse } from "./decisionGraph.js";
 import { publicIntegrationSnippets } from "./snippets.js";
 import { executeWebhookAction, preflightWebhookAction } from "./webhook.js";
-import { executionStats, getJob, getReceipt, initStore, listRecentJobs, storeStats } from "./store.js";
+import {
+  executionStats,
+  getDecision,
+  getJob,
+  getReceipt,
+  initStore,
+  listRecentDecisions,
+  listRecentJobs,
+  storeStats
+} from "./store.js";
 import { verifyReceipt } from "./receipt.js";
 import { verifyJobReceipt, verifyStoredReceipt } from "./receiptVerification.js";
 import {
@@ -265,6 +275,7 @@ app.get("/api/trust", async (req, res, next) => {
         executionStats,
         storeStats,
         listRecentJobs,
+        listRecentDecisions,
         getReceipt
       })
     );
@@ -282,9 +293,27 @@ app.use("/api/execute/webhook", (req, res, next) => {
   methodNotAllowed(["POST"])(req, res);
 });
 
+app.use("/api/execute/guided-webhook", (req, res, next) => {
+  if (req.method === "POST") {
+    next();
+    return;
+  }
+
+  methodNotAllowed(["POST"])(req, res);
+});
+
 await maybeInstallX402(app);
 
 app.use(express.json({ limit: "128kb" }));
+
+app.post("/api/decide/webhook", async (req, res, next) => {
+  try {
+    const decision = await decideWebhook(req.body || {});
+    res.json(renderDecisionResponse(decision));
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.post("/api/policy/check", async (req, res, next) => {
   try {
@@ -366,6 +395,38 @@ app.post("/api/schedules/preview", async (req, res, next) => {
   }
 });
 
+function actionFromGuidedBody(body = {}) {
+  return body.action && typeof body.action === "object" && !Array.isArray(body.action) ? body.action : body;
+}
+
+function executionResponse(result, extra = {}) {
+  const receiptSummary =
+    result.receipt === undefined
+      ? { id: result.job.receiptId, replay: true }
+      : {
+          id: result.receipt.id,
+          signature: result.receipt.signature
+        };
+
+  return {
+    mode: config.x402Enabled ? "x402" : "demo",
+    idempotentReplay: result.idempotentReplay,
+    job: {
+      id: result.job.id,
+      status: result.job.status,
+      attempts: result.job.attempts.length,
+      ...(result.job.decisionId ? { decisionId: result.job.decisionId } : {})
+    },
+    receipt: receiptSummary,
+    links: {
+      job: `/api/jobs/${result.job.id}`,
+      receipt: `/api/receipts/${result.job.receiptId || receiptSummary.id}`,
+      ...(result.job.decisionId ? { decision: `/api/decisions/${result.job.decisionId}` } : {})
+    },
+    ...extra
+  };
+}
+
 app.post("/api/execute/webhook", createRateLimiter(), async (req, res) => {
   try {
     if (config.x402Enabled) {
@@ -378,28 +439,7 @@ app.post("/api/execute/webhook", createRateLimiter(), async (req, res) => {
     }
 
     const result = await executeWebhookAction(req.body || {}, { requestId: req.requestId });
-    const receiptSummary =
-      result.receipt === undefined
-        ? { id: result.job.receiptId, replay: true }
-        : {
-            id: result.receipt.id,
-            signature: result.receipt.signature
-          };
-
-    res.status(result.job.status === "succeeded" ? 200 : 502).json({
-      mode: config.x402Enabled ? "x402" : "demo",
-      idempotentReplay: result.idempotentReplay,
-      job: {
-        id: result.job.id,
-        status: result.job.status,
-        attempts: result.job.attempts.length
-      },
-      receipt: receiptSummary,
-      links: {
-        job: `/api/jobs/${result.job.id}`,
-        receipt: `/api/receipts/${result.job.receiptId || receiptSummary.id}`
-      }
-    });
+    res.status(result.job.status === "succeeded" ? 200 : 502).json(executionResponse(result));
   } catch (error) {
     const status = error.status || 400;
     recordMetric("executionRejected");
@@ -411,6 +451,113 @@ app.post("/api/execute/webhook", createRateLimiter(), async (req, res) => {
     });
     res.status(status).json(errorBody(error));
   }
+});
+
+app.post("/api/execute/guided-webhook", createRateLimiter(), async (req, res) => {
+  try {
+    if (config.x402Enabled) {
+      recordMetric("x402PaymentAccepted");
+      logEvent("info", "x402.payment_accepted_for_guided_execution", {
+        requestId: req.requestId,
+        price: config.x402Price,
+        network: config.x402Network
+      });
+    }
+
+    const body = req.body || {};
+    const action = actionFromGuidedBody(body);
+    const decision = body.decisionId ? await getDecision(String(body.decisionId)) : await decideWebhook(body);
+
+    if (!decision) {
+      res.status(409).json(errorBody(new ApiError(409, "decision_not_found", "decisionId does not match a stored decision.")));
+      return;
+    }
+
+    if (decision.decision?.recommendation !== "pay_and_execute") {
+      res.status(409).json({
+        ok: false,
+        error: {
+          code: "decision_not_approved",
+          message: "Guided execution was not approved by the decision graph."
+        },
+        decision: publicDecisionRecord(decision)
+      });
+      return;
+    }
+
+    const result = await executeWebhookAction(
+      {
+        ...action,
+        decisionId: decision.id
+      },
+      { requestId: req.requestId }
+    );
+
+    res.status(result.job.status === "succeeded" ? 200 : 502).json(
+      executionResponse(result, {
+        decision: {
+          id: decision.id,
+          recommendation: decision.decision.recommendation,
+          confidence: decision.decision.confidence,
+          links: {
+            decision: `/api/decisions/${decision.id}`,
+            page: `/decision/${decision.id}`
+          }
+        }
+      })
+    );
+  } catch (error) {
+    const status = error.status || 400;
+    recordMetric("executionRejected");
+    logEvent(status >= 500 ? "error" : "warn", "guided_execution.rejected", {
+      requestId: req.requestId,
+      status,
+      code: error.code,
+      message: error.message
+    });
+    res.status(status).json(errorBody(error));
+  }
+});
+
+app.get("/api/decisions/recent", async (req, res, next) => {
+  try {
+    const limit = clampPublicLimit(queryParam(req, "limit"), 10, 50);
+    const decisions = await listRecentDecisions(limit);
+    res.json({
+      ok: true,
+      service: "Action402",
+      generatedAt: new Date().toISOString(),
+      limit,
+      redactionPolicy: {
+        redactedFields: ["targetUrl", "headers", "body", "bodyHash", "actionHash", "receiptSignature"]
+      },
+      decisions: decisions.map(publicDecisionSummary)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/decisions/:id", async (req, res, next) => {
+  try {
+    const decision = await getDecision(req.params.id);
+    if (!decision) {
+      res.status(404).json(errorBody(new ApiError(404, "decision_not_found", "decision not found")));
+      return;
+    }
+
+    res.json({
+      ok: true,
+      service: "Action402",
+      decision: publicDecisionRecord(decision)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/decision/:id", (req, res) => {
+  res.sendFile("decision.html", { root: "public" });
 });
 
 app.get("/api/jobs/:id", async (req, res, next) => {
@@ -427,6 +574,7 @@ app.get("/api/jobs/:id", async (req, res, next) => {
       status: job.status,
       target: job.target,
       method: job.method,
+      decisionId: job.decisionId || null,
       attempts: job.attempts,
       receiptId: job.receiptId,
       createdAt: job.createdAt,
@@ -511,20 +659,22 @@ app.all(
     "/api/handoff/capabilities",
     "/api/schedules/capabilities",
     "/api/secrets/policy",
+    "/api/decisions/recent",
     "/api/proofs/recent",
     "/api/monitoring/executions",
     "/api/trust",
     "/api/jobs/:id",
     "/api/receipts/:id",
     "/api/verify/jobs/:id",
-    "/api/verify/receipts/:id"
+    "/api/verify/receipts/:id",
+    "/api/decisions/:id"
   ],
   methodNotAllowed(["GET"])
 );
 
 app.all("/api/canary/echo", methodNotAllowed(["GET", "POST"]));
 
-app.all(["/api/policy/check", "/api/handoff/browser", "/api/schedules/preview"], methodNotAllowed(["POST"]));
+app.all(["/api/policy/check", "/api/decide/webhook", "/api/handoff/browser", "/api/schedules/preview"], methodNotAllowed(["POST"]));
 
 app.use("/api", (req, res) => {
   res.status(404).json(

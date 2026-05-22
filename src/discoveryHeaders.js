@@ -6,6 +6,7 @@ const DISCOVERY_HEADER_PATHS = [
   "/mcp",
   "/actions",
   "/snippets",
+  "/decisions",
   "/api",
   "/api/",
   "/api/discovery",
@@ -18,6 +19,7 @@ const DISCOVERY_HEADER_PATHS = [
   "/api/actions",
   "/api/quickstart",
   "/api/snippets",
+  "/api/decisions/recent",
   "/api/bazaar",
   "/openapi.json",
   "/llms.txt"
@@ -59,6 +61,12 @@ const DISCOVERY_LINKS = [
     rel: "payment",
     type: "application/json",
     title: "Action402 pricing"
+  },
+  {
+    path: "/api/decide/webhook",
+    rel: "preflight",
+    type: "application/json",
+    title: "Action402 decision graph"
   },
   {
     path: "/api/mcp",

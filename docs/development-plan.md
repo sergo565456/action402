@@ -21,6 +21,8 @@ The first useful product is intentionally narrow:
 | Endpoint | Payment | Purpose |
 |---|---|---|
 | `POST /api/execute/webhook` | x402 in production | Execute one outbound HTTPS action |
+| `POST /api/decide/webhook` | free | Deterministic pay/do-not-pay decision graph before payment |
+| `POST /api/execute/guided-webhook` | x402 in production | Decision-linked paid execution |
 | `GET /api/jobs/:id` | free | Inspect job status and attempts |
 | `GET /api/receipts/:id` | free | Verify receipt signature |
 | `GET /api/bazaar` | free | Bazaar/discovery metadata |
@@ -39,6 +41,8 @@ The first useful product is intentionally narrow:
 | `POST /api/schedules/preview` | free | Validate schedule shape and target policy without execution |
 | `GET /api/secrets/policy` | free | Public credential/secret handling policy |
 | `GET /api/trust` | free | Public buyer trust summary |
+| `GET /api/decisions/:id` | free | Redacted public decision record |
+| `GET /api/decisions/recent` | free | Recent redacted decision summaries |
 | `GET /proof/:id` | free | Browser-friendly proof badge |
 | `GET /robots.txt` | free | Crawler and agent discovery hints |
 | `GET /sitemap.xml` | free | Public page and machine-surface sitemap |
@@ -92,6 +96,20 @@ The first useful product is intentionally narrow:
 - [x] Add `/discovery` page for the discovery pack.
 - [x] Add `robots.txt` and `sitemap.xml` with agent-facing entry points.
 - [x] Add discovery pack links to capabilities, Bazaar metadata, and `llms.txt`.
+
+### Milestone 6: Agent Decision Graph
+
+- [x] Add a free deterministic decision endpoint before payment: `POST /api/decide/webhook`.
+- [x] Add persisted redacted decision records: `GET /api/decisions/:id`.
+- [x] Add public recent decision summaries without target URLs, headers, bodies, hashes, or signatures.
+- [x] Link paid jobs and receipts back to the decision that approved them.
+- [x] Add reflection memory from actual paid outcomes back into future trust decisions.
+- [ ] Add an optional LLM explanation layer only after deterministic guardrails are stable.
+- [x] Add a guided paid endpoint after decision records, receipt linkage, and redaction are verified.
+
+The LLM explanation layer is intentionally still off the critical path. The production-safe default is deterministic role output only; an external model can be added later behind `DECISION_LLM_ENABLED` without changing buyer payment semantics.
+
+See `docs/agent-decision-graph-plan.md` for the detailed implementation plan.
 
 ## Development Principles
 

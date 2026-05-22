@@ -86,6 +86,8 @@ export const config = {
   postgresSsl: boolFromEnv(process.env.POSTGRES_SSL, false),
   jobRetentionMs: intFromEnv(process.env.JOB_RETENTION_MS, 7 * 24 * 60 * 60 * 1000),
   receiptRetentionMs: intFromEnv(process.env.RECEIPT_RETENTION_MS, 30 * 24 * 60 * 60 * 1000),
+  decisionRetentionMs: intFromEnv(process.env.DECISION_RETENTION_MS, 30 * 24 * 60 * 60 * 1000),
+  decisionLlmEnabled: boolFromEnv(process.env.DECISION_LLM_ENABLED, false),
   maxWebhookTimeoutMs: intFromEnv(process.env.MAX_WEBHOOK_TIMEOUT_MS, 12000),
   maxRetryAttempts: intFromEnv(process.env.MAX_RETRY_ATTEMPTS, 3),
   allowHttpTargets: boolFromEnv(process.env.ALLOW_HTTP_TARGETS, false),

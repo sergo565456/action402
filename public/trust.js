@@ -53,6 +53,8 @@ async function loadTrust() {
     const proofs = body.proofExamples || {};
     const storage = body.storage || {};
     const score = body.trustScore || {};
+    const decisionGraph = body.decisionGraph || {};
+    const decisionStats = decisionGraph.recentDecisionStats || {};
 
     trustSummary.textContent =
       body.status === "ok"
@@ -65,6 +67,7 @@ async function loadTrust() {
       renderMetric("price", body.x402?.price || "n/a", body.x402?.network || "unknown network"),
       renderMetric("recent failure", formatPercent(execution.recentFailureRate), "default 24 hour window"),
       renderMetric("verified proofs", proofs.recentVerifiedProofs ?? 0, `latest ${formatDate(proofs.latestVerifiedProofAt)}`),
+      renderMetric("decisions", decisionStats.recentDecisions ?? 0, `${decisionStats.linkedOutcomes ?? 0} linked outcomes`),
       renderMetric("storage", storage.durable ? "durable" : "volatile", storage.driver || "unknown"),
       renderMetric("receipts", storage.receipts ?? 0, "retained receipt count")
     ].join("");

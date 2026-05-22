@@ -75,6 +75,10 @@ const webhookRequestSchema = {
       minimum: 1000,
       maximum: config.maxWebhookTimeoutMs,
       default: config.maxWebhookTimeoutMs
+    },
+    decisionId: {
+      type: "string",
+      description: "Optional decision id from /api/decide/webhook. When supplied, execution must match the stored approved decision."
     }
   }
 };
@@ -126,6 +130,67 @@ const errorSchema = {
         details: {}
       }
     }
+  }
+};
+
+const decisionRequestSchema = {
+  type: "object",
+  additionalProperties: true,
+  properties: {
+    action: webhookRequestSchema,
+    buyerPolicy: {
+      type: "object",
+      properties: {
+        maxPriceUsd: { type: ["string", "null"], example: "0.009" },
+        allowedNetworks: { type: "array", items: { type: "string" } },
+        requireReceipt: { type: "boolean", default: true },
+        requirePolicyPass: { type: "boolean", default: true },
+        requireIdempotencyKey: { type: "boolean", default: true },
+        allowUnknownTargets: { type: "boolean", default: true },
+        minTrustScore: { type: "integer", default: 55 }
+      }
+    },
+    mode: { type: "string", enum: ["evaluate_only"], default: "evaluate_only" }
+  }
+};
+
+const decisionRecordSchema = {
+  type: "object",
+  required: ["id", "version", "recommendation", "confidence", "publicFieldsOnly", "links"],
+  properties: {
+    id: { type: "string" },
+    version: { type: "string" },
+    createdAt: { type: "string" },
+    updatedAt: { type: "string" },
+    action: { type: "string" },
+    recommendation: { type: "string", enum: ["pay_and_execute", "do_not_pay", "manual_review", "safe_to_test_free_canary_first"] },
+    confidence: { type: "string", enum: ["high", "medium", "low"] },
+    publicFieldsOnly: { type: "boolean" },
+    blockingIssues: { type: "array", items: { type: "string" } },
+    warnings: { type: "array", items: { type: "string" } },
+    reasons: { type: "array", items: { type: "string" } },
+    outcome: { type: ["object", "null"] },
+    roleReports: { type: "object" },
+    debate: { type: "array", items: { type: "object" } },
+    links: { type: "object" }
+  }
+};
+
+const decisionResponseSchema = {
+  type: "object",
+  required: ["ok", "decisionId", "recommendation", "confidence", "publicRecord", "links"],
+  properties: {
+    ok: { type: "boolean" },
+    decisionId: { type: "string" },
+    recommendation: { type: "string" },
+    confidence: { type: "string" },
+    blockingIssues: { type: "array", items: { type: "string" } },
+    warnings: { type: "array", items: { type: "string" } },
+    reasons: { type: "array", items: { type: "string" } },
+    roleReports: { type: "object" },
+    debate: { type: "array", items: { type: "object" } },
+    publicRecord: decisionRecordSchema,
+    links: { type: "object" }
   }
 };
 
@@ -802,6 +867,15 @@ export function publicCapabilities() {
       description:
         "Copy-paste snippets for discovery, paid execution, proof verification, and buyer-side payment guardrails."
     },
+    decisionGraph: {
+      method: "POST",
+      path: "/api/decide/webhook",
+      recentPath: "/api/decisions/recent",
+      paid: false,
+      llmEnabled: config.decisionLlmEnabled,
+      description:
+        "Free deterministic pre-payment decision graph for buyer agents. It checks payment terms, target policy, trust signals, execution readiness, and returns a structured recommendation without executing the target."
+    },
     policyCheck: {
       method: "POST",
       path: "/api/policy/check",
@@ -857,6 +931,46 @@ export function publicCapabilities() {
           "The payload must be stored verbatim in the receipt; Action402 stores hashes for proof."
         ],
         requestSchema: webhookRequestSchema,
+        responseSchema: executeWebhookResponseSchema
+      },
+      {
+        id: "decide.webhook",
+        aliases: ["decide_webhook", "payment_decision_graph", "pre_payment_decision"],
+        description:
+          "Evaluate whether a buyer agent should pay for one webhook/API execution. This route is free, deterministic, and non-executing.",
+        method: "POST",
+        path: "/api/decide/webhook",
+        paid: false,
+        useWhen: [
+          "An agent wants a structured pay/do-not-pay recommendation before spending x402 funds.",
+          "The buyer needs payment, policy, trust, and execution readiness checks in one response.",
+          "The caller wants a decision id to link to a later paid receipt."
+        ],
+        avoidWhen: [
+          "The caller expects the target webhook to execute.",
+          "The caller wants an LLM to override deterministic buyer policy."
+        ],
+        requestSchema: decisionRequestSchema,
+        responseSchema: decisionResponseSchema
+      },
+      {
+        id: "execute.guided_webhook",
+        aliases: ["guided_webhook", "decision_linked_execution"],
+        description:
+          "Execute a webhook through the paid route with an approved decision id linked to the job and receipt.",
+        method: "POST",
+        path: "/api/execute/guided-webhook",
+        paid: config.x402Enabled,
+        price: config.x402Price,
+        useWhen: [
+          "An agent already called /api/decide/webhook and wants the execution receipt linked to that decision.",
+          "The buyer wants proof that payment followed a deterministic decision graph."
+        ],
+        avoidWhen: [
+          "The decision recommendation is manual_review or do_not_pay.",
+          "The action differs from the stored decision."
+        ],
+        requestSchema: decisionRequestSchema,
         responseSchema: executeWebhookResponseSchema
       },
       {
@@ -930,6 +1044,7 @@ export function publicCapabilities() {
         "Read /api/agent-manifest or /.well-known/agent.json for the canonical machine-readable discovery pack.",
         "Read /api/mcp or /.well-known/mcp.json when building a local MCP wrapper.",
         "Optionally POST the same payload to /api/policy/check before paying.",
+        "POST /api/decide/webhook when the buyer needs a structured pay/do-not-pay decision before paying.",
         "Use /api/canary/echo only as a free non-sensitive target check; it does not create a paid receipt.",
         "Use /api/handoff/browser only when a separate browser-capable agent will execute the browser steps.",
         "Use /api/schedules/preview only to validate future schedule shape; it will not execute or charge.",
@@ -949,6 +1064,8 @@ export function publicCapabilities() {
       jobReceiptVerification: "/api/verify/jobs/{id}",
       receiptVerification: "/api/verify/receipts/{id}",
       recentProofExamples: "/api/proofs/recent",
+      decisionGraph: "/api/decide/webhook",
+      recentDecisions: "/api/decisions/recent",
       proofBadge: "/proof/{jobOrReceiptId}",
       integrationSnippets: "/api/snippets",
       receiptSignature: "hmac-sha256",
@@ -1070,6 +1187,10 @@ export function publicCapabilities() {
       sitemap: `${config.publicBaseUrl}/sitemap.xml`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
+      decideWebhook: `${config.publicBaseUrl}/api/decide/webhook`,
+      guidedWebhook: `${config.publicBaseUrl}/api/execute/guided-webhook`,
+      recentDecisions: `${config.publicBaseUrl}/api/decisions/recent`,
+      decisionsPage: `${config.publicBaseUrl}/decisions`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,
       canaryEcho: `${config.publicBaseUrl}/api/canary/echo`,
       handoff: `${config.publicBaseUrl}/handoff`,
@@ -1256,6 +1377,158 @@ export function openApiSpec() {
               content: {
                 "application/json": {
                   schema: executeWebhookResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/decide/webhook": {
+        post: {
+          operationId: "decideWebhook",
+          summary: "Evaluate one webhook/API action before payment",
+          description:
+            "Free deterministic decision graph for buyer agents. It checks payment terms, policy, trust, and execution readiness without executing the target or charging.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: decisionRequestSchema
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Structured pre-payment decision",
+              content: {
+                "application/json": {
+                  schema: decisionResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/execute/guided-webhook": {
+        post: {
+          operationId: "executeGuidedWebhook",
+          summary: "Execute one decision-linked paid webhook/API action",
+          description:
+            "Protected by x402 when X402_ENABLED=true. Requires or creates a deterministic decision record, then links the approved decision to the paid job and receipt.",
+          security: [
+            {
+              X402Payment: []
+            }
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: decisionRequestSchema
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Guided execution succeeded",
+              content: {
+                "application/json": {
+                  schema: executeWebhookResponseSchema
+                }
+              }
+            },
+            "402": {
+              description: "Payment required by x402 middleware"
+            },
+            "409": {
+              description: "Decision rejected or does not match the action",
+              content: {
+                "application/json": {
+                  schema: errorSchema
+                }
+              }
+            },
+            "502": {
+              description: "Target execution failed",
+              content: {
+                "application/json": {
+                  schema: executeWebhookResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/decisions/recent": {
+        get: {
+          operationId: "listRecentDecisions",
+          summary: "Fetch recent public decision summaries",
+          description:
+            "Returns recent redacted decision summaries without target URLs, request headers, request bodies, raw hashes, or receipt signatures.",
+          parameters: [
+            {
+              name: "limit",
+              in: "query",
+              required: false,
+              schema: { type: "integer", minimum: 1, maximum: 50, default: 10 }
+            }
+          ],
+          responses: {
+            "200": {
+              description: "Recent public decision summaries",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["ok", "decisions"],
+                    properties: {
+                      ok: { type: "boolean" },
+                      redactionPolicy: { type: "object" },
+                      decisions: {
+                        type: "array",
+                        items: decisionRecordSchema
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/decisions/{id}": {
+        get: {
+          operationId: "getDecision",
+          summary: "Fetch a redacted decision record",
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" }
+            }
+          ],
+          responses: {
+            "200": {
+              description: "Redacted decision record",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["ok", "decision"],
+                    properties: {
+                      ok: { type: "boolean" },
+                      decision: decisionRecordSchema
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              description: "Decision not found",
+              content: {
+                "application/json": {
+                  schema: errorSchema
                 }
               }
             }
@@ -1865,6 +2138,9 @@ export function openApiSpec() {
       schemas: {
         WebhookRequest: webhookRequestSchema,
         ExecuteWebhookResponse: executeWebhookResponseSchema,
+        DecisionRequest: decisionRequestSchema,
+        DecisionResponse: decisionResponseSchema,
+        DecisionRecord: decisionRecordSchema,
         VerificationReport: verificationReportSchema,
         PublicProofSummary: publicProofSummarySchema,
         MonitoringResponse: monitoringResponseSchema,
