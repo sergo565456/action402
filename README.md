@@ -17,6 +17,7 @@ Action402 is an x402-native paid execution relay for autonomous agents. Agents p
 - Discovery pack: https://action402.vercel.app/api/discovery
 - OpenAPI: https://action402.vercel.app/openapi.json
 - Bazaar metadata: https://action402.vercel.app/api/bazaar
+- Production evidence: [docs/production-evidence.md](docs/production-evidence.md)
 - GitHub: https://github.com/sergo565456/action402
 - Contact: [Telegram](https://t.me/FOMO_boy1) / [X](https://x.com/Serg0716)
 
@@ -42,6 +43,7 @@ Agent entry points:
 - https://action402.vercel.app/api/capabilities - machine-readable service contract.
 - https://action402.vercel.app/api/agent-manifest - canonical agent manifest.
 - https://action402.vercel.app/.well-known/agent.json - well-known agent manifest alias.
+- https://action402.vercel.app/.well-known/x402 - x402scan-compatible discovery fallback.
 - https://action402.vercel.app/api/quickstart - compact buyer flow for agents.
 - https://action402.vercel.app/api/policy/check - free pre-payment policy check.
 - https://action402.vercel.app/api/canary/echo - free redacted self-test target.
@@ -73,6 +75,7 @@ Agent entry points:
 - `/status` - browser-friendly runtime status page backed by `GET /health`.
 - `GET /api/agent-manifest` - canonical machine-readable discovery manifest.
 - `GET /.well-known/agent.json` - well-known manifest alias for agents and crawlers.
+- `GET /.well-known/x402` - x402scan-compatible well-known discovery fallback.
 - `GET /api/quickstart` - compact agent quickstart with payment guardrails and verification flow.
 - `GET /api/pricing` - machine-readable price, payment route, free surfaces, limits, and buyer guardrails.
 - `GET /api/mcp` and `GET /.well-known/mcp.json` - machine-readable MCP wrapper manifest for tool builders.
@@ -255,6 +258,7 @@ Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 - `GET /llms.txt` - concise plain-text service guide.
 - `GET /api/agent-manifest` - canonical machine-readable service card for agents, crawlers, and directories.
 - `GET /.well-known/agent.json` - well-known alias for the same manifest.
+- `GET /.well-known/x402` - x402scan-compatible alias for the same manifest.
 - `GET /api/capabilities` - action schema, x402 settings, safety limits, verification links, discovery keywords, and MCP hints.
 - `GET /api/quickstart` - minimal request, payment guardrails, copy-paste snippets, and proof verification links.
 - `GET /api/pricing` - machine-readable price, payment route, free surfaces, limits, and buyer guardrails.

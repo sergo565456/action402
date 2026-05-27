@@ -9,6 +9,7 @@ const STABLE_DISCOVERY_PATHS = [
   "/api/agent-manifest",
   "/.well-known/agent.json",
   "/.well-known/action402.json",
+  "/.well-known/x402",
   "/.well-known/x402.json",
   "/.well-known/mcp.json",
   "/api/capabilities",

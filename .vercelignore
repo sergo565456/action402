@@ -5,6 +5,13 @@
 .env.mainnet
 node_modules
 data
+.tmp
+hyperframes
+public/social
+public/videos
+public/videos.html
+scripts/generate-romantic-piano-bed.mjs
+scripts/render-action402-videos.mjs
 *.log
 coverage
 npm-debug.log*

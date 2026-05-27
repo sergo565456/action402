@@ -29,6 +29,7 @@ The first useful product is intentionally narrow:
 | `GET /api/agent-manifest` | free | Canonical machine-readable discovery manifest |
 | `GET /.well-known/agent.json` | free | Well-known agent manifest alias |
 | `GET /.well-known/action402.json` | free | Action402-specific manifest alias |
+| `GET /.well-known/x402` | free | x402scan-compatible discovery fallback alias |
 | `GET /.well-known/x402.json` | free | x402-specific manifest alias |
 | `GET /api/quickstart` | free | Compact agent buyer flow |
 | `POST /api/policy/check` | free | Pre-payment policy and safety check |
@@ -92,7 +93,7 @@ The first useful product is intentionally narrow:
 ### Milestone 5: Discovery Growth
 
 - [x] Add canonical agent manifest at `/api/agent-manifest`.
-- [x] Add well-known manifest aliases for agents and x402 clients.
+- [x] Add well-known manifest aliases for agents, x402 clients, and x402scan fallback discovery.
 - [x] Add `/discovery` page for the discovery pack.
 - [x] Add `robots.txt` and `sitemap.xml` with agent-facing entry points.
 - [x] Add discovery pack links to capabilities, Bazaar metadata, and `llms.txt`.

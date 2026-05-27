@@ -178,6 +178,7 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       discovery: `${config.publicBaseUrl}/discovery`,
       agentManifest: `${config.publicBaseUrl}/api/agent-manifest`,
       wellKnownAgent: `${config.publicBaseUrl}/.well-known/agent.json`,
+      wellKnownX402: `${config.publicBaseUrl}/.well-known/x402`,
       quickstart: `${config.publicBaseUrl}/api/quickstart`,
       snippets: `${config.publicBaseUrl}/api/snippets`,
       policyCheck: `${config.publicBaseUrl}/api/policy/check`,

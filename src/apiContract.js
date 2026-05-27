@@ -1041,7 +1041,7 @@ export function publicCapabilities() {
       oneLine: AGENT_PROMPT,
       callFlow: [
         "Read /api/quickstart, /api/pricing, /api/actions, /api/capabilities, or /openapi.json.",
-        "Read /api/agent-manifest or /.well-known/agent.json for the canonical machine-readable discovery pack.",
+        "Read /api/agent-manifest, /.well-known/agent.json, or /.well-known/x402 for the canonical machine-readable discovery pack.",
         "Read /api/mcp or /.well-known/mcp.json when building a local MCP wrapper.",
         "Optionally POST the same payload to /api/policy/check before paying.",
         "POST /api/decide/webhook when the buyer needs a structured pay/do-not-pay decision before paying.",
@@ -1127,7 +1127,7 @@ export function publicCapabilities() {
         "GitHub Actions dispatch x402"
       ],
       bazaarFlow: [
-        "fetch /.well-known/agent.json or /api/agent-manifest",
+        "fetch /.well-known/x402, /.well-known/agent.json, or /api/agent-manifest",
         "search_resources query=Action402",
         "inspect the returned resource metadata and price",
         "proxy_tool_call using the discovered resource/tool name",
@@ -1182,6 +1182,7 @@ export function publicCapabilities() {
       agentManifest: `${config.publicBaseUrl}/api/agent-manifest`,
       wellKnownAgent: `${config.publicBaseUrl}/.well-known/agent.json`,
       wellKnownAction402: `${config.publicBaseUrl}/.well-known/action402.json`,
+      wellKnownX402Bare: `${config.publicBaseUrl}/.well-known/x402`,
       wellKnownX402: `${config.publicBaseUrl}/.well-known/x402.json`,
       robots: `${config.publicBaseUrl}/robots.txt`,
       sitemap: `${config.publicBaseUrl}/sitemap.xml`,
@@ -1820,6 +1821,60 @@ export function openApiSpec() {
           summary: "Fetch well-known agent manifest",
           description:
             "Well-known alias for the canonical Action402 agent discovery manifest.",
+          responses: {
+            "200": {
+              description: "Agent discovery manifest",
+              content: {
+                "application/json": {
+                  schema: agentManifestSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/.well-known/action402.json": {
+        get: {
+          operationId: "getWellKnownAction402Manifest",
+          summary: "Fetch Action402 well-known manifest",
+          description:
+            "Action402-specific well-known alias for the canonical Action402 agent discovery manifest.",
+          responses: {
+            "200": {
+              description: "Agent discovery manifest",
+              content: {
+                "application/json": {
+                  schema: agentManifestSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/.well-known/x402": {
+        get: {
+          operationId: "getWellKnownX402Manifest",
+          summary: "Fetch x402 well-known manifest",
+          description:
+            "x402scan-compatible well-known fallback alias for the canonical Action402 agent discovery manifest.",
+          responses: {
+            "200": {
+              description: "Agent discovery manifest",
+              content: {
+                "application/json": {
+                  schema: agentManifestSchema
+                }
+              }
+            }
+          }
+        }
+      },
+      "/.well-known/x402.json": {
+        get: {
+          operationId: "getWellKnownX402JsonManifest",
+          summary: "Fetch x402 JSON well-known manifest",
+          description:
+            "x402-specific JSON well-known alias for the canonical Action402 agent discovery manifest.",
           responses: {
             "200": {
               description: "Agent discovery manifest",

@@ -197,6 +197,7 @@ async function main() {
   const agentManifest = await checkJson("/api/agent-manifest");
   const wellKnownAgent = await checkJson("/.well-known/agent.json");
   const wellKnownAction402 = await checkJson("/.well-known/action402.json");
+  const wellKnownX402Bare = await checkJson("/.well-known/x402");
   const wellKnownX402 = await checkJson("/.well-known/x402.json");
   const wellKnownMcp = await checkJson("/.well-known/mcp.json");
   const capabilities = await checkJson("/api/capabilities");
@@ -424,6 +425,7 @@ async function main() {
     record("openapi exposes discovery pack", Boolean(openapi.paths?.["/api/discovery"]?.get));
     record("openapi exposes pricing", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("openapi exposes MCP manifest", Boolean(openapi.paths?.["/api/mcp"]?.get));
+    record("openapi exposes x402 well-known fallback", Boolean(openapi.paths?.["/.well-known/x402"]?.get));
     record("openapi exposes well-known MCP manifest", Boolean(openapi.paths?.["/.well-known/mcp.json"]?.get));
     record("openapi exposes stable execute operationId", openapi.paths?.["/api/execute/webhook"]?.post?.operationId === "executeWebhook");
     record("openapi exposes decision graph", openapi.paths?.["/api/decide/webhook"]?.post?.operationId === "decideWebhook");
@@ -450,6 +452,10 @@ async function main() {
 
   if (wellKnownAction402) {
     record("well-known action402 manifest loads", wellKnownAction402.name === "Action402");
+  }
+
+  if (wellKnownX402Bare) {
+    record("well-known x402 fallback loads", wellKnownX402Bare.paidActions?.[0]?.payment?.scheme === "exact");
   }
 
   if (wellKnownX402) {
@@ -583,6 +589,7 @@ async function main() {
     record("bazaar metadata has discovery link", typeof bazaar.links?.discovery === "string");
     record("bazaar metadata has agent manifest link", typeof bazaar.links?.agentManifest === "string");
     record("bazaar metadata has well-known link", typeof bazaar.links?.wellKnownAgent === "string");
+    record("bazaar metadata has x402 well-known fallback link", typeof bazaar.links?.wellKnownX402Bare === "string");
     record("bazaar metadata has sitemap link", typeof bazaar.links?.sitemap === "string");
     record("bazaar metadata has action catalog link", typeof bazaar.links?.actionCatalog === "string");
     record("bazaar metadata has quickstart link", typeof bazaar.links?.quickstart === "string");
@@ -638,6 +645,7 @@ async function main() {
     record("trust endpoint exposes score", typeof trust.trustScore?.score === "number");
     record("trust endpoint exposes agent manifest surface", typeof trust.publicSurfaces?.agentManifest === "string");
     record("trust endpoint exposes well-known surface", typeof trust.publicSurfaces?.wellKnownAgent === "string");
+    record("trust endpoint exposes x402 well-known fallback", typeof trust.publicSurfaces?.wellKnownX402 === "string");
     record("trust endpoint exposes action catalog surface", typeof trust.publicSurfaces?.actionCatalog === "string");
     record("trust endpoint exposes policy check surface", typeof trust.publicSurfaces?.policyCheck === "string");
     record("trust endpoint exposes canary surface", typeof trust.publicSurfaces?.canaryEcho === "string");

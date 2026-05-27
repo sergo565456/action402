@@ -12,6 +12,9 @@ const DISCOVERY_HEADER_PATHS = [
   "/api/discovery",
   "/api/agent-manifest",
   "/.well-known/agent.json",
+  "/.well-known/action402.json",
+  "/.well-known/x402",
+  "/.well-known/x402.json",
   "/.well-known/mcp.json",
   "/api/capabilities",
   "/api/pricing",
@@ -43,6 +46,12 @@ const DISCOVERY_LINKS = [
     rel: "service-meta",
     type: "application/json",
     title: "Action402 agent manifest"
+  },
+  {
+    path: "/.well-known/x402",
+    rel: "service-meta",
+    type: "application/json",
+    title: "Action402 x402 discovery fallback"
   },
   {
     path: "/openapi.json",

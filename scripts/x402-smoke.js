@@ -120,6 +120,7 @@ async function main() {
   const discovery = await checkJsonEndpoint("/api/discovery");
   const agentManifest = await checkJsonEndpoint("/api/agent-manifest");
   const wellKnownAgent = await checkJsonEndpoint("/.well-known/agent.json");
+  const wellKnownX402Bare = await checkJsonEndpoint("/.well-known/x402");
   const capabilities = await checkJsonEndpoint("/api/capabilities");
   const pricing = await checkJsonEndpoint("/api/pricing");
   const mcpManifest = await checkJsonEndpoint("/api/mcp");
@@ -228,6 +229,10 @@ async function main() {
     record("Well-known agent manifest is published", wellKnownAgent.schemaVersion === "action402.agent-manifest.v1");
   }
 
+  if (wellKnownX402Bare) {
+    record("Well-known x402 fallback is published", wellKnownX402Bare.paidActions?.[0]?.payment?.scheme === "exact");
+  }
+
   if (capabilities) {
     record(
       "agent discovery prompt is published",
@@ -278,6 +283,7 @@ async function main() {
     record("OpenAPI discovery path is published", Boolean(openapi.paths?.["/api/discovery"]?.get));
     record("OpenAPI pricing path is published", Boolean(openapi.paths?.["/api/pricing"]?.get));
     record("OpenAPI MCP manifest path is published", Boolean(openapi.paths?.["/api/mcp"]?.get));
+    record("OpenAPI x402 well-known fallback path is published", Boolean(openapi.paths?.["/.well-known/x402"]?.get));
     record("OpenAPI execute operationId is stable", openapi.paths?.["/api/execute/webhook"]?.post?.operationId === "executeWebhook");
     record("OpenAPI decision operationId is published", openapi.paths?.["/api/decide/webhook"]?.post?.operationId === "decideWebhook");
     record(

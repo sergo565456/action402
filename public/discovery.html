@@ -39,6 +39,7 @@
           <div class="actions">
             <a class="button primary" href="/api/agent-manifest">Agent Manifest</a>
             <a class="button secondary" href="/.well-known/agent.json">Well-Known JSON</a>
+            <a class="button secondary" href="/.well-known/x402">x402 Fallback</a>
             <a class="button secondary" href="/llms.txt">llms.txt</a>
             <a class="button secondary" href="/sitemap.xml">Sitemap</a>
           </div>
@@ -51,7 +52,7 @@
             </div>
             <div>
               <dt>well-known</dt>
-              <dd><code>/.well-known/agent.json</code></dd>
+              <dd><code>/.well-known/x402</code></dd>
             </div>
             <div>
               <dt>agent context</dt>
@@ -86,6 +87,11 @@
             <p>Well-known alias for crawlers and agent directories that look in standard locations.</p>
           </article>
           <article class="endpoint">
+            <span>json</span>
+            <h3>GET /.well-known/x402</h3>
+            <p>x402scan-compatible fallback alias for crawlers that probe x402 well-known discovery.</p>
+          </article>
+          <article class="endpoint">
             <span>text</span>
             <h3>GET /llms.txt</h3>
             <p>Compact plain-text context for LLM agents and discovery-first clients.</p>
@@ -104,7 +110,8 @@
         <p>
           This keeps buyer logic deterministic: discover, inspect, preflight, pay, verify.
         </p>
-        <pre><code>GET /.well-known/agent.json
+        <pre><code>GET /.well-known/x402
+GET /.well-known/agent.json
 GET /api/quickstart
 POST /api/policy/check
 POST /api/execute/webhook  # x402 paid

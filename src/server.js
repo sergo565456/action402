@@ -126,7 +126,7 @@ app.get("/api/bazaar", (req, res) => {
   res.json(publicBazaarMetadata());
 });
 
-app.get(["/api/agent-manifest", "/.well-known/agent.json", "/.well-known/action402.json", "/.well-known/x402.json"], (req, res) => {
+app.get(["/api/agent-manifest", "/.well-known/agent.json", "/.well-known/action402.json", "/.well-known/x402", "/.well-known/x402.json"], (req, res) => {
   res.json(publicAgentManifest({ baseUrl: config.publicBaseUrl }));
 });
 

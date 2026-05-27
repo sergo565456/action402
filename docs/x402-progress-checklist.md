@@ -18,6 +18,7 @@ Use this file as the active execution list for getting from local demo MVP to a 
 - [x] Agent-readable `/api/capabilities` exists.
 - [x] Canonical agent manifest `/api/agent-manifest` exists.
 - [x] Well-known agent manifest `/.well-known/agent.json` exists.
+- [x] x402scan-compatible manifest `/.well-known/x402` exists.
 - [x] Agent-readable `/api/quickstart` exists.
 - [x] Free pre-payment policy check `/api/policy/check` exists.
 - [x] Free redacted canary target `/api/canary/echo` exists.
@@ -123,9 +124,13 @@ Latest production proof:
 - CDP resource: `https://action402.vercel.app/api/execute/webhook`
 - PayTo: `0x75113dcF8Ce34f0338440D40270e420f8C1762b8`
 - Price: `$0.003`
-- Paid smoke job: `job_d1616d16c77a12083a74f7e6`
-- Paid smoke receipt: `rcpt_a8a7c40e3a2f344b1b4f6326`
-- Paid smoke tx: `0xef2d4f21bdd077516f881ee5af5bb7ac392091d5071cf5f1a13f49921717c5db`
+- Latest verified proof job: `job_68eca51ca90de40902f496c4`
+- Latest verified proof receipt: `rcpt_5636160940876e545da4ed08`
+- Latest verified proof time: `2026-05-27T04:48:06.197Z`
+- Latest known on-chain smoke tx: `0xef2d4f21bdd077516f881ee5af5bb7ac392091d5071cf5f1a13f49921717c5db`
+- CDP/Bazaar merchant lookup: `1` active resource, `14` 30-day calls, `8` unique payers, last called `2026-05-27T04:48:07.266Z`.
+- Production audit: `/api/trust` reports `100/100` grade `A`, with `9` verified public proof examples and `0` recent failures in the 24h window.
+- Production checks: `deploy:check` `288/288`, `smoke:x402` `103/103`, local tests `65/65`, privacy check passed on 2026-05-27.
 
 ## Phase 6: Post-Smoke Hardening
 
@@ -144,7 +149,7 @@ Latest production proof:
 ## Phase 7: Discovery Growth
 
 - [x] Add `/api/agent-manifest` for agent directories and crawlers.
-- [x] Add `/.well-known/agent.json`, `/.well-known/action402.json`, and `/.well-known/x402.json`.
+- [x] Add `/.well-known/agent.json`, `/.well-known/action402.json`, `/.well-known/x402`, and `/.well-known/x402.json`.
 - [x] Add `/discovery` as the browser-readable discovery pack.
 - [x] Add `/robots.txt` and `/sitemap.xml`.
 - [x] Add discovery pack checks to deploy and x402 smoke scripts.

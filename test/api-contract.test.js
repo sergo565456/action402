@@ -183,6 +183,9 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.paths["/api/mcp"].get);
   assert.ok(body.paths["/api/agent-manifest"].get);
   assert.ok(body.paths["/.well-known/agent.json"].get);
+  assert.ok(body.paths["/.well-known/action402.json"].get);
+  assert.ok(body.paths["/.well-known/x402"].get);
+  assert.ok(body.paths["/.well-known/x402.json"].get);
   assert.ok(body.paths["/.well-known/mcp.json"].get);
   assert.ok(body.paths["/api/policy/check"].post);
   assert.ok(body.paths["/api/canary/echo"].get);
@@ -670,6 +673,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/capabilities"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/pricing"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/mcp"));
+  assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/.well-known/x402"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/.well-known/mcp.json"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/canary/echo"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/decide/webhook"));
@@ -690,6 +694,10 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(wellKnownX402.response.status, 200);
   assert.equal(wellKnownX402.body.paidActions[0].payment.scheme, "exact");
 
+  const wellKnownX402Bare = await request("/.well-known/x402");
+  assert.equal(wellKnownX402Bare.response.status, 200);
+  assert.equal(wellKnownX402Bare.body.paidActions[0].payment.scheme, "exact");
+
   const wellKnownMcp = await request("/.well-known/mcp.json");
   assert.equal(wellKnownMcp.response.status, 200);
   assert.equal(wellKnownMcp.body.recommendedToolName, "execute_webhook");
@@ -702,6 +710,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(robots.body.includes("Allow: /api/agent-manifest"), true);
   assert.equal(robots.body.includes("Allow: /api/pricing"), true);
   assert.equal(robots.body.includes("Allow: /api/mcp"), true);
+  assert.equal(robots.body.includes("Allow: /.well-known/x402"), true);
   assert.equal(robots.body.includes("Allow: /.well-known/mcp.json"), true);
   assert.equal(robots.body.includes("Sitemap:"), true);
 
@@ -714,6 +723,7 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(sitemap.body.includes("/status"), true);
   assert.equal(sitemap.body.includes("/api/pricing"), true);
   assert.equal(sitemap.body.includes("/api/mcp"), true);
+  assert.equal(sitemap.body.includes("/.well-known/x402"), true);
   assert.equal(sitemap.body.includes("/.well-known/mcp.json"), true);
   assert.equal(sitemap.body.includes("/api/agent-manifest"), true);
   assert.equal(sitemap.body.includes("/api/canary/echo"), true);
@@ -853,6 +863,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/discovery"), true);
   assert.equal(body.includes("/api/agent-manifest"), true);
   assert.equal(body.includes("/.well-known/agent.json"), true);
+  assert.equal(body.includes("/.well-known/x402"), true);
   assert.equal(body.includes("/robots.txt"), true);
   assert.equal(body.includes("/sitemap.xml"), true);
   assert.equal(body.includes("/pricing"), true);
@@ -1176,6 +1187,7 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.ok(body.trustScore.components.some((component) => component.id === "agent_surfaces"));
   assert.equal(body.publicSurfaces.agentManifest.endsWith("/api/agent-manifest"), true);
   assert.equal(body.publicSurfaces.wellKnownAgent.endsWith("/.well-known/agent.json"), true);
+  assert.equal(body.publicSurfaces.wellKnownX402.endsWith("/.well-known/x402"), true);
   assert.equal(body.publicSurfaces.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.publicSurfaces.policyCheck.endsWith("/api/policy/check"), true);
   assert.equal(body.publicSurfaces.canaryEcho.endsWith("/api/canary/echo"), true);

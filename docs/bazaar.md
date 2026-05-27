@@ -48,6 +48,7 @@ agent-infrastructure
 - OpenAPI: `https://action402.vercel.app/openapi.json`
 - Agent guide: `https://action402.vercel.app/agents`
 - LLM context: `https://action402.vercel.app/llms.txt`
+- x402scan fallback manifest: `https://action402.vercel.app/.well-known/x402`
 - CDP merchant lookup: `https://api.cdp.coinbase.com/platform/v2/x402/discovery/merchant?payTo=0x75113dcF8Ce34f0338440D40270e420f8C1762b8`
 - CDP search: `https://api.cdp.coinbase.com/platform/v2/x402/discovery/search?query=Action402&network=eip155%3A8453&limit=10`
 
@@ -77,8 +78,14 @@ proxy_tool_call using the returned resource/tool name
 verify links.job or links.receipt after completion
 ```
 
-Current production status: CDP merchant lookup returns one active Action402 resource after
-paid settlement `0xef2d4f21bdd077516f881ee5af5bb7ac392091d5071cf5f1a13f49921717c5db`.
+Current production status checked 2026-05-27:
+
+- CDP merchant lookup returns one active Action402 resource.
+- `Action402` CDP/Bazaar 10-result search returns the Action402 resource.
+- CDP quality: `14` 30-day calls, `8` unique payers, last called `2026-05-27T04:48:07.266Z`.
+- Latest verified public proof: `job_68eca51ca90de40902f496c4` / `rcpt_5636160940876e545da4ed08`.
+- Latest known on-chain smoke tx: `0xef2d4f21bdd077516f881ee5af5bb7ac392091d5071cf5f1a13f49921717c5db`.
+- x402scan readiness: OpenAPI is published at `/openapi.json`; `/.well-known/x402` is published as the x402scan fallback discovery alias.
 
 ## Bazaar input example
 
