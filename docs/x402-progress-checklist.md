@@ -130,7 +130,7 @@ Latest production proof:
 - Latest known on-chain smoke tx: `0xef2d4f21bdd077516f881ee5af5bb7ac392091d5071cf5f1a13f49921717c5db`
 - CDP/Bazaar merchant lookup: `1` active resource, `14` 30-day calls, `8` unique payers, last called `2026-05-27T04:48:07.266Z`.
 - Production audit: `/api/trust` reports `100/100` grade `A`, with `9` verified public proof examples and `0` recent failures in the 24h window.
-- Production checks: `deploy:check` `288/288`, `smoke:x402` `103/103`, local tests `65/65`, privacy check passed on 2026-05-27.
+- Production checks: `deploy:check` `293/293`, `smoke:x402` `106/106`, local tests `65/65`, privacy check passed on 2026-05-27.
 
 ## Phase 6: Post-Smoke Hardening
 

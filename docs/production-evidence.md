@@ -64,7 +64,7 @@ npm run privacy:check
 
 Latest local verification results:
 
-- `deploy:check`: `288/288`
-- `smoke:x402`: `103/103`
+- `deploy:check`: `293/293`
+- `smoke:x402`: `106/106`
 - `npm test`: `65/65`
 - `privacy:check`: passed
