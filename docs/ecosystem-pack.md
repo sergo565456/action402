@@ -10,8 +10,8 @@ This pack turns Action402 from a single paid endpoint into a discoverable builde
 
 ## Developer Artifacts
 
-- `examples/postman/action402.postman_collection.json` - Postman collection for discovery, free checks, unpaid 402 shape, and verification.
-- `skills/action402/SKILL.md` - reusable agent skill for Codex, Claude Code, Cursor, and other file-based agent tools.
+- `public/examples/postman/action402.postman_collection.json` - Postman collection for discovery, free checks, unpaid 402 shape, and verification. Public URL: `/examples/postman/action402.postman_collection.json`.
+- `public/skills/action402/SKILL.md` - reusable agent skill for Codex, Claude Code, Cursor, and other file-based agent tools. Public URL: `/skills/action402/SKILL.md`.
 - `.github/ISSUE_TEMPLATE/action402-endpoint.yml` - structured GitHub issue form for ecosystem submissions.
 
 ## Product Rule

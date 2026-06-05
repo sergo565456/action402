@@ -5,11 +5,7 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 30,
-      "includeFiles": [
-        "public/**",
-        "examples/**",
-        "skills/**"
-      ]
+      "includeFiles": "public/**"
     }
   },
   "rewrites": [

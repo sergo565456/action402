@@ -997,9 +997,7 @@ test("vercel rewrites expose extensionless product pages", () => {
   assert.equal(rewrites.get("/robots.txt"), "/api/index?__action402_path=/robots.txt");
   assert.equal(rewrites.get("/sitemap.xml"), "/api/index?__action402_path=/sitemap.xml");
   assert.equal(rewrites.get("/.well-known/:path*"), "/api/index?__action402_path=/.well-known/:path*");
-  assert.ok(vercelConfig.functions["api/index.js"].includeFiles.includes("public/**"));
-  assert.ok(vercelConfig.functions["api/index.js"].includeFiles.includes("examples/**"));
-  assert.ok(vercelConfig.functions["api/index.js"].includeFiles.includes("skills/**"));
+  assert.equal(vercelConfig.functions["api/index.js"].includeFiles, "public/**");
 });
 
 test("vercel rewrite strips internal catch-all path query", () => {
