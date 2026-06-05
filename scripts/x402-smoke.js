@@ -33,6 +33,19 @@ async function checkJsonEndpoint(path) {
   }
 }
 
+async function checkTextEndpoint(path, expectedText) {
+  try {
+    const response = await fetch(`${baseUrl}${path}`);
+    const body = await response.text();
+    const ok = response.status === 200 && body.includes(expectedText);
+    record(`${path} loads`, ok, ok ? "" : `status=${response.status}`);
+    return body;
+  } catch (error) {
+    record(`${path} loads`, false, error.message);
+    return undefined;
+  }
+}
+
 async function checkPolicyEndpoint() {
   try {
     const { response, body } = await fetchJson("/api/policy/check", {
@@ -95,6 +108,7 @@ function hasDiscoveryHeaders(headers) {
     link.includes("/openapi.json") &&
     link.includes("/api/pricing") &&
     link.includes("/api/mcp") &&
+    link.includes("/cookbooks") &&
     link.includes("/api/bazaar")
   );
 }
@@ -187,6 +201,11 @@ async function main() {
   const recentDecisions = await checkJsonEndpoint("/api/decisions/recent");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
   const openapi = await checkJsonEndpoint("/openapi.json");
+  await checkTextEndpoint("/cookbooks", "Action402 cookbooks");
+  await checkTextEndpoint("/built-with-action402", "Built with Action402");
+  await checkTextEndpoint("/submit", "Submit your work");
+  await checkTextEndpoint("/examples/postman/action402.postman_collection.json", "Action402 x402 Agent Flow");
+  await checkTextEndpoint("/skills/action402/SKILL.md", "Action402 Agent Skill");
   await checkCachePolicy();
 
   if (health) {
@@ -201,6 +220,7 @@ async function main() {
     record("API index points to discovery", apiIndex.recommendedStart?.includes("/api/discovery"));
     record("API index points to pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
     record("API index points to MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
+    record("API index points to cookbooks", apiIndex.free?.discovery?.includes("/cookbooks"));
     record("API index points to status", apiIndex.free?.trustAndMonitoring?.includes("/status"));
   }
 
@@ -209,6 +229,7 @@ async function main() {
     record("Discovery pack points to agent manifest", discovery.agentManifest?.endsWith("/api/agent-manifest"));
     record("Discovery pack points to pricing", discovery.pricing?.endsWith("/api/pricing"));
     record("Discovery pack points to Bazaar metadata", discovery.bazaar?.endsWith("/api/bazaar"));
+    record("Discovery pack points to cookbooks", discovery.links?.cookbooks?.endsWith("/cookbooks"));
   }
 
   if (agentManifest) {
@@ -223,6 +244,7 @@ async function main() {
       agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/decide/webhook")
     );
     record("Agent manifest exposes status page", agentManifest.browserPages?.some((page) => page.path === "/status"));
+    record("Agent manifest exposes cookbooks page", agentManifest.browserPages?.some((page) => page.path === "/cookbooks"));
   }
 
   if (wellKnownAgent) {
@@ -254,6 +276,7 @@ async function main() {
       "Guided execution action is published",
       capabilities.actions?.some((action) => action.id === "execute.guided_webhook")
     );
+    record("Ecosystem pack is published", capabilities.ecosystem?.cookbooks === "/cookbooks");
   }
 
   if (pricing) {
@@ -351,6 +374,7 @@ async function main() {
     );
     record("Bazaar decision graph link is published", typeof bazaar.links?.decisionGraph === "string");
     record("Bazaar guided execution link is published", typeof bazaar.links?.guidedExecution === "string");
+    record("Bazaar cookbook link is published", typeof bazaar.links?.cookbooks === "string");
   }
 
   try {

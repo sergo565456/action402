@@ -1,0 +1,82 @@
+name: Submit Action402 endpoint or project
+description: List an Action402-compatible endpoint, cookbook, wrapper, or agent integration.
+title: "[Action402 submission]: "
+labels:
+  - action402-submission
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Submit only public, safe-to-review metadata. Do not paste private keys, API secrets, auth tokens, private customer data, or sensitive payloads.
+  - type: input
+    id: project_name
+    attributes:
+      label: Project name
+      description: Name of the endpoint, app, agent, cookbook, or wrapper.
+      placeholder: Example ChatOps webhook
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - chatops
+        - automation
+        - developer-tools
+        - business-workflows
+        - ops
+        - analytics
+        - mcp-wrapper
+        - cookbook
+        - other
+    validations:
+      required: true
+  - type: input
+    id: public_url
+    attributes:
+      label: Public URL
+      description: Project URL, docs URL, endpoint docs, or repository URL.
+      placeholder: https://example.com/action402
+    validations:
+      required: true
+  - type: textarea
+    id: action_summary
+    attributes:
+      label: What action does it perform?
+      description: Describe the bounded public HTTPS side effect.
+      placeholder: Sends a Slack alert after an agent completes a paid task.
+    validations:
+      required: true
+  - type: textarea
+    id: safe_example
+    attributes:
+      label: Safe example payload
+      description: Use placeholders for tokens and secrets.
+      render: json
+      placeholder: |
+        {
+          "url": "https://example.com/webhook",
+          "method": "POST",
+          "body": { "event": "agent.example" },
+          "idempotencyKey": "example-001"
+        }
+    validations:
+      required: true
+  - type: input
+    id: proof_url
+    attributes:
+      label: Proof or verification URL
+      description: Action402 proof badge, verify URL, public demo, or canary/preflight evidence.
+      placeholder: https://action402.vercel.app/proof/job_...
+  - type: textarea
+    id: limits
+    attributes:
+      label: Limits and safety notes
+      description: Rate limits, auth requirements, idempotency expectations, failure behavior, or review notes.
+  - type: input
+    id: contact
+    attributes:
+      label: Contact
+      description: GitHub, X, Telegram, website, or email.
+      placeholder: https://x.com/...

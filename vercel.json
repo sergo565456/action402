@@ -77,6 +77,18 @@
       "destination": "/use-cases.html"
     },
     {
+      "source": "/cookbooks",
+      "destination": "/cookbooks.html"
+    },
+    {
+      "source": "/built-with-action402",
+      "destination": "/built-with-action402.html"
+    },
+    {
+      "source": "/submit",
+      "destination": "/submit.html"
+    },
+    {
       "source": "/actions",
       "destination": "/actions.html"
     },

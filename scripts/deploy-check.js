@@ -43,6 +43,7 @@ function hasDiscoveryHeaders(response) {
     link.includes("/openapi.json") &&
     link.includes("/api/pricing") &&
     link.includes("/api/mcp") &&
+    link.includes("/cookbooks") &&
     link.includes("/api/bazaar")
   );
 }
@@ -145,6 +146,9 @@ async function checkCachePolicy() {
       "/api/pricing",
       "/api/mcp",
       "/api/bazaar",
+      "/cookbooks",
+      "/built-with-action402",
+      "/submit",
       "/openapi.json"
     ];
     for (const path of stablePaths) {
@@ -174,6 +178,9 @@ async function main() {
   await checkStatic("/pricing", "Usage and pricing");
   await checkStatic("/onboarding", "Agent onboarding");
   await checkStatic("/use-cases", "Use-case templates");
+  await checkStatic("/cookbooks", "Action402 cookbooks");
+  await checkStatic("/built-with-action402", "Built with Action402");
+  await checkStatic("/submit", "Submit your work");
   await checkStatic("/actions", "Action catalog");
   await checkStatic("/snippets", "Integration snippets");
   await checkStatic("/decisions", "Decision graph");
@@ -188,6 +195,8 @@ async function main() {
   await checkStatic("/proof/job_deploy_check_missing", "Proof badge");
   await checkStatic("/monitoring", "Execution monitoring");
   await checkStatic("/llms.txt", "paid webhook execution");
+  await checkStatic("/examples/postman/action402.postman_collection.json", "Action402 x402 Agent Flow");
+  await checkStatic("/skills/action402/SKILL.md", "Action402 Agent Skill");
   await checkStatic("/robots.txt", "Sitemap:");
   await checkStatic("/sitemap.xml", "<urlset");
 
@@ -320,6 +329,9 @@ async function main() {
     record("api index recommends discovery pack", apiIndex.recommendedStart?.includes("/api/discovery"));
     record("api index exposes pricing", apiIndex.recommendedStart?.includes("/api/pricing"));
     record("api index exposes MCP manifest", apiIndex.recommendedStart?.includes("/api/mcp"));
+    record("api index exposes cookbooks", apiIndex.free?.discovery?.includes("/cookbooks"));
+    record("api index exposes ecosystem page", apiIndex.free?.discovery?.includes("/built-with-action402"));
+    record("api index exposes agent skill", typeof apiIndex.links?.agentSkill === "string");
     record("api index exposes free discovery", apiIndex.free?.discovery?.includes("/api/capabilities"));
     record("api index exposes verification", apiIndex.free?.verification?.includes("/api/verify/jobs/{id}"));
     record("api index exposes status page", apiIndex.free?.trustAndMonitoring?.includes("/status"));
@@ -333,6 +345,8 @@ async function main() {
     record("discovery pack exposes pricing", discovery.pricing?.endsWith("/api/pricing"));
     record("discovery pack exposes OpenAPI", discovery.openapi?.endsWith("/openapi.json"));
     record("discovery pack exposes Bazaar metadata", discovery.bazaar?.endsWith("/api/bazaar"));
+    record("discovery pack exposes cookbooks", discovery.links?.cookbooks?.endsWith("/cookbooks"));
+    record("discovery pack exposes ecosystem", discovery.links?.builtWith?.endsWith("/built-with-action402"));
   }
 
   if (capabilities) {
@@ -388,6 +402,7 @@ async function main() {
     record("capabilities expose cache policy", capabilities.cachePolicy?.dynamicCacheControl === "no-store");
     record("capabilities expose x402 payment headers", capabilities.x402?.requestPaymentHeaders?.includes("X-PAYMENT"));
     record("capabilities expose action catalog", capabilities.actionCatalog?.path === "/api/actions");
+    record("capabilities expose ecosystem pack", capabilities.ecosystem?.cookbooks === "/cookbooks");
     record("capabilities expose proof badge", capabilities.verification?.proofBadge === "/proof/{jobOrReceiptId}");
     record("capabilities expose MCP guide link", typeof capabilities.links?.mcpGuide === "string");
     record("capabilities expose trust summary", capabilities.trust?.path === "/api/trust");
@@ -413,6 +428,8 @@ async function main() {
     record("agent manifest exposes MCP manifest", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/mcp"));
     record("agent manifest exposes free surfaces", agentManifest.freeAgentSurfaces?.some((surface) => surface.path === "/api/capabilities"));
     record("agent manifest exposes status page", agentManifest.browserPages?.some((page) => page.path === "/status"));
+    record("agent manifest exposes cookbooks page", agentManifest.browserPages?.some((page) => page.path === "/cookbooks"));
+    record("agent manifest exposes ecosystem artifacts", typeof agentManifest.ecosystem?.agentSkill === "string");
   }
 
   if (openapi) {
@@ -607,6 +624,11 @@ async function main() {
     record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
     record("bazaar metadata has status link", typeof bazaar.links?.status === "string");
     record("bazaar metadata has use-case link", typeof bazaar.links?.useCases === "string");
+    record("bazaar metadata has cookbook link", typeof bazaar.links?.cookbooks === "string");
+    record("bazaar metadata has ecosystem link", typeof bazaar.links?.builtWith === "string");
+    record("bazaar metadata has submission link", typeof bazaar.links?.submit === "string");
+    record("bazaar metadata has Postman collection", typeof bazaar.links?.postmanCollection === "string");
+    record("bazaar metadata has agent skill", typeof bazaar.links?.agentSkill === "string");
     record(
       "bazaar metadata has use-case templates",
       Array.isArray(bazaar.useCaseTemplates) && bazaar.useCaseTemplates.length >= 6
@@ -647,6 +669,8 @@ async function main() {
     record("trust endpoint exposes well-known surface", typeof trust.publicSurfaces?.wellKnownAgent === "string");
     record("trust endpoint exposes x402 well-known fallback", typeof trust.publicSurfaces?.wellKnownX402 === "string");
     record("trust endpoint exposes action catalog surface", typeof trust.publicSurfaces?.actionCatalog === "string");
+    record("trust endpoint exposes cookbooks surface", typeof trust.publicSurfaces?.cookbooks === "string");
+    record("trust endpoint exposes ecosystem surface", typeof trust.publicSurfaces?.builtWith === "string");
     record("trust endpoint exposes policy check surface", typeof trust.publicSurfaces?.policyCheck === "string");
     record("trust endpoint exposes canary surface", typeof trust.publicSurfaces?.canaryEcho === "string");
     record("trust endpoint exposes snippets surface", typeof trust.publicSurfaces?.snippets === "string");

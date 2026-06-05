@@ -33,6 +33,9 @@ Agent entry points:
 - https://action402.vercel.app/discovery - canonical discovery pack.
 - https://action402.vercel.app/api/discovery - machine-readable discovery pack.
 - https://action402.vercel.app/use-cases - task templates agents can match against.
+- https://action402.vercel.app/cookbooks - copy-paste recipes for paid agent workflows.
+- https://action402.vercel.app/built-with-action402 - ecosystem entries and starter integrations.
+- https://action402.vercel.app/submit - submit compatible endpoints, cookbooks, wrappers, or projects.
 - https://action402.vercel.app/mcp - MCP and Bazaar discovery-first flow.
 - https://action402.vercel.app/api/mcp - machine-readable MCP wrapper manifest.
 - https://action402.vercel.app/trust - public trust summary.
@@ -52,6 +55,8 @@ Agent entry points:
 - https://action402.vercel.app/api/decisions/recent - recent redacted decisions.
 - https://action402.vercel.app/api/snippets - copy-paste buyer and verification snippets.
 - https://action402.vercel.app/api/actions - action template catalog and policy modes.
+- https://action402.vercel.app/examples/postman/action402.postman_collection.json - Postman collection.
+- https://action402.vercel.app/skills/action402/SKILL.md - reusable agent skill.
 - https://action402.vercel.app/api/bazaar - x402/Bazaar route metadata.
 - https://action402.vercel.app/llms.txt - compact LLM context.
 - https://action402.vercel.app/sitemap.xml - public sitemap with machine-readable surfaces.
@@ -83,6 +88,11 @@ Agent entry points:
 - `POST /api/canary/echo` - free non-sensitive echo target for agent plumbing/self-tests.
 - `GET /api/snippets` - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - `GET /api/actions` - machine-readable action catalog, policy modes, buyer snippets, and scheduled-action compatibility notes.
+- `/cookbooks` - copy-paste recipes for common paid agent workflows.
+- `/built-with-action402` - ecosystem page for compatible endpoints, wrappers, templates, and starter projects.
+- `/submit` - structured submission path for Action402-compatible endpoints, cookbooks, wrappers, and projects.
+- `GET /examples/postman/action402.postman_collection.json` - Postman collection for discovery, free checks, unpaid 402 shape, and verification.
+- `GET /skills/action402/SKILL.md` - reusable agent skill for Action402 discovery, buyer guardrails, payment, and verification.
 - `GET /api/bazaar` - route metadata for Bazaar positioning and docs.
 - `GET /api/capabilities` - agent-readable service capabilities.
 - `GET /openapi.json` - OpenAPI 3.1 contract for integrations.
@@ -242,11 +252,11 @@ After starting an x402-enabled server, run:
 npm run smoke:x402 -- http://127.0.0.1:4021
 ```
 
-The smoke script checks `/health`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/decide/webhook`, `/api/decisions/recent`, `/openapi.json`, agent discovery fields, and verifies that unpaid `POST /api/execute/webhook` and `POST /api/execute/guided-webhook` return `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, public trust/proof/decision surfaces, and proof badge routing.
+The smoke script checks `/health`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/decide/webhook`, `/api/decisions/recent`, `/openapi.json`, agent discovery fields, and verifies that unpaid `POST /api/execute/webhook` and `POST /api/execute/guided-webhook` return `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, `/cookbooks`, `/built-with-action402`, `/submit`, public trust/proof/decision surfaces, developer artifacts, and proof badge routing.
 
-Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/actions`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, decisions, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
+Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/actions`, `/cookbooks`, `/built-with-action402`, `/submit`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, decisions, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
 
-Agent-facing pages and machine-readable discovery endpoints also publish HTTP discovery headers: `X-Action402-Agent-Entry: /api` and a `Link` header pointing to the API index, agent manifest, OpenAPI, `llms.txt`, pricing, MCP manifest, and Bazaar metadata.
+Agent-facing pages and machine-readable discovery endpoints also publish HTTP discovery headers: `X-Action402-Agent-Entry: /api` and a `Link` header pointing to the API index, agent manifest, OpenAPI, `llms.txt`, pricing, MCP manifest, cookbooks, ecosystem page, and Bazaar metadata.
 
 OpenAPI operations include stable `operationId` values such as `executeWebhook`, `checkWebhookPolicy`, `getPricing`, and `getMcpManifest` so client generators and agent tool mappers can keep deterministic tool names.
 
@@ -269,6 +279,11 @@ Use these URLs when connecting an agent, crawler, or x402/Bazaar discovery flow:
 - `POST /api/canary/echo` - free redacted echo target for route and JSON plumbing checks.
 - `GET /api/snippets` - dedicated copy-paste discovery, paid call, verification, and buyer policy examples.
 - `GET /api/actions` - action templates, policy modes, and the scheduled-action design path.
+- `GET /cookbooks` - task recipes that combine discovery, decision, payment, and proof verification.
+- `GET /built-with-action402` - ecosystem entries and listing rules for compatible projects.
+- `GET /submit` - GitHub-backed submission path for endpoints and cookbooks.
+- `GET /examples/postman/action402.postman_collection.json` - Postman collection.
+- `GET /skills/action402/SKILL.md` - agent skill file.
 - `GET /api/bazaar` - Bazaar route config and x402 discovery metadata.
 - `GET /proof/{jobOrReceiptId}` - browser-friendly proof badge for one job or receipt.
 - `GET /openapi.json` - OpenAPI 3.1 contract.

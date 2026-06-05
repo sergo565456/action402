@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Submit to Action402</title>
+    <meta
+      name="description"
+      content="Submit an Action402-compatible endpoint, project, cookbook, or agent integration."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Submit navigation">
+        <a href="/built-with-action402">Built With</a>
+        <a href="/cookbooks">Cookbooks</a>
+        <a href="/actions">Actions</a>
+        <a href="/snippets">Snippets</a>
+        <a href="/trust">Trust</a>
+        <a href="/api/bazaar">Bazaar JSON</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Submit your work</p>
+          <h1>List an endpoint agents can safely evaluate.</h1>
+          <p>
+            Submit Action402-compatible endpoints, MCP wrappers, cookbooks, or apps. Good entries
+            are narrow, public, testable, and include a safe example payload.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/sergo565456/action402/issues/new?template=action402-endpoint.yml">Open GitHub Form</a>
+            <a class="button secondary" href="/api/policy/check">Policy Check</a>
+            <a class="button secondary" href="/api/canary/echo">Canary Echo</a>
+            <a class="button secondary" href="/built-with-action402">Ecosystem Page</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Submit quick facts">
+          <dl>
+            <div>
+              <dt>required</dt>
+              <dd>public HTTPS URL</dd>
+            </div>
+            <div>
+              <dt>preferred</dt>
+              <dd>proof link</dd>
+            </div>
+            <div>
+              <dt>unsafe</dt>
+              <dd>secrets in examples</dd>
+            </div>
+            <div>
+              <dt>review</dt>
+              <dd>GitHub issue</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Submission checklist</p>
+          <h2>Make the endpoint easy for agents to trust.</h2>
+          <p>
+            The listing should help a buyer agent answer the practical questions before payment:
+            what action happens, how much risk exists, what proof is returned, and how to verify it.
+          </p>
+        </div>
+        <div class="endpoint-list">
+          <article class="endpoint">
+            <span>1</span>
+            <h3>Describe the side effect</h3>
+            <p>State the exact public HTTPS action: notify, dispatch, ingest, update, or alert.</p>
+          </article>
+          <article class="endpoint">
+            <span>2</span>
+            <h3>Provide a safe example payload</h3>
+            <p>Use placeholders for target secrets and avoid private customer, wallet, or API data.</p>
+          </article>
+          <article class="endpoint">
+            <span>3</span>
+            <h3>Include a proof or test path</h3>
+            <p>Link to an Action402 proof badge, recent proof, or a free canary/preflight result.</p>
+          </article>
+          <article class="endpoint">
+            <span>4</span>
+            <h3>Declare limits</h3>
+            <p>Document rate limits, idempotency expectations, supported methods, and failure behavior.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Issue template preview</p>
+        <h2>Fields the GitHub form asks for.</h2>
+        <pre><code>Project name
+Category
+Public URL
+Action402 route or cookbook
+Safe example payload
+Proof or verification URL
+Contact
+Security notes</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Submit: /submit</span>
+    </footer>
+  </body>
+</html>

@@ -20,6 +20,9 @@
       <nav class="page-nav" aria-label="Discovery navigation">
         <a href="/agents">Agents</a>
         <a href="/actions">Actions</a>
+        <a href="/cookbooks">Cookbooks</a>
+        <a href="/built-with-action402">Built With</a>
+        <a href="/submit">Submit</a>
         <a href="/snippets">Snippets</a>
         <a href="/trust">Trust</a>
         <a href="/api/agent-manifest">Manifest</a>
@@ -40,6 +43,8 @@
             <a class="button primary" href="/api/agent-manifest">Agent Manifest</a>
             <a class="button secondary" href="/.well-known/agent.json">Well-Known JSON</a>
             <a class="button secondary" href="/.well-known/x402">x402 Fallback</a>
+            <a class="button secondary" href="/cookbooks">Cookbooks</a>
+            <a class="button secondary" href="/built-with-action402">Built With</a>
             <a class="button secondary" href="/llms.txt">llms.txt</a>
             <a class="button secondary" href="/sitemap.xml">Sitemap</a>
           </div>
@@ -97,6 +102,16 @@
             <p>Compact plain-text context for LLM agents and discovery-first clients.</p>
           </article>
           <article class="endpoint">
+            <span>html</span>
+            <h3>GET /cookbooks</h3>
+            <p>Copy-paste recipes for common paid agent workflows.</p>
+          </article>
+          <article class="endpoint">
+            <span>html</span>
+            <h3>GET /built-with-action402</h3>
+            <p>Ecosystem entries, starter integrations, and listing rules.</p>
+          </article>
+          <article class="endpoint">
             <span>xml</span>
             <h3>GET /sitemap.xml</h3>
             <p>Browser and machine surfaces indexed in one sitemap.</p>
@@ -113,6 +128,7 @@
         <pre><code>GET /.well-known/x402
 GET /.well-known/agent.json
 GET /api/quickstart
+GET /cookbooks
 POST /api/policy/check
 POST /api/execute/webhook  # x402 paid
 GET /api/verify/jobs/{id}</code></pre>

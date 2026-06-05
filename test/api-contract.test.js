@@ -75,6 +75,11 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.sitemap.endsWith("/sitemap.xml"), true);
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
+  assert.equal(body.links.cookbooks.endsWith("/cookbooks"), true);
+  assert.equal(body.links.builtWith.endsWith("/built-with-action402"), true);
+  assert.equal(body.links.submit.endsWith("/submit"), true);
+  assert.equal(body.links.postmanCollection.endsWith("/examples/postman/action402.postman_collection.json"), true);
+  assert.equal(body.links.agentSkill.endsWith("/skills/action402/SKILL.md"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.links.pricingApi.endsWith("/api/pricing"), true);
   assert.equal(body.links.mcpManifest.endsWith("/api/mcp"), true);
@@ -130,6 +135,9 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.ok(body.x402.settlementResponseHeaders.includes("X-PAYMENT-RESPONSE"));
   assert.equal(body.x402.openApiSecurityScheme, "X402Payment");
   assert.equal(body.actionCatalog.path, "/api/actions");
+  assert.equal(body.ecosystem.cookbooks, "/cookbooks");
+  assert.equal(body.ecosystem.builtWith, "/built-with-action402");
+  assert.equal(body.ecosystem.agentSkill, "/skills/action402/SKILL.md");
   assert.equal(body.verification.proofBadge, "/proof/{jobOrReceiptId}");
   assert.equal(body.verification.integrationSnippets, "/api/snippets");
   assert.equal(body.decisionGraph.path, "/api/decide/webhook");
@@ -137,6 +145,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.ok(body.actions.some((action) => action.id === "execute.guided_webhook"));
   assert.ok(body.discoveryKeywords.includes("pay per API call"));
   assert.ok(body.discoveryKeywords.includes("Action402 action catalog"));
+  assert.ok(body.discoveryKeywords.includes("Action402 cookbooks"));
+  assert.ok(body.discoveryKeywords.includes("Built with Action402"));
   assert.ok(body.discoveryKeywords.includes("Discord webhook x402"));
   assert.ok(body.discoveryKeywords.includes("Slack webhook x402"));
   assert.ok(body.useCaseTemplates.length >= 6);
@@ -254,6 +264,9 @@ test("api index gives agents a compact entry map", async () => {
   assert.ok(body.free.discovery.includes("/api/discovery"));
   assert.ok(body.free.discovery.includes("/api/pricing"));
   assert.ok(body.free.discovery.includes("/api/mcp"));
+  assert.ok(body.free.discovery.includes("/cookbooks"));
+  assert.ok(body.free.discovery.includes("/built-with-action402"));
+  assert.ok(body.free.discovery.includes("/submit"));
   assert.ok(body.free.preflight.includes("/api/policy/check"));
   assert.ok(body.free.decision.includes("/api/decide/webhook"));
   assert.ok(body.free.decision.includes("/api/decisions/recent"));
@@ -271,6 +284,9 @@ test("api index gives agents a compact entry map", async () => {
   assert.equal(body.links.bazaar.endsWith("/api/bazaar"), true);
   assert.equal(body.links.pricing.endsWith("/api/pricing"), true);
   assert.equal(body.links.mcpManifest.endsWith("/api/mcp"), true);
+  assert.equal(body.links.cookbooks.endsWith("/cookbooks"), true);
+  assert.equal(body.links.builtWith.endsWith("/built-with-action402"), true);
+  assert.equal(body.links.agentSkill.endsWith("/skills/action402/SKILL.md"), true);
   assert.equal(body.links.status.endsWith("/status"), true);
   assert.equal(body.links.health.endsWith("/health"), true);
 
@@ -297,6 +313,9 @@ test("discovery API gives agents canonical fetch order", async () => {
   assert.equal(body.bazaar.endsWith("/api/bazaar"), true);
   assert.ok(body.recommendedFetchOrder.some((url) => url.endsWith("/api/discovery")));
   assert.ok(body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
+  assert.ok(body.links.cookbooks.endsWith("/cookbooks"));
+  assert.ok(body.links.builtWith.endsWith("/built-with-action402"));
+  assert.ok(body.links.agentSkill.endsWith("/skills/action402/SKILL.md"));
 
   const wrongMethod = await request("/api/discovery", {
     method: "POST"
@@ -329,6 +348,12 @@ test("cache policy separates stable discovery from runtime state", async () => {
   assert.ok(mcpManifest.response.headers.get("cache-control").includes("s-maxage=300"));
   assert.ok(mcpManifest.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
   assert.equal(mcpManifest.response.headers.get("x-action402-agent-entry"), "/api");
+
+  const cookbooks = await requestText("/cookbooks");
+  assert.ok(cookbooks.response.headers.get("cache-control").includes("s-maxage=300"));
+  assert.ok(cookbooks.response.headers.get("x-action402-cache-policy").includes("s-maxage=300"));
+  assert.equal(cookbooks.response.headers.get("x-action402-agent-entry"), "/api");
+  assert.ok(cookbooks.response.headers.get("link").includes("/built-with-action402"));
 
   const capabilities = await request("/api/capabilities");
   assert.ok(capabilities.response.headers.get("cache-control").includes("s-maxage=300"));
@@ -440,6 +465,9 @@ test("pricing endpoint gives agents machine-readable payment guardrails", async 
   assert.equal(body.paidActions[0].id, "execute.webhook");
   assert.equal(body.paidActions[0].method, "POST");
   assert.ok(body.freeSurfaces.discovery.includes("/api/pricing"));
+  assert.ok(body.freeSurfaces.discovery.includes("/cookbooks"));
+  assert.ok(body.freeSurfaces.discovery.includes("/built-with-action402"));
+  assert.ok(body.freeSurfaces.discovery.includes("/submit"));
   assert.ok(body.freeSurfaces.preflight.includes("/api/policy/check"));
   assert.ok(body.freeSurfaces.trustAndMonitoring.includes("/status"));
   assert.ok(body.freeSurfaces.trustAndMonitoring.includes("/health"));
@@ -679,6 +707,9 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/decide/webhook"));
   assert.ok(manifest.body.freeAgentSurfaces.some((surface) => surface.path === "/api/decisions/recent"));
   assert.ok(manifest.body.browserPages.some((page) => page.path === "/status"));
+  assert.ok(manifest.body.browserPages.some((page) => page.path === "/cookbooks"));
+  assert.equal(manifest.body.ecosystem.cookbooks.endsWith("/cookbooks"), true);
+  assert.equal(manifest.body.ecosystem.postmanCollection.endsWith("/examples/postman/action402.postman_collection.json"), true);
   assert.ok(manifest.body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
 
   const wellKnownAgent = await request("/.well-known/agent.json");
@@ -709,6 +740,9 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(robots.body.includes("Allow: /status"), true);
   assert.equal(robots.body.includes("Allow: /api/agent-manifest"), true);
   assert.equal(robots.body.includes("Allow: /api/pricing"), true);
+  assert.equal(robots.body.includes("Allow: /cookbooks"), true);
+  assert.equal(robots.body.includes("Allow: /built-with-action402"), true);
+  assert.equal(robots.body.includes("Allow: /submit"), true);
   assert.equal(robots.body.includes("Allow: /api/mcp"), true);
   assert.equal(robots.body.includes("Allow: /.well-known/x402"), true);
   assert.equal(robots.body.includes("Allow: /.well-known/mcp.json"), true);
@@ -721,6 +755,9 @@ test("agent discovery pack exposes well-known manifests, robots, and sitemap", a
   assert.equal(sitemap.body.includes("/api/discovery"), true);
   assert.equal(sitemap.body.includes("/discovery"), true);
   assert.equal(sitemap.body.includes("/status"), true);
+  assert.equal(sitemap.body.includes("/cookbooks"), true);
+  assert.equal(sitemap.body.includes("/built-with-action402"), true);
+  assert.equal(sitemap.body.includes("/submit"), true);
   assert.equal(sitemap.body.includes("/api/pricing"), true);
   assert.equal(sitemap.body.includes("/api/mcp"), true);
   assert.equal(sitemap.body.includes("/.well-known/x402"), true);
@@ -822,6 +859,11 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.links.sitemap.endsWith("/sitemap.xml"), true);
   assert.equal(body.links.useCases.endsWith("/use-cases"), true);
   assert.equal(body.links.actions.endsWith("/actions"), true);
+  assert.equal(body.links.cookbooks.endsWith("/cookbooks"), true);
+  assert.equal(body.links.builtWith.endsWith("/built-with-action402"), true);
+  assert.equal(body.links.submit.endsWith("/submit"), true);
+  assert.equal(body.links.postmanCollection.endsWith("/examples/postman/action402.postman_collection.json"), true);
+  assert.equal(body.links.agentSkill.endsWith("/skills/action402/SKILL.md"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.links.pricingApi.endsWith("/api/pricing"), true);
   assert.equal(body.links.mcpManifest.endsWith("/api/mcp"), true);
@@ -868,6 +910,9 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/sitemap.xml"), true);
   assert.equal(body.includes("/pricing"), true);
   assert.equal(body.includes("/use-cases"), true);
+  assert.equal(body.includes("/cookbooks"), true);
+  assert.equal(body.includes("/built-with-action402"), true);
+  assert.equal(body.includes("/submit"), true);
   assert.equal(body.includes("/actions"), true);
   assert.equal(body.includes("/api/actions"), true);
   assert.equal(body.includes("/api/quickstart"), true);
@@ -894,6 +939,8 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("/proof/{jobOrReceiptId}"), true);
   assert.equal(body.includes("pay per API call"), true);
   assert.equal(body.includes("Action402 action catalog"), true);
+  assert.equal(body.includes("Action402 cookbooks"), true);
+  assert.equal(body.includes("Built with Action402"), true);
   assert.equal(body.includes("/api/proofs/recent"), true);
   assert.equal(body.includes("/api/monitoring/executions"), true);
   assert.equal(body.includes("MCP/Bazaar guidance"), true);
@@ -906,6 +953,9 @@ test("public product pages load", async () => {
     ["/discovery", "Discovery pack"],
     ["/onboarding", "Agent onboarding"],
     ["/use-cases", "Use-case templates"],
+    ["/cookbooks", "Action402 cookbooks"],
+    ["/built-with-action402", "Built with Action402"],
+    ["/submit", "Submit your work"],
     ["/actions", "Action catalog"],
     ["/snippets", "Integration snippets"],
     ["/decisions", "Decision graph"],
@@ -935,6 +985,9 @@ test("vercel rewrites expose extensionless product pages", () => {
   assert.equal(rewrites.get("/handoff"), "/handoff.html");
   assert.equal(rewrites.get("/status"), "/status.html");
   assert.equal(rewrites.get("/discovery"), "/discovery.html");
+  assert.equal(rewrites.get("/cookbooks"), "/cookbooks.html");
+  assert.equal(rewrites.get("/built-with-action402"), "/built-with-action402.html");
+  assert.equal(rewrites.get("/submit"), "/submit.html");
   assert.equal(rewrites.get("/decisions"), "/decisions.html");
   assert.equal(rewrites.get("/decision/:id"), "/decision.html");
   assert.equal(rewrites.get("/schedules"), "/schedules.html");
@@ -1195,6 +1248,9 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.publicSurfaces.recentDecisions.endsWith("/api/decisions/recent"), true);
   assert.equal(body.publicSurfaces.snippets.endsWith("/api/snippets"), true);
   assert.equal(body.publicSurfaces.actionCatalog.endsWith("/api/actions"), true);
+  assert.equal(body.publicSurfaces.cookbooks.endsWith("/cookbooks"), true);
+  assert.equal(body.publicSurfaces.builtWith.endsWith("/built-with-action402"), true);
+  assert.equal(body.publicSurfaces.submit.endsWith("/submit"), true);
   assert.equal(body.publicSurfaces.handoffCapabilities.endsWith("/api/handoff/capabilities"), true);
   assert.equal(body.publicSurfaces.schedulePreview.endsWith("/api/schedules/preview"), true);
   assert.equal(body.publicSurfaces.secretPolicy.endsWith("/api/secrets/policy"), true);
@@ -1208,6 +1264,7 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.trustSignals.includes("free preflight policy check before payment"), true);
   assert.equal(body.trustSignals.includes("free redacted canary echo target for self-tests"), true);
   assert.equal(body.trustSignals.includes("free deterministic decision graph before payment"), true);
+  assert.equal(body.trustSignals.includes("public cookbooks, ecosystem entries, and submission path"), true);
   assert.equal(body.trustSignals.includes("copy-paste integration snippets for buyers and verifiers"), true);
   assert.equal(body.trustSignals.includes("redacted public proof examples"), true);
   assert.equal(body.trustSignals.includes("browser/action handoff package endpoint is public"), true);

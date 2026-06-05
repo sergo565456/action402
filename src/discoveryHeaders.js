@@ -5,6 +5,9 @@ const DISCOVERY_HEADER_PATHS = [
   "/pricing",
   "/mcp",
   "/actions",
+  "/cookbooks",
+  "/built-with-action402",
+  "/submit",
   "/snippets",
   "/decisions",
   "/api",
@@ -82,6 +85,18 @@ const DISCOVERY_LINKS = [
     rel: "tool-manifest",
     type: "application/json",
     title: "Action402 MCP wrapper manifest"
+  },
+  {
+    path: "/cookbooks",
+    rel: "help",
+    type: "text/html",
+    title: "Action402 cookbooks"
+  },
+  {
+    path: "/built-with-action402",
+    rel: "collection",
+    type: "text/html",
+    title: "Built with Action402"
   },
   {
     path: "/api/bazaar",

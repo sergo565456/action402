@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Action402 Cookbooks</title>
+    <meta
+      name="description"
+      content="Copy-paste cookbooks for building x402 paid webhook and API workflows with Action402."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Cookbook navigation">
+        <a href="/agents">Agents</a>
+        <a href="/built-with-action402">Built With</a>
+        <a href="/submit">Submit</a>
+        <a href="/actions">Actions</a>
+        <a href="/snippets">Snippets</a>
+        <a href="/mcp">MCP</a>
+        <a href="/trust">Trust</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Action402 cookbooks</p>
+          <h1>Recipes agents can copy before they pay.</h1>
+          <p>
+            Each cookbook keeps the same safe flow: discover, inspect pricing, run a free
+            decision or policy check, pay the x402 route, then verify the signed receipt.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/api/quickstart">Quickstart JSON</a>
+            <a class="button secondary" href="/api/snippets">Snippets JSON</a>
+            <a class="button secondary" href="/api/actions">Action Catalog</a>
+            <a class="button secondary" href="/examples/postman/action402.postman_collection.json">Postman Collection</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Cookbook quick facts">
+          <dl>
+            <div>
+              <dt>best first read</dt>
+              <dd><code>/api/quickstart</code></dd>
+            </div>
+            <div>
+              <dt>free guard</dt>
+              <dd><code>/api/decide/webhook</code></dd>
+            </div>
+            <div>
+              <dt>paid route</dt>
+              <dd><code>/api/execute/guided-webhook</code></dd>
+            </div>
+            <div>
+              <dt>proof</dt>
+              <dd><code>/api/verify/jobs/{id}</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Production recipes</p>
+          <h2>Start with simple, bounded side effects.</h2>
+          <p>
+            These are the Action402 equivalents of ecosystem cookbooks: focused examples
+            that make the paid execution primitive useful without inventing a new workflow engine.
+          </p>
+        </div>
+        <div class="template-grid">
+          <article class="template-card">
+            <span>chatops</span>
+            <h3>Send a paid Slack or Discord alert</h3>
+            <p>Use this when an agent needs a visible human notification and a receipt proving the alert attempt.</p>
+            <pre><code>POST /api/decide/webhook
+POST /api/execute/guided-webhook
+GET /api/verify/jobs/{jobId}</code></pre>
+          </article>
+          <article class="template-card">
+            <span>automation</span>
+            <h3>Trigger Zapier or Make</h3>
+            <p>Let a buyer agent pay for one no-code automation trigger without sharing a dashboard account.</p>
+            <pre><code>{
+  "url": "https://hooks.zapier.com/hooks/catch/...",
+  "method": "POST",
+  "body": { "event": "agent.workflow.triggered" },
+  "idempotencyKey": "zapier-trigger-001"
+}</code></pre>
+          </article>
+          <article class="template-card">
+            <span>developer</span>
+            <h3>Dispatch a GitHub workflow</h3>
+            <p>Trigger repository automation and keep a public proof badge for the paid attempt.</p>
+            <pre><code>{
+  "url": "https://api.github.com/repos/OWNER/REPO/dispatches",
+  "method": "POST",
+  "body": { "event_type": "agent.action402" },
+  "idempotencyKey": "github-dispatch-001"
+}</code></pre>
+          </article>
+          <article class="template-card">
+            <span>trust</span>
+            <h3>Verify before marking done</h3>
+            <p>Never trust a paid side effect only from the first response; verify the job or receipt link.</p>
+            <pre><code>GET /api/verify/jobs/{jobId}
+GET /proof/{jobOrReceiptId}
+GET /api/trust</code></pre>
+          </article>
+          <article class="template-card">
+            <span>agent tooling</span>
+            <h3>Wrap Action402 as an MCP tool</h3>
+            <p>Use the MCP manifest and skill file to expose paid webhook execution to local agents.</p>
+            <pre><code>GET /.well-known/mcp.json
+GET /api/mcp
+GET /skills/action402/SKILL.md</code></pre>
+          </article>
+          <article class="template-card">
+            <span>publishing</span>
+            <h3>Submit an endpoint to the ecosystem</h3>
+            <p>Add compatible endpoints and projects so other agents can find concrete examples.</p>
+            <pre><code>Open /submit
+Fill endpoint, category, proof link
+Add safe copy-paste example</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Canonical buyer flow</p>
+        <h2>Keep every cookbook deterministic.</h2>
+        <pre><code>GET /api/pricing
+GET /api/actions
+POST /api/decide/webhook
+POST /api/execute/guided-webhook  # x402 paid
+GET /api/verify/jobs/{jobId}
+GET /proof/{jobOrReceiptId}</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Cookbooks: /cookbooks</span>
+    </footer>
+  </body>
+</html>

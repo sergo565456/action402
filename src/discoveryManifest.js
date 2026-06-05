@@ -10,6 +10,9 @@ const PUBLIC_PAGES = [
   { path: "/pricing", priority: "0.85", changefreq: "weekly" },
   { path: "/onboarding", priority: "0.85", changefreq: "weekly" },
   { path: "/use-cases", priority: "0.85", changefreq: "weekly" },
+  { path: "/cookbooks", priority: "0.88", changefreq: "weekly" },
+  { path: "/built-with-action402", priority: "0.82", changefreq: "weekly" },
+  { path: "/submit", priority: "0.72", changefreq: "weekly" },
   { path: "/actions", priority: "0.9", changefreq: "weekly" },
   { path: "/snippets", priority: "0.85", changefreq: "weekly" },
   { path: "/handoff", priority: "0.75", changefreq: "weekly" },
@@ -94,6 +97,11 @@ function discoveryLinks(baseUrl) {
     pricing: absoluteUrl("/api/pricing", baseUrl),
     mcpManifest: absoluteUrl("/api/mcp", baseUrl),
     actions: absoluteUrl("/api/actions", baseUrl),
+    cookbooks: absoluteUrl("/cookbooks", baseUrl),
+    builtWith: absoluteUrl("/built-with-action402", baseUrl),
+    submit: absoluteUrl("/submit", baseUrl),
+    postmanCollection: absoluteUrl("/examples/postman/action402.postman_collection.json", baseUrl),
+    agentSkill: absoluteUrl("/skills/action402/SKILL.md", baseUrl),
     quickstart: absoluteUrl("/api/quickstart", baseUrl),
     snippets: absoluteUrl("/api/snippets", baseUrl),
     decisionGraph: absoluteUrl("/api/decide/webhook", baseUrl),
@@ -220,6 +228,15 @@ export function publicAgentManifest({ baseUrl = config.publicBaseUrl } = {}) {
         category: useCase.category
       }))
     },
+    ecosystem: {
+      cookbooks: links.cookbooks,
+      builtWith: links.builtWith,
+      submit: links.submit,
+      postmanCollection: links.postmanCollection,
+      agentSkill: links.agentSkill,
+      submissionPolicy:
+        "Submit only public, safe-to-review endpoint metadata. Never include private keys, API secrets, auth tokens, or sensitive payloads."
+    },
     safety: {
       httpsTargetsOnly: !config.allowHttpTargets,
       privateNetworkTargetsBlocked: true,
@@ -264,6 +281,9 @@ export function robotsTxt({ baseUrl = config.publicBaseUrl } = {}) {
     "Allow: /.well-known/mcp.json",
     "Allow: /api/capabilities",
     "Allow: /api/pricing",
+    "Allow: /cookbooks",
+    "Allow: /built-with-action402",
+    "Allow: /submit",
     "Allow: /api/mcp",
     "Allow: /api/bazaar",
     "Allow: /openapi.json",

@@ -64,7 +64,7 @@ function buildTrustScore({ stats, store, proofStats }) {
       score: 15,
       maxScore: 15,
       details:
-        "Capabilities, agent manifest, Bazaar metadata, quickstart, snippets, policy check, canary echo, action catalog, handoff, schedule preview, secret policy, llms.txt, sitemap, and OpenAPI are public."
+        "Capabilities, agent manifest, Bazaar metadata, quickstart, snippets, cookbooks, ecosystem page, submission path, policy check, canary echo, action catalog, handoff, schedule preview, secret policy, llms.txt, sitemap, and OpenAPI are public."
     },
     {
       id: "safety",
@@ -188,6 +188,9 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       canaryEcho: `${config.publicBaseUrl}/api/canary/echo`,
       snippetsGuide: `${config.publicBaseUrl}/snippets`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
+      cookbooks: `${config.publicBaseUrl}/cookbooks`,
+      builtWith: `${config.publicBaseUrl}/built-with-action402`,
+      submit: `${config.publicBaseUrl}/submit`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
       openapi: `${config.publicBaseUrl}/openapi.json`,
       llms: `${config.publicBaseUrl}/llms.txt`,
@@ -214,6 +217,7 @@ export async function buildTrustSummary({ executionStats, storeStats, listRecent
       "robots.txt and sitemap.xml expose agent entry points",
       "public capabilities and OpenAPI contracts",
       "public action catalog and quickstart endpoints",
+      "public cookbooks, ecosystem entries, and submission path",
       "copy-paste integration snippets for buyers and verifiers",
       "free preflight policy check before payment",
       "free deterministic decision graph before payment",

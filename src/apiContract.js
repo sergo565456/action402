@@ -842,6 +842,15 @@ export function publicCapabilities() {
       templateCount: publicActionTemplates().length,
       categories: Array.from(new Set(publicActionTemplates().map((template) => template.category))).sort()
     },
+    ecosystem: {
+      cookbooks: "/cookbooks",
+      builtWith: "/built-with-action402",
+      submit: "/submit",
+      postmanCollection: "/examples/postman/action402.postman_collection.json",
+      agentSkill: "/skills/action402/SKILL.md",
+      description:
+        "Public builder surfaces for copy-paste cookbooks, ecosystem entries, endpoint submissions, Postman testing, and reusable agent instructions."
+    },
     discoveryPack,
     quickstart: {
       path: "/api/quickstart",
@@ -1041,6 +1050,7 @@ export function publicCapabilities() {
       oneLine: AGENT_PROMPT,
       callFlow: [
         "Read /api/quickstart, /api/pricing, /api/actions, /api/capabilities, or /openapi.json.",
+        "Read /cookbooks, /built-with-action402, and /submit when evaluating ecosystem examples or listing a compatible endpoint.",
         "Read /api/agent-manifest, /.well-known/agent.json, or /.well-known/x402 for the canonical machine-readable discovery pack.",
         "Read /api/mcp or /.well-known/mcp.json when building a local MCP wrapper.",
         "Optionally POST the same payload to /api/policy/check before paying.",
@@ -1203,6 +1213,11 @@ export function publicCapabilities() {
       secretPolicy: `${config.publicBaseUrl}/api/secrets/policy`,
       actionCatalog: `${config.publicBaseUrl}/api/actions`,
       actions: `${config.publicBaseUrl}/actions`,
+      cookbooks: `${config.publicBaseUrl}/cookbooks`,
+      builtWith: `${config.publicBaseUrl}/built-with-action402`,
+      submit: `${config.publicBaseUrl}/submit`,
+      postmanCollection: `${config.publicBaseUrl}/examples/postman/action402.postman_collection.json`,
+      agentSkill: `${config.publicBaseUrl}/skills/action402/SKILL.md`,
       bazaar: `${config.publicBaseUrl}/api/bazaar`,
       agentsGuide: `${config.publicBaseUrl}/agents`,
       pricing: `${config.publicBaseUrl}/pricing`,

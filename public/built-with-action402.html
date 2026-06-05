@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Built with Action402</title>
+    <meta
+      name="description"
+      content="Ecosystem page for projects, agents, endpoints, and templates built with Action402."
+    />
+    <link rel="icon" href="/logo-action402.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/docs-page.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <a class="brand" href="/" aria-label="Action402 home">
+        <img src="/logo-action402.svg" alt="" />
+        <span>Action402</span>
+      </a>
+      <nav class="page-nav" aria-label="Built with Action402 navigation">
+        <a href="/cookbooks">Cookbooks</a>
+        <a href="/submit">Submit</a>
+        <a href="/actions">Actions</a>
+        <a href="/use-cases">Use Cases</a>
+        <a href="/trust">Trust</a>
+        <a href="/proofs">Proofs</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Built with Action402</p>
+          <h1>An ecosystem page for paid agent actions.</h1>
+          <p>
+            Action402 is most valuable when other agents can see what has already been built:
+            endpoints, wrappers, workflow templates, proof examples, and repeatable integration recipes.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/submit">Submit Your Endpoint</a>
+            <a class="button secondary" href="/cookbooks">Read Cookbooks</a>
+            <a class="button secondary" href="/api/trust">Trust JSON</a>
+            <a class="button secondary" href="/api/proofs/recent">Recent Proofs</a>
+          </div>
+        </div>
+        <aside class="summary-panel" aria-label="Ecosystem quick facts">
+          <dl>
+            <div>
+              <dt>status</dt>
+              <dd>seed ecosystem</dd>
+            </div>
+            <div>
+              <dt>submit path</dt>
+              <dd><code>/submit</code></dd>
+            </div>
+            <div>
+              <dt>proof examples</dt>
+              <dd><code>/proofs</code></dd>
+            </div>
+            <div>
+              <dt>agent card</dt>
+              <dd><code>/.well-known/x402</code></dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="content-band">
+        <div class="content-copy">
+          <p class="eyebrow">Seed entries</p>
+          <h2>Useful projects start as boring primitives.</h2>
+          <p>
+            These entries are intentionally practical. The goal is not a giant directory; it is
+            a high-signal list of things agents can call, wrap, or copy.
+          </p>
+        </div>
+        <div class="template-grid">
+          <article class="template-card">
+            <span>official</span>
+            <h3>Action402 paid webhook relay</h3>
+            <p>Canonical x402 route for one paid public HTTPS side effect with idempotency and signed receipts.</p>
+            <div class="tag-list">
+              <code>x402</code><code>receipt</code><code>webhook</code>
+            </div>
+          </article>
+          <article class="template-card">
+            <span>official</span>
+            <h3>Decision-linked execution</h3>
+            <p>Free deterministic decision graph before payment, then guided execution linked to the receipt.</p>
+            <div class="tag-list">
+              <code>buyer-policy</code><code>decision-graph</code><code>trust</code>
+            </div>
+          </article>
+          <article class="template-card">
+            <span>template</span>
+            <h3>ChatOps notification endpoint</h3>
+            <p>Slack, Discord, and Telegram webhook templates for agent-visible status updates.</p>
+            <div class="tag-list">
+              <code>slack-webhook</code><code>discord-webhook</code><code>telegram-bot</code>
+            </div>
+          </article>
+          <article class="template-card">
+            <span>template</span>
+            <h3>No-code automation trigger</h3>
+            <p>Zapier and Make webhook patterns for paid one-shot workflow starts.</p>
+            <div class="tag-list">
+              <code>zapier</code><code>make</code><code>automation</code>
+            </div>
+          </article>
+          <article class="template-card">
+            <span>developer</span>
+            <h3>GitHub dispatch cookbook</h3>
+            <p>Repository dispatch flow for agents that need to kick off build, refresh, or release jobs.</p>
+            <div class="tag-list">
+              <code>github-actions</code><code>repository-dispatch</code>
+            </div>
+          </article>
+          <article class="template-card">
+            <span>developer</span>
+            <h3>Agent skill and Postman collection</h3>
+            <p>Local artifacts that help agents and developers integrate without reverse-engineering docs.</p>
+            <div class="tag-list">
+              <code>skill</code><code>postman</code><code>mcp</code>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <p class="eyebrow">Directory rule</p>
+        <h2>Every listing needs proof or a safe example.</h2>
+        <p>
+          Submitted entries should include a public URL, clear category, safe example payload, and either
+          a proof link or enough metadata for an agent to run a free preflight before paying.
+        </p>
+        <pre><code>{
+  "project": "Example Action402 endpoint",
+  "category": "chatops | automation | developer-tools | ops",
+  "action": "one public HTTPS webhook/API side effect",
+  "proof": "https://action402.vercel.app/proof/...",
+  "safeExample": true
+}</code></pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Action402</span>
+      <span>Built with Action402: /built-with-action402</span>
+    </footer>
+  </body>
+</html>

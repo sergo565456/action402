@@ -1,0 +1,154 @@
+{
+  "info": {
+    "name": "Action402 x402 Agent Flow",
+    "description": "Discover Action402, run free preflight checks, inspect unpaid 402 behavior, and verify a paid receipt.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://action402.vercel.app"
+    },
+    {
+      "key": "targetUrl",
+      "value": "https://httpbin.org/anything"
+    },
+    {
+      "key": "jobId",
+      "value": "job_replace_me"
+    },
+    {
+      "key": "receiptId",
+      "value": "rcpt_replace_me"
+    }
+  ],
+  "item": [
+    {
+      "name": "Discovery",
+      "item": [
+        {
+          "name": "API Index",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api"
+          }
+        },
+        {
+          "name": "Agent Manifest",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/.well-known/x402"
+          }
+        },
+        {
+          "name": "Bazaar Metadata",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/bazaar"
+          }
+        },
+        {
+          "name": "OpenAPI",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/openapi.json"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Free Guardrails",
+      "item": [
+        {
+          "name": "Pricing",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/pricing"
+          }
+        },
+        {
+          "name": "Decision Graph",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": {\n    \"url\": \"{{targetUrl}}\",\n    \"method\": \"POST\",\n    \"body\": { \"event\": \"postman.decision\" },\n    \"idempotencyKey\": \"postman-decision-001\",\n    \"timeoutMs\": 10000\n  },\n  \"buyerPolicy\": {\n    \"maxPriceUsd\": \"0.01\",\n    \"requireReceipt\": true,\n    \"requirePolicyPass\": true,\n    \"requireIdempotencyKey\": true\n  }\n}"
+            },
+            "url": "{{baseUrl}}/api/decide/webhook"
+          }
+        },
+        {
+          "name": "Canary Echo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"postman.canary\",\n  \"scenario\": \"free-self-test\",\n  \"runId\": \"postman-canary-001\",\n  \"source\": \"postman\",\n  \"secret\": \"must-not-echo\"\n}"
+            },
+            "url": "{{baseUrl}}/api/canary/echo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Paid Route Shape",
+      "item": [
+        {
+          "name": "Unpaid Execution Returns 402",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "content-type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"{{targetUrl}}\",\n  \"method\": \"POST\",\n  \"body\": { \"event\": \"postman.unpaid\" },\n  \"idempotencyKey\": \"postman-unpaid-001\",\n  \"timeoutMs\": 10000\n}"
+            },
+            "url": "{{baseUrl}}/api/execute/webhook"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verification",
+      "item": [
+        {
+          "name": "Verify Job",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/verify/jobs/{{jobId}}"
+          }
+        },
+        {
+          "name": "Verify Receipt",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/verify/receipts/{{receiptId}}"
+          }
+        },
+        {
+          "name": "Recent Proofs",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/proofs/recent"
+          }
+        }
+      ]
+    }
+  ]
+}

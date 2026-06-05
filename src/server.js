@@ -89,6 +89,8 @@ app.use(corsMiddleware);
 app.use(cacheControlMiddleware);
 app.use(discoveryHeaderMiddleware);
 app.use(express.static("public", { extensions: ["html"] }));
+app.use("/examples", express.static("examples"));
+app.use("/skills", express.static("skills"));
 
 app.get("/health", async (req, res, next) => {
   try {

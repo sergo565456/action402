@@ -15,7 +15,7 @@ Primary paid action:
 - Payment headers: compatible buyer clients retry with X-PAYMENT or payment-signature; settlement responses may expose X-PAYMENT-RESPONSE or PAYMENT-RESPONSE.
 - Browser access: machine-readable endpoints use non-credentialed CORS with OPTIONS preflight, allow x-payment/payment-signature request headers, and expose payment response headers.
 - Cache policy: stable discovery contracts use short public cache; runtime health, paid execution, proof, verification, and monitoring data use no-store. Read X-Action402-Cache-Policy for the full intended policy when a host normalizes Cache-Control.
-- Discovery headers: agent-facing pages and machine-readable discovery endpoints send X-Action402-Agent-Entry: /api and a Link header for /api, /api/agent-manifest, /openapi.json, /llms.txt, /api/pricing, /api/mcp, and /api/bazaar.
+- Discovery headers: agent-facing pages and machine-readable discovery endpoints send X-Action402-Agent-Entry: /api and a Link header for /api, /api/agent-manifest, /openapi.json, /llms.txt, /api/pricing, /api/mcp, /cookbooks, /built-with-action402, and /api/bazaar.
 
 Recommended decision-first action:
 - POST /api/decide/webhook is free and non-executing.
@@ -33,6 +33,9 @@ Discovery and contracts:
 - /api/pricing - machine-readable pricing, payment route, free surfaces, limits, and buyer guardrails.
 - /onboarding - copy-paste buyer examples for AgentCash and generic x402/CDP-style signer integrations.
 - /use-cases - task templates for ChatOps notifications, Zapier/Make triggers, GitHub dispatch, analytics events, CRM/ticket updates, and ops alerts.
+- /cookbooks - copy-paste recipes for common paid agent workflows and proof verification.
+- /built-with-action402 - ecosystem page for compatible endpoints, wrappers, templates, and starter projects.
+- /submit - submission page for Action402-compatible endpoints, projects, cookbooks, and wrappers.
 - /actions - browser-friendly action template catalog.
 - /snippets - browser-friendly copy-paste integration snippets.
 - /decisions - browser-friendly recent decision records.
@@ -62,6 +65,8 @@ Discovery and contracts:
 - /api/canary/echo - free POST self-test target; echoes only whitelisted non-sensitive canary fields.
 - /api/snippets - copy-paste snippets for discovery, paid execution, proof verification, and buyer policy guardrails.
 - /api/actions - machine-readable action catalog with templates, policy modes, snippets, and scheduled-action compatibility notes.
+- /examples/postman/action402.postman_collection.json - Postman collection for discovery, free checks, unpaid 402 shape, and verification.
+- /skills/action402/SKILL.md - reusable agent skill for Action402 discovery, buyer guardrails, payment, and verification.
 - /api/handoff/capabilities - machine-readable browser/action handoff capability description.
 - /api/handoff/browser - free POST endpoint that creates a handoff package for an external browser-capable agent; Action402 does not execute browser steps.
 - /api/schedules/capabilities - machine-readable schedule preview capability description.
@@ -88,7 +93,7 @@ Verification:
 - GET /proof/{jobOrReceiptId} - public proof badge page for operators and browser-capable agents.
 
 Usage and pricing:
-- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /actions, /snippets, /decisions, /decision/{id}, /handoff, /schedules, /secrets, /mcp, /trust, /status, /proofs, /proof/{jobOrReceiptId}, /api, /api/discovery, /api/pricing, /api/mcp, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402, /.well-known/x402.json, /.well-known/mcp.json, /api/quickstart, /api/decide/webhook, /api/decisions/{id}, /api/decisions/recent, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
+- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /cookbooks, /built-with-action402, /submit, /actions, /snippets, /decisions, /decision/{id}, /handoff, /schedules, /secrets, /mcp, /trust, /status, /proofs, /proof/{jobOrReceiptId}, /examples/postman/action402.postman_collection.json, /skills/action402/SKILL.md, /api, /api/discovery, /api/pricing, /api/mcp, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402, /.well-known/x402.json, /.well-known/mcp.json, /api/quickstart, /api/decide/webhook, /api/decisions/{id}, /api/decisions/recent, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
 - Paid: POST /api/execute/webhook and POST /api/execute/guided-webhook.
 - Published price: $0.003 per paid execution request.
 - Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.
@@ -112,6 +117,12 @@ Recommended discovery queries:
 - agent action relay
 - pay per API call
 - Action402 action catalog
+- Action402 cookbooks
+- Built with Action402
+- submit Action402 endpoint
+- Action402 Postman collection
+- Action402 agent skill
+- x402 endpoint directory
 - agent quickstart x402
 - x402 payment decision graph
 - pre-payment decision graph
@@ -154,13 +165,16 @@ Agent decision shortcut:
 8. Use /api/canary/echo only for non-sensitive route/JSON self-tests; it does not create a paid receipt.
 9. Read /api/snippets for copy-paste buyer and proof verification examples.
 10. Read /api/actions to match the task to a template.
-11. Use /api/handoff/browser only if a separate browser-capable agent will execute browser steps.
-12. Use /api/schedules/preview only to validate a future schedule; it will not run.
-13. Read /api/secrets/policy before sending any target authorization headers.
-14. Prefer /api/execute/guided-webhook when /api/decide/webhook returns pay_and_execute; otherwise use manual review or do not pay.
-15. Pay only if the 402 requirement matches expected price, network, and route.
-16. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, /api/decisions/{id}, or /proof/{jobOrReceiptId}.
-17. Browser-based agents may call the same API surfaces directly; preflight /api/execute/webhook or /api/execute/guided-webhook with OPTIONS if the buyer client sends x-payment or payment-signature.
+11. Read /cookbooks for copy-paste task recipes.
+12. Read /built-with-action402 for ecosystem entries and starter patterns.
+13. Read /submit when listing a compatible endpoint or project.
+14. Use /api/handoff/browser only if a separate browser-capable agent will execute browser steps.
+15. Use /api/schedules/preview only to validate a future schedule; it will not run.
+16. Read /api/secrets/policy before sending any target authorization headers.
+17. Prefer /api/execute/guided-webhook when /api/decide/webhook returns pay_and_execute; otherwise use manual review or do not pay.
+18. Pay only if the 402 requirement matches expected price, network, and route.
+19. Verify /api/verify/jobs/{id}, /api/verify/receipts/{id}, /api/decisions/{id}, or /proof/{jobOrReceiptId}.
+20. Browser-based agents may call the same API surfaces directly; preflight /api/execute/webhook or /api/execute/guided-webhook with OPTIONS if the buyer client sends x-payment or payment-signature.
 
 AgentCash quick start:
 npx --% agentcash fetch https://action402.vercel.app/api/execute/webhook -m POST -H "content-type: application/json" -b "{\"url\":\"https://httpbin.org/anything\",\"method\":\"POST\",\"body\":{\"event\":\"agent.llms-test\"},\"idempotencyKey\":\"llms-test-001\",\"timeoutMs\":10000}" --payment-protocol x402 --payment-network base --max-amount 0.01 -y --format json
