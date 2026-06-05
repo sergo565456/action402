@@ -985,9 +985,11 @@ test("vercel rewrites expose extensionless product pages", () => {
   assert.equal(rewrites.get("/handoff"), "/handoff.html");
   assert.equal(rewrites.get("/status"), "/status.html");
   assert.equal(rewrites.get("/discovery"), "/discovery.html");
-  assert.equal(rewrites.get("/cookbooks"), "/cookbooks.html");
-  assert.equal(rewrites.get("/built-with-action402"), "/built-with-action402.html");
-  assert.equal(rewrites.get("/submit"), "/submit.html");
+  assert.equal(rewrites.get("/cookbooks"), "/api/index?__action402_path=/cookbooks");
+  assert.equal(rewrites.get("/built-with-action402"), "/api/index?__action402_path=/built-with-action402");
+  assert.equal(rewrites.get("/submit"), "/api/index?__action402_path=/submit");
+  assert.equal(rewrites.get("/examples/:path*"), "/api/index?__action402_path=/examples/:path*");
+  assert.equal(rewrites.get("/skills/:path*"), "/api/index?__action402_path=/skills/:path*");
   assert.equal(rewrites.get("/decisions"), "/decisions.html");
   assert.equal(rewrites.get("/decision/:id"), "/decision.html");
   assert.equal(rewrites.get("/schedules"), "/schedules.html");
@@ -995,6 +997,9 @@ test("vercel rewrites expose extensionless product pages", () => {
   assert.equal(rewrites.get("/robots.txt"), "/api/index?__action402_path=/robots.txt");
   assert.equal(rewrites.get("/sitemap.xml"), "/api/index?__action402_path=/sitemap.xml");
   assert.equal(rewrites.get("/.well-known/:path*"), "/api/index?__action402_path=/.well-known/:path*");
+  assert.ok(vercelConfig.functions["api/index.js"].includeFiles.includes("public/**"));
+  assert.ok(vercelConfig.functions["api/index.js"].includeFiles.includes("examples/**"));
+  assert.ok(vercelConfig.functions["api/index.js"].includeFiles.includes("skills/**"));
 });
 
 test("vercel rewrite strips internal catch-all path query", () => {

@@ -4,7 +4,12 @@
   "framework": null,
   "functions": {
     "api/index.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": [
+        "public/**",
+        "examples/**",
+        "skills/**"
+      ]
     }
   },
   "rewrites": [
@@ -35,6 +40,14 @@
     {
       "source": "/.well-known/:path*",
       "destination": "/api/index?__action402_path=/.well-known/:path*"
+    },
+    {
+      "source": "/examples/:path*",
+      "destination": "/api/index?__action402_path=/examples/:path*"
+    },
+    {
+      "source": "/skills/:path*",
+      "destination": "/api/index?__action402_path=/skills/:path*"
     },
     {
       "source": "/demo",
@@ -78,15 +91,15 @@
     },
     {
       "source": "/cookbooks",
-      "destination": "/cookbooks.html"
+      "destination": "/api/index?__action402_path=/cookbooks"
     },
     {
       "source": "/built-with-action402",
-      "destination": "/built-with-action402.html"
+      "destination": "/api/index?__action402_path=/built-with-action402"
     },
     {
       "source": "/submit",
-      "destination": "/submit.html"
+      "destination": "/api/index?__action402_path=/submit"
     },
     {
       "source": "/actions",
