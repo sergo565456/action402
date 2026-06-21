@@ -101,7 +101,7 @@ export function publicPricing({ baseUrl = config.publicBaseUrl } = {}) {
         "/api/proofs/recent",
         "/proof/{jobOrReceiptId}"
       ],
-      trustAndMonitoring: ["/status", "/health", "/api/trust", "/api/monitoring/executions"]
+      trustAndMonitoring: ["/status", "/health", "/api/trust", "/api/activity", "/api/activity/history", "/api/monitoring/executions"]
     },
     buyerGuardrails: [
       "Read /api/pricing and reject unexpected price, network, route, or payTo before paying.",

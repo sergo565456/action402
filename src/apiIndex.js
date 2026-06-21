@@ -21,6 +21,7 @@ export function publicApiIndex() {
       "/api/pricing",
       "/api/mcp",
       "/api/activity",
+      "/api/activity/history",
       "/api/capabilities",
       "/api/actions",
       "/api/bazaar",
@@ -89,7 +90,15 @@ export function publicApiIndex() {
         "/api/schedules/preview",
         "/api/secrets/policy"
       ],
-      trustAndMonitoring: ["/status", "/activity", "/health", "/api/trust", "/api/activity", "/api/monitoring/executions"]
+      trustAndMonitoring: [
+        "/status",
+        "/activity",
+        "/health",
+        "/api/trust",
+        "/api/activity",
+        "/api/activity/history",
+        "/api/monitoring/executions"
+      ]
     },
     browserAccess: {
       cors: publicCorsPolicy(),
@@ -129,6 +138,7 @@ export function publicApiIndex() {
       health: absoluteUrl("/health"),
       trust: absoluteUrl("/api/trust"),
       activity: absoluteUrl("/api/activity"),
+      activityHistory: absoluteUrl("/api/activity/history"),
       activityPage: absoluteUrl("/activity"),
       monitoring: absoluteUrl("/api/monitoring/executions")
     }

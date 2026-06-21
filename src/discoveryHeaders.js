@@ -29,6 +29,7 @@ const DISCOVERY_HEADER_PATHS = [
   "/api/decisions/recent",
   "/api/bazaar",
   "/api/activity",
+  "/api/activity/history",
   "/openapi.json",
   "/llms.txt"
 ];
@@ -111,6 +112,12 @@ const DISCOVERY_LINKS = [
     rel: "monitor",
     type: "application/json",
     title: "Action402 activity report"
+  },
+  {
+    path: "/api/activity/history",
+    rel: "monitor",
+    type: "application/json",
+    title: "Action402 redacted activity history"
   }
 ];
 

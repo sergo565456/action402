@@ -65,6 +65,7 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.agentPrompt.includes("Use Action402"), true);
   assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/verify")), true);
   assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/activity")), true);
+  assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/activity/history")), true);
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
   assert.equal(body.apiIndex.path, "/api");
   assert.equal(body.links.apiIndex.endsWith("/api"), true);
@@ -102,6 +103,7 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.trust.path, "/api/trust");
   assert.equal(body.activity.path, "/api/activity");
   assert.equal(body.activity.page, "/activity");
+  assert.equal(body.activity.historyPath, "/api/activity/history");
   assert.equal(body.statusPage.path, "/status");
   assert.equal(body.discoveryPack.status, "active");
   assert.equal(body.discoveryPack.apiIndex.endsWith("/api"), true);
@@ -181,6 +183,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.equal(body.paths["/api/pricing"].get.operationId, "getPricing");
   assert.equal(body.paths["/api/mcp"].get.operationId, "getMcpManifest");
   assert.equal(body.paths["/api/activity"].get.operationId, "getActivityReport");
+  assert.equal(body.paths["/api/activity/history"].get.operationId, "getActivityHistory");
   assert.ok(body.paths["/api/execute/webhook"].post);
   assert.equal(body.paths["/api/execute/webhook"].post.operationId, "executeWebhook");
   assert.deepEqual(body.paths["/api/execute/webhook"].post.security, [{ X402Payment: [] }]);
@@ -235,6 +238,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.PublicProofSummary);
   assert.ok(body.components.schemas.MonitoringResponse);
   assert.ok(body.components.schemas.ActivityResponse);
+  assert.ok(body.components.schemas.ActivityHistoryResponse);
   assert.ok(body.components.schemas.ActionCatalogResponse);
   assert.ok(body.components.schemas.QuickstartResponse);
   assert.ok(body.components.schemas.PricingResponse);
@@ -269,6 +273,7 @@ test("api index gives agents a compact entry map", async () => {
   assert.ok(body.recommendedStart.includes("/api/pricing"));
   assert.ok(body.recommendedStart.includes("/api/mcp"));
   assert.ok(body.recommendedStart.includes("/api/activity"));
+  assert.ok(body.recommendedStart.includes("/api/activity/history"));
   assert.ok(body.recommendedStart.includes("/openapi.json"));
   assert.ok(body.free.discovery.includes("/api/capabilities"));
   assert.ok(body.free.discovery.includes("/api/discovery"));
@@ -299,6 +304,7 @@ test("api index gives agents a compact entry map", async () => {
   assert.equal(body.links.agentSkill.endsWith("/skills/action402/SKILL.md"), true);
   assert.equal(body.links.status.endsWith("/status"), true);
   assert.equal(body.links.activity.endsWith("/api/activity"), true);
+  assert.equal(body.links.activityHistory.endsWith("/api/activity/history"), true);
   assert.equal(body.links.activityPage.endsWith("/activity"), true);
   assert.equal(body.links.health.endsWith("/health"), true);
 
@@ -398,6 +404,11 @@ test("cache policy separates stable discovery from runtime state", async () => {
   assert.equal(activity.response.headers.get("cache-control"), "no-store");
   assert.equal(activity.response.headers.get("x-action402-cache-policy"), "no-store");
   assert.equal(activity.response.headers.get("x-action402-agent-entry"), "/api");
+
+  const activityHistory = await request("/api/activity/history");
+  assert.equal(activityHistory.response.headers.get("cache-control"), "no-store");
+  assert.equal(activityHistory.response.headers.get("x-action402-cache-policy"), "no-store");
+  assert.equal(activityHistory.response.headers.get("x-action402-agent-entry"), "/api");
 
   const policy = await request("/api/policy/check", {
     method: "POST",
@@ -1308,6 +1319,22 @@ test("activity endpoint returns buyer-readable recency and redacted proof signal
   assert.equal(body.links.self.endsWith("/api/activity"), true);
   assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);
   assert.equal(JSON.stringify(body).includes("a".repeat(64)), false);
+
+  const history = await request("/api/activity/history?days=7");
+  assert.equal(history.response.status, 200);
+  assert.equal(history.body.service, "Action402");
+  assert.equal(history.body.days, 7);
+  assert.equal(history.body.totals.total, 2);
+  assert.equal(history.body.totals.succeeded, 1);
+  assert.equal(history.body.totals.failed, 1);
+  assert.equal(history.body.totals.verifiedProofs >= 1, true);
+  assert.equal(Array.isArray(history.body.buckets), true);
+  assert.equal(history.body.buckets.some((bucket) => bucket.total >= 2), true);
+  assert.equal(history.body.redactionPolicy.aggregateOnly, true);
+  assert.equal(history.body.redactionPolicy.omittedFields.includes("targetUrl"), true);
+  assert.equal(history.body.links.self.endsWith("/api/activity/history"), true);
+  assert.equal(JSON.stringify(history.body).includes("sensitive.example.com"), false);
+  assert.equal(JSON.stringify(history.body).includes("a".repeat(64)), false);
 });
 
 test("trust endpoint returns redacted public buyer signals", async () => {

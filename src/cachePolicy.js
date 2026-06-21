@@ -43,6 +43,7 @@ const NO_STORE_EXACT_PATHS = [
   "/api/monitoring/executions",
   "/api/trust",
   "/api/activity",
+  "/api/activity/history",
   "/api/policy/check",
   "/api/handoff/browser",
   "/api/schedules/preview"

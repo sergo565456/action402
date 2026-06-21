@@ -38,7 +38,7 @@ import {
   redactionPolicy
 } from "./publicSummaries.js";
 import { buildTrustSummary } from "./trustSummary.js";
-import { buildActivityReport } from "./activityReport.js";
+import { buildActivityHistory, buildActivityReport } from "./activityReport.js";
 import { maybeInstallX402 } from "./x402.js";
 import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
@@ -300,6 +300,20 @@ app.get("/api/activity", async (req, res, next) => {
             listRecentDecisions,
             getReceipt
           })
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/activity/history", async (req, res, next) => {
+  try {
+    res.json(
+      await buildActivityHistory({
+        listRecentJobs,
+        getReceipt,
+        days: req.query.days
       })
     );
   } catch (error) {

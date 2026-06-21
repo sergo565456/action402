@@ -232,7 +232,7 @@ export function publicBazaarMetadata() {
         "Public proof badge pages are available for job and receipt ids",
         "Public redacted proof examples are available",
         "Public execution monitoring summary is available",
-        "Public activity report is available for proof freshness, paid volume, and redacted failure categories",
+        "Public activity report and aggregate history are available for proof freshness, paid volume, redacted failure categories, and repeat-buyer reliability checks",
         "Use-case templates are published for agent task matching",
         "Policy modes are described for open, blocklist/quota, and allowlist operation",
         "Scheduled-action preview is available and not falsely advertised as durable paid scheduling",
@@ -255,7 +255,8 @@ export function publicBazaarMetadata() {
       },
       monitoring: {
         executions: "/api/monitoring/executions",
-        activity: "/api/activity"
+        activity: "/api/activity",
+        activityHistory: "/api/activity/history"
       }
     },
     useCaseTemplates: publicUseCaseTemplates(),
@@ -384,6 +385,7 @@ export function publicBazaarMetadata() {
       monitoring: `${config.publicBaseUrl}/monitoring`,
       activity: `${config.publicBaseUrl}/activity`,
       activityApi: `${config.publicBaseUrl}/api/activity`,
+      activityHistory: `${config.publicBaseUrl}/api/activity/history`,
       handoff: `${config.publicBaseUrl}/handoff`,
       schedules: `${config.publicBaseUrl}/schedules`,
       secrets: `${config.publicBaseUrl}/secrets`,

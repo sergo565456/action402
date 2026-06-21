@@ -335,6 +335,62 @@ const activityResponseSchema = {
   }
 };
 
+const activityHistoryResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "generatedAt", "days", "window", "summary", "totals", "buckets", "redactionPolicy", "links"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    generatedAt: { type: "string" },
+    days: { type: "integer", minimum: 1, maximum: 30 },
+    window: { type: "object" },
+    summary: { type: "string" },
+    totals: {
+      type: "object",
+      properties: {
+        total: { type: "integer" },
+        succeeded: { type: "integer" },
+        failed: { type: "integer" },
+        running: { type: "integer" },
+        verifiedProofs: { type: "integer" },
+        successRate: { type: ["number", "null"] },
+        latestVerifiedProofAt: { type: ["string", "null"] },
+        latestProofHoursAgo: { type: ["number", "null"] },
+        recency: { type: "string" }
+      }
+    },
+    buckets: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["date", "total", "succeeded", "failed", "running", "verifiedProofs", "successRate", "failureCategories"],
+        properties: {
+          date: { type: "string" },
+          total: { type: "integer" },
+          succeeded: { type: "integer" },
+          failed: { type: "integer" },
+          running: { type: "integer" },
+          verifiedProofs: { type: "integer" },
+          successRate: { type: ["number", "null"] },
+          latestVerifiedProofAt: { type: ["string", "null"] },
+          failureCategories: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                category: { type: "string" },
+                count: { type: "integer" }
+              }
+            }
+          }
+        }
+      }
+    },
+    redactionPolicy: { type: "object" },
+    links: { type: "object" }
+  }
+};
+
 const actionTemplateSchema = {
   type: "object",
   required: ["id", "status", "category", "title", "description", "paidRoute", "exampleRequest"],
@@ -1114,6 +1170,7 @@ export function publicCapabilities() {
         "Read /api/agent-manifest, /.well-known/agent.json, or /.well-known/x402 for the canonical machine-readable discovery pack.",
         "Read /api/mcp or /.well-known/mcp.json when building a local MCP wrapper.",
         "Read /api/activity when choosing whether recent paid execution volume and proof freshness are good enough to spend.",
+        "Read /api/activity/history for a redacted daily 7-30 day activity trend before choosing repeat usage.",
         "Optionally POST the same payload to /api/policy/check before paying.",
         "POST /api/decide/webhook when the buyer needs a structured pay/do-not-pay decision before paying.",
         "Use /api/canary/echo only as a free non-sensitive target check; it does not create a paid receipt.",
@@ -1166,8 +1223,9 @@ export function publicCapabilities() {
     activity: {
       path: "/api/activity",
       page: "/activity",
+      historyPath: "/api/activity/history",
       description:
-        "Agent-facing activity report combining proof freshness, recent paid execution volume, trust score, redacted failures, and next recommendations.",
+        "Agent-facing activity report combining proof freshness, recent paid execution volume, trust score, redacted failures, redacted daily history, and next recommendations.",
       defaultWindowMs: 24 * 60 * 60 * 1000
     },
     trust: {
@@ -1828,6 +1886,37 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/activity/history": {
+        get: {
+          operationId: "getActivityHistory",
+          summary: "Fetch redacted activity history",
+          description:
+            "Returns daily redacted execution volume, success/failure counts, verified proof counts, and failure categories without target URLs or payload data.",
+          parameters: [
+            {
+              name: "days",
+              in: "query",
+              required: false,
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 30,
+                default: 7
+              }
+            }
+          ],
+          responses: {
+            "200": {
+              description: "Redacted activity history",
+              content: {
+                "application/json": {
+                  schema: activityHistoryResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/trust": {
         get: {
           operationId: "getTrustSummary",
@@ -2303,6 +2392,7 @@ export function openApiSpec() {
         PublicProofSummary: publicProofSummarySchema,
         MonitoringResponse: monitoringResponseSchema,
         ActivityResponse: activityResponseSchema,
+        ActivityHistoryResponse: activityHistoryResponseSchema,
         ActionTemplate: actionTemplateSchema,
         ActionCatalogResponse: actionCatalogResponseSchema,
         QuickstartResponse: quickstartResponseSchema,

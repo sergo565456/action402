@@ -201,6 +201,7 @@ async function main() {
   const recentDecisions = await checkJsonEndpoint("/api/decisions/recent");
   const bazaar = await checkJsonEndpoint("/api/bazaar");
   const activity = await checkJsonEndpoint("/api/activity");
+  const activityHistory = await checkJsonEndpoint("/api/activity/history");
   const openapi = await checkJsonEndpoint("/openapi.json");
   await checkTextEndpoint("/cookbooks", "Action402 cookbooks");
   await checkTextEndpoint("/built-with-action402", "Built with Action402");
@@ -224,6 +225,7 @@ async function main() {
     record("API index points to cookbooks", apiIndex.free?.discovery?.includes("/cookbooks"));
     record("API index points to status", apiIndex.free?.trustAndMonitoring?.includes("/status"));
     record("API index points to activity", apiIndex.free?.trustAndMonitoring?.includes("/api/activity"));
+    record("API index points to activity history", apiIndex.free?.trustAndMonitoring?.includes("/api/activity/history"));
   }
 
   if (discovery) {
@@ -233,6 +235,7 @@ async function main() {
     record("Discovery pack points to Bazaar metadata", discovery.bazaar?.endsWith("/api/bazaar"));
     record("Discovery pack points to cookbooks", discovery.links?.cookbooks?.endsWith("/cookbooks"));
     record("Discovery pack points to activity", discovery.links?.activity?.endsWith("/api/activity"));
+    record("Discovery pack points to activity history", discovery.links?.activityHistory?.endsWith("/api/activity/history"));
   }
 
   if (agentManifest) {
@@ -275,6 +278,7 @@ async function main() {
     record("MCP manifest surface is published", capabilities.mcpManifest?.path === "/api/mcp");
     record("Status page surface is published", capabilities.statusPage?.path === "/status");
     record("Activity report surface is published", capabilities.activity?.path === "/api/activity");
+    record("Activity history surface is published", capabilities.activity?.historyPath === "/api/activity/history");
     record("Decision graph surface is published", capabilities.decisionGraph?.path === "/api/decide/webhook");
     record(
       "Guided execution action is published",
@@ -385,6 +389,12 @@ async function main() {
     record("Activity report is published", ["ready", "attention", "warming_up"].includes(activity.status));
     record("Activity report exposes buyer guidance", Array.isArray(activity.buyerGuidance));
     record("Activity report exposes recommendations", Array.isArray(activity.recommendations));
+  }
+
+  if (activityHistory) {
+    record("Activity history is published", Array.isArray(activityHistory.buckets));
+    record("Activity history is aggregate-only", activityHistory.redactionPolicy?.aggregateOnly === true);
+    record("Activity history exposes totals", typeof activityHistory.totals?.total === "number");
   }
 
   try {

@@ -78,6 +78,7 @@ Agent entry points:
 - `GET /api/decisions/:id` and `GET /api/decisions/recent` - redacted decision records and recent summaries.
 - `GET /api/trust` - redacted public trust summary for buyer-side inspection.
 - `GET /api/activity` - agent-facing activity report with proof freshness, paid execution volume, trust score, and redacted failure categories.
+- `GET /api/activity/history` - redacted daily activity trend for repeat buyer agents; aggregate-only, no target URLs or payload data.
 - `/status` - browser-friendly runtime status page backed by `GET /health`.
 - `GET /api/agent-manifest` - canonical machine-readable discovery manifest.
 - `GET /.well-known/agent.json` - well-known manifest alias for agents and crawlers.
@@ -168,6 +169,7 @@ Useful public surfaces for discovery clients:
 - `GET /api/bazaar` - x402/Bazaar route config, price, payTo, tags, examples, and quality signals.
 - `GET /api/trust` - current public trust signals with sensitive execution data redacted.
 - `GET /api/activity` - one-call buyer activity report for recency, verified proofs, paid volume, failure categories, and recommendations.
+- `GET /api/activity/history` - 7-30 day aggregate activity history for repeat usage checks.
 - `GET /api/proofs/recent` - verified proof examples without target URLs, bodies, hashes, or signatures.
 
 ## Run locally

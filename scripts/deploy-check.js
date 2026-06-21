@@ -157,7 +157,14 @@ async function checkCachePolicy() {
       record(`${path} exposes discovery headers`, hasDiscoveryHeaders(response));
     }
 
-    const noStorePaths = ["/health", "/api/proofs/recent", "/api/decisions/recent", "/api/monitoring/executions", "/api/activity"];
+    const noStorePaths = [
+      "/health",
+      "/api/proofs/recent",
+      "/api/decisions/recent",
+      "/api/monitoring/executions",
+      "/api/activity",
+      "/api/activity/history"
+    ];
     for (const path of noStorePaths) {
       const { response } = await fetchText(path);
       record(`${path} uses no-store cache`, hasNoStoreCache(response));
@@ -306,6 +313,7 @@ async function main() {
   const monitoring = await checkJson("/api/monitoring/executions");
   const trust = await checkJson("/api/trust");
   const activity = await checkJson("/api/activity");
+  const activityHistory = await checkJson("/api/activity/history");
   const apiNotFound = await checkJsonStatus("/api/deploy-check-missing-route", 404);
   const executeWrongMethod = await checkJsonStatus("/api/execute/webhook", 405);
   const guidedWrongMethod = await checkJsonStatus("/api/execute/guided-webhook", 405);
@@ -338,6 +346,7 @@ async function main() {
     record("api index exposes verification", apiIndex.free?.verification?.includes("/api/verify/jobs/{id}"));
     record("api index exposes status page", apiIndex.free?.trustAndMonitoring?.includes("/status"));
     record("api index exposes activity report", apiIndex.free?.trustAndMonitoring?.includes("/api/activity"));
+    record("api index exposes activity history", apiIndex.free?.trustAndMonitoring?.includes("/api/activity/history"));
     record("api index exposes health endpoint", apiIndex.free?.trustAndMonitoring?.includes("/health"));
   }
 
@@ -349,6 +358,7 @@ async function main() {
     record("discovery pack exposes OpenAPI", discovery.openapi?.endsWith("/openapi.json"));
     record("discovery pack exposes Bazaar metadata", discovery.bazaar?.endsWith("/api/bazaar"));
     record("discovery pack exposes activity report", discovery.links?.activity?.endsWith("/api/activity"));
+    record("discovery pack exposes activity history", discovery.links?.activityHistory?.endsWith("/api/activity/history"));
     record("discovery pack exposes cookbooks", discovery.links?.cookbooks?.endsWith("/cookbooks"));
     record("discovery pack exposes ecosystem", discovery.links?.builtWith?.endsWith("/built-with-action402"));
   }
@@ -379,6 +389,7 @@ async function main() {
       capabilities.monitoring?.path === "/api/monitoring/executions"
     );
     record("capabilities expose activity report", capabilities.activity?.path === "/api/activity");
+    record("capabilities expose activity history", capabilities.activity?.historyPath === "/api/activity/history");
     record("capabilities expose pricing link", typeof capabilities.links?.pricing === "string");
     record(
       "capabilities expose use-case templates",
@@ -628,6 +639,7 @@ async function main() {
     record("bazaar metadata has proof badge link", typeof bazaar.links?.proofBadge === "string");
     record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
     record("bazaar metadata has activity link", typeof bazaar.links?.activityApi === "string");
+    record("bazaar metadata has activity history link", typeof bazaar.links?.activityHistory === "string");
     record("bazaar metadata has status link", typeof bazaar.links?.status === "string");
     record("bazaar metadata has use-case link", typeof bazaar.links?.useCases === "string");
     record("bazaar metadata has cookbook link", typeof bazaar.links?.cookbooks === "string");
@@ -671,6 +683,18 @@ async function main() {
     record("activity endpoint exposes activity stats", typeof activity.activity?.total === "number");
     record("activity endpoint exposes recommendations", Array.isArray(activity.recommendations));
     record("activity endpoint exposes proof list", Array.isArray(activity.recentProofs));
+  }
+
+  if (activityHistory) {
+    record("activity history exposes buckets", Array.isArray(activityHistory.buckets));
+    record("activity history exposes totals", typeof activityHistory.totals?.total === "number");
+    record("activity history is aggregate-only", activityHistory.redactionPolicy?.aggregateOnly === true);
+    record(
+      "activity history documents omitted sensitive fields",
+      activityHistory.redactionPolicy?.omittedFields?.includes("targetUrl") &&
+        activityHistory.redactionPolicy?.omittedFields?.includes("idempotencyKey") &&
+        activityHistory.redactionPolicy?.omittedFields?.includes("requestHash")
+    );
   }
 
   if (trust) {

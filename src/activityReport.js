@@ -5,6 +5,7 @@ import { publicFailureSummary, publicProofSummary, redactionPolicy } from "./pub
 const ACTIVITY_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_PUBLIC_PROOFS = 6;
 const MAX_PUBLIC_FAILURES = 6;
+const MAX_ACTIVITY_HISTORY_DAYS = 30;
 
 function absoluteLink(path) {
   return `${String(config.publicBaseUrl || "").replace(/\/+$/, "")}${path}`;
@@ -51,6 +52,41 @@ function failureBreakdown(failures) {
   return Array.from(counts.entries())
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .map(([category, count]) => ({ category, count }));
+}
+
+function clampHistoryDays(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 7;
+  return Math.max(1, Math.min(MAX_ACTIVITY_HISTORY_DAYS, Math.floor(number)));
+}
+
+function utcDateKey(value) {
+  const date = value ? new Date(value) : new Date();
+  if (!Number.isFinite(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+}
+
+function emptyHistoryBucket(date) {
+  return {
+    date,
+    total: 0,
+    succeeded: 0,
+    failed: 0,
+    running: 0,
+    verifiedProofs: 0,
+    successRate: null,
+    latestVerifiedProofAt: null,
+    failureCategories: []
+  };
+}
+
+function incrementCategory(bucket, category) {
+  const existing = bucket.failureCategories.find((item) => item.category === category);
+  if (existing) {
+    existing.count += 1;
+    return;
+  }
+  bucket.failureCategories.push({ category, count: 1 });
 }
 
 function activityStatus({ stats, verifiedProofs, latestVerifiedProofAt }) {
@@ -123,6 +159,116 @@ function recommendations({ stats, trust, failures, latestProofHoursAgo }) {
   }
 
   return items;
+}
+
+export async function buildActivityHistory({ listRecentJobs, getReceipt, days = 7 }) {
+  const historyDays = clampHistoryDays(days);
+  const now = new Date();
+  const buckets = new Map();
+
+  for (let offset = 0; offset < historyDays; offset += 1) {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - offset));
+    const key = date.toISOString().slice(0, 10);
+    buckets.set(key, emptyHistoryBucket(key));
+  }
+
+  const jobs = await listRecentJobs(100);
+  let latestVerifiedProofAt = null;
+
+  for (const job of jobs) {
+    const key = utcDateKey(job.updatedAt || job.createdAt);
+    if (!key || !buckets.has(key)) continue;
+
+    const bucket = buckets.get(key);
+    bucket.total += 1;
+    if (job.status === "succeeded") bucket.succeeded += 1;
+    else if (job.status === "failed") bucket.failed += 1;
+    else bucket.running += 1;
+
+    const receipt = job.receiptId ? await getReceipt(job.receiptId) : undefined;
+    if (receipt && verifyReceipt(receipt)) {
+      bucket.verifiedProofs += 1;
+      const proofAt = receipt.updatedAt || receipt.createdAt || job.updatedAt || job.createdAt;
+      const parsedProofAt = Date.parse(proofAt || "");
+      const bucketLatestAt = Date.parse(bucket.latestVerifiedProofAt || "");
+      const globalLatestAt = Date.parse(latestVerifiedProofAt || "");
+      if (Number.isFinite(parsedProofAt) && (!Number.isFinite(bucketLatestAt) || parsedProofAt > bucketLatestAt)) {
+        bucket.latestVerifiedProofAt = new Date(parsedProofAt).toISOString();
+      }
+      if (Number.isFinite(parsedProofAt) && (!Number.isFinite(globalLatestAt) || parsedProofAt > globalLatestAt)) {
+        latestVerifiedProofAt = new Date(parsedProofAt).toISOString();
+      }
+    }
+
+    if (job.status === "failed") {
+      const failure = publicFailureSummary({ job, receipt, baseUrl: config.publicBaseUrl });
+      incrementCategory(bucket, failure.errorCategory || "execution_failed");
+    }
+  }
+
+  const orderedBuckets = Array.from(buckets.values())
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .map((bucket) => ({
+      ...bucket,
+      successRate: bucket.total > 0 ? bucket.succeeded / bucket.total : null,
+      failureCategories: bucket.failureCategories.sort((a, b) => b.count - a.count || a.category.localeCompare(b.category))
+    }));
+
+  const totals = orderedBuckets.reduce(
+    (acc, bucket) => {
+      acc.total += bucket.total;
+      acc.succeeded += bucket.succeeded;
+      acc.failed += bucket.failed;
+      acc.running += bucket.running;
+      acc.verifiedProofs += bucket.verifiedProofs;
+      return acc;
+    },
+    { total: 0, succeeded: 0, failed: 0, running: 0, verifiedProofs: 0 }
+  );
+
+  return {
+    ok: true,
+    service: "Action402",
+    generatedAt: new Date().toISOString(),
+    days: historyDays,
+    window: {
+      from: orderedBuckets.at(-1)?.date || null,
+      to: orderedBuckets[0]?.date || null
+    },
+    summary:
+      "Redacted public activity history for buyer agents. Buckets expose daily execution volume, success/failure counts, verified proof counts, and failure categories without target URLs or payload data.",
+    totals: {
+      ...totals,
+      successRate: totals.total > 0 ? totals.succeeded / totals.total : null,
+      latestVerifiedProofAt,
+      latestProofHoursAgo: hoursSince(latestVerifiedProofAt),
+      recency: scoreRecency(hoursSince(latestVerifiedProofAt))
+    },
+    buckets: orderedBuckets,
+    redactionPolicy: {
+      ...redactionPolicy(),
+      aggregateOnly: true,
+      omittedFields: [
+        "targetUrl",
+        "headers",
+        "body",
+        "bodyHash",
+        "requestHash",
+        "responseHash",
+        "idempotencyKey",
+        "receiptSignature"
+      ]
+    },
+    links: {
+      self: absoluteLink("/api/activity/history"),
+      activity: absoluteLink("/api/activity"),
+      page: absoluteLink("/activity"),
+      trust: absoluteLink("/api/trust"),
+      monitoring: absoluteLink("/api/monitoring/executions"),
+      proofs: absoluteLink("/api/proofs/recent"),
+      capabilities: absoluteLink("/api/capabilities")
+    }
+  };
 }
 
 export async function buildActivityReport({ executionStats, listRecentJobs, getReceipt, buildTrustSummary }) {
@@ -207,6 +353,7 @@ export async function buildActivityReport({ executionStats, listRecentJobs, getR
       execute: absoluteLink("/api/execute/webhook"),
       guidedExecute: absoluteLink("/api/execute/guided-webhook"),
       trust: absoluteLink("/api/trust"),
+      history: absoluteLink("/api/activity/history"),
       monitoring: absoluteLink("/api/monitoring/executions"),
       proofs: absoluteLink("/api/proofs/recent"),
       bazaar: absoluteLink("/api/bazaar"),
