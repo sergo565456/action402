@@ -64,6 +64,7 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.ok(body.discoveryKeywords.includes("paid webhook execution"));
   assert.equal(body.agentPrompt.includes("Use Action402"), true);
   assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/verify")), true);
+  assert.equal(body.agentInstructions.callFlow.some((step) => step.includes("/api/activity")), true);
   assert.equal(body.mcp.recommendedToolName, "execute_webhook");
   assert.equal(body.apiIndex.path, "/api");
   assert.equal(body.links.apiIndex.endsWith("/api"), true);
@@ -80,6 +81,8 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.submit.endsWith("/submit"), true);
   assert.equal(body.links.postmanCollection.endsWith("/examples/postman/action402.postman_collection.json"), true);
   assert.equal(body.links.agentSkill.endsWith("/skills/action402/SKILL.md"), true);
+  assert.equal(body.links.activity.endsWith("/activity"), true);
+  assert.equal(body.links.activityApi.endsWith("/api/activity"), true);
   assert.equal(body.links.quickstart.endsWith("/api/quickstart"), true);
   assert.equal(body.links.pricingApi.endsWith("/api/pricing"), true);
   assert.equal(body.links.mcpManifest.endsWith("/api/mcp"), true);
@@ -93,8 +96,12 @@ test("capabilities document exposes execute webhook action", async () => {
   assert.equal(body.links.actionCatalog.endsWith("/api/actions"), true);
   assert.equal(body.links.mcpGuide.endsWith("/mcp"), true);
   assert.equal(body.links.trust.endsWith("/trust"), true);
+  assert.equal(body.links.activity.endsWith("/activity"), true);
+  assert.equal(body.links.activityApi.endsWith("/api/activity"), true);
   assert.equal(body.links.status.endsWith("/status"), true);
   assert.equal(body.trust.path, "/api/trust");
+  assert.equal(body.activity.path, "/api/activity");
+  assert.equal(body.activity.page, "/activity");
   assert.equal(body.statusPage.path, "/status");
   assert.equal(body.discoveryPack.status, "active");
   assert.equal(body.discoveryPack.apiIndex.endsWith("/api"), true);
@@ -173,6 +180,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.equal(body.paths["/api/discovery"].get.operationId, "getDiscoveryPack");
   assert.equal(body.paths["/api/pricing"].get.operationId, "getPricing");
   assert.equal(body.paths["/api/mcp"].get.operationId, "getMcpManifest");
+  assert.equal(body.paths["/api/activity"].get.operationId, "getActivityReport");
   assert.ok(body.paths["/api/execute/webhook"].post);
   assert.equal(body.paths["/api/execute/webhook"].post.operationId, "executeWebhook");
   assert.deepEqual(body.paths["/api/execute/webhook"].post.security, [{ X402Payment: [] }]);
@@ -226,6 +234,7 @@ test("openapi document exposes execute webhook path", async () => {
   assert.ok(body.components.schemas.VerificationReport);
   assert.ok(body.components.schemas.PublicProofSummary);
   assert.ok(body.components.schemas.MonitoringResponse);
+  assert.ok(body.components.schemas.ActivityResponse);
   assert.ok(body.components.schemas.ActionCatalogResponse);
   assert.ok(body.components.schemas.QuickstartResponse);
   assert.ok(body.components.schemas.PricingResponse);
@@ -259,6 +268,7 @@ test("api index gives agents a compact entry map", async () => {
   assert.ok(body.recommendedStart.includes("/api/quickstart"));
   assert.ok(body.recommendedStart.includes("/api/pricing"));
   assert.ok(body.recommendedStart.includes("/api/mcp"));
+  assert.ok(body.recommendedStart.includes("/api/activity"));
   assert.ok(body.recommendedStart.includes("/openapi.json"));
   assert.ok(body.free.discovery.includes("/api/capabilities"));
   assert.ok(body.free.discovery.includes("/api/discovery"));
@@ -288,6 +298,8 @@ test("api index gives agents a compact entry map", async () => {
   assert.equal(body.links.builtWith.endsWith("/built-with-action402"), true);
   assert.equal(body.links.agentSkill.endsWith("/skills/action402/SKILL.md"), true);
   assert.equal(body.links.status.endsWith("/status"), true);
+  assert.equal(body.links.activity.endsWith("/api/activity"), true);
+  assert.equal(body.links.activityPage.endsWith("/activity"), true);
   assert.equal(body.links.health.endsWith("/health"), true);
 
   const wrongMethod = await request("/api", {
@@ -314,6 +326,7 @@ test("discovery API gives agents canonical fetch order", async () => {
   assert.ok(body.recommendedFetchOrder.some((url) => url.endsWith("/api/discovery")));
   assert.ok(body.links.wellKnownAgent.endsWith("/.well-known/agent.json"));
   assert.ok(body.links.cookbooks.endsWith("/cookbooks"));
+  assert.ok(body.links.activity.endsWith("/api/activity"));
   assert.ok(body.links.builtWith.endsWith("/built-with-action402"));
   assert.ok(body.links.agentSkill.endsWith("/skills/action402/SKILL.md"));
 
@@ -332,6 +345,7 @@ test("cache policy separates stable discovery from runtime state", async () => {
   assert.equal(apiIndex.response.headers.get("x-action402-agent-entry"), "/api");
   assert.ok(apiIndex.response.headers.get("link").includes("/api/mcp"));
   assert.ok(apiIndex.response.headers.get("link").includes("/openapi.json"));
+  assert.ok(apiIndex.response.headers.get("link").includes("/api/activity"));
 
   const discovery = await request("/api/discovery");
   assert.ok(discovery.response.headers.get("cache-control").includes("s-maxage=300"));
@@ -379,6 +393,11 @@ test("cache policy separates stable discovery from runtime state", async () => {
   assert.equal(recentDecisions.response.headers.get("cache-control"), "no-store");
   assert.equal(recentDecisions.response.headers.get("x-action402-cache-policy"), "no-store");
   assert.equal(recentDecisions.response.headers.get("x-action402-agent-entry"), "/api");
+
+  const activity = await request("/api/activity");
+  assert.equal(activity.response.headers.get("cache-control"), "no-store");
+  assert.equal(activity.response.headers.get("x-action402-cache-policy"), "no-store");
+  assert.equal(activity.response.headers.get("x-action402-agent-entry"), "/api");
 
   const policy = await request("/api/policy/check", {
     method: "POST",
@@ -886,6 +905,7 @@ test("bazaar metadata exposes valid discovery extension", async () => {
   assert.equal(body.schedules.path, "/api/schedules/preview");
   assert.equal(body.secretStorage.path, "/api/secrets/policy");
   assert.equal(body.snippets.path, "/api/snippets");
+  assert.equal(body.discovery.monitoring.activity, "/api/activity");
   assert.equal(route.extensions.bazaar.info.input.method, "POST");
   assert.equal(route.extensions.bazaar.info.input.bodyType, "json");
   assert.equal(route.extensions.bazaar.info.input.body.url, "https://httpbin.org/anything");
@@ -943,6 +963,7 @@ test("llms.txt exposes agent discovery guidance", async () => {
   assert.equal(body.includes("Built with Action402"), true);
   assert.equal(body.includes("/api/proofs/recent"), true);
   assert.equal(body.includes("/api/monitoring/executions"), true);
+  assert.equal(body.includes("/api/activity"), true);
   assert.equal(body.includes("MCP/Bazaar guidance"), true);
   assert.equal(body.includes("Decision-first quick start"), true);
 });
@@ -965,6 +986,7 @@ test("public product pages load", async () => {
     ["/secrets", "Secret storage policy"],
     ["/mcp", "Discovery-first instructions"],
     ["/trust", "Trust summary"],
+    ["/activity", "Agent activity"],
     ["/status", "Runtime checks"],
     ["/proofs", "Verified proof examples"],
     ["/proof/job_test_missing", "Proof badge"],
@@ -994,6 +1016,7 @@ test("vercel rewrites expose extensionless product pages", () => {
   assert.equal(rewrites.get("/decision/:id"), "/decision.html");
   assert.equal(rewrites.get("/schedules"), "/schedules.html");
   assert.equal(rewrites.get("/secrets"), "/secrets.html");
+  assert.equal(rewrites.get("/activity"), "/activity.html");
   assert.equal(rewrites.get("/robots.txt"), "/api/index?__action402_path=/robots.txt");
   assert.equal(rewrites.get("/sitemap.xml"), "/api/index?__action402_path=/sitemap.xml");
   assert.equal(rewrites.get("/.well-known/:path*"), "/api/index?__action402_path=/.well-known/:path*");
@@ -1193,6 +1216,100 @@ test("execution monitoring endpoint returns durable counters and redacted failur
   assert.equal(body.redactionPolicy.redactedFields.includes("responseBody"), true);
 });
 
+test("activity endpoint returns buyer-readable recency and redacted proof signals", async () => {
+  await resetStoreForTests();
+
+  const succeededJob = {
+    id: "job_activity_success_1",
+    type: "webhook",
+    status: "succeeded",
+    target: "https://sensitive.example.com/activity-success",
+    method: "POST",
+    idempotencyKey: "activity-success-key-1",
+    attempts: [
+      {
+        attempt: 1,
+        startedAt: "2026-05-14T00:00:00.000Z",
+        completedAt: "2026-05-14T00:00:01.000Z",
+        status: 200,
+        ok: true
+      }
+    ],
+    receiptId: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  const failedJob = {
+    id: "job_activity_failed_1",
+    type: "webhook",
+    status: "failed",
+    target: "https://sensitive.example.com/activity-failure",
+    method: "POST",
+    idempotencyKey: "activity-failure-key-1",
+    attempts: [
+      {
+        attempt: 1,
+        startedAt: "2026-05-14T00:00:02.000Z",
+        completedAt: "2026-05-14T00:00:03.000Z",
+        status: 503,
+        ok: false
+      }
+    ],
+    error: "target returned 503",
+    receiptId: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  const succeededReceipt = buildReceipt({
+    job: succeededJob,
+    requestHash: "a".repeat(64),
+    responseHash: "b".repeat(64),
+    target: {
+      url: succeededJob.target,
+      method: succeededJob.method
+    },
+    response: {
+      ok: true,
+      status: 200
+    }
+  });
+  const failedReceipt = buildReceipt({
+    job: failedJob,
+    requestHash: "c".repeat(64),
+    responseHash: "d".repeat(64),
+    target: {
+      url: failedJob.target,
+      method: failedJob.method
+    },
+    response: {
+      ok: false,
+      status: 503
+    }
+  });
+  await createJob({ ...succeededJob, receiptId: succeededReceipt.id });
+  await saveReceipt(succeededReceipt);
+  await createJob({ ...failedJob, receiptId: failedReceipt.id });
+  await saveReceipt(failedReceipt);
+
+  const { response, body } = await request("/api/activity");
+
+  assert.equal(response.status, 200);
+  assert.equal(body.service, "Action402");
+  assert.equal(["ready", "attention", "warming_up"].includes(body.status), true);
+  assert.equal(body.x402.scheme, "exact");
+  assert.equal(body.activity.total, 2);
+  assert.equal(body.activity.recentTotal, 2);
+  assert.equal(body.activity.verifiedProofCount >= 1, true);
+  assert.equal(body.recentProofs[0].receiptVerified, true);
+  assert.equal(body.failureBreakdown.some((item) => item.category === "target_server_error"), true);
+  assert.equal(body.recentFailures[0].errorCategory, "target_server_error");
+  assert.equal(Array.isArray(body.recommendations), true);
+  assert.equal(Array.isArray(body.buyerGuidance), true);
+  assert.equal(body.links.self.endsWith("/api/activity"), true);
+  assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);
+  assert.equal(JSON.stringify(body).includes("a".repeat(64)), false);
+});
+
 test("trust endpoint returns redacted public buyer signals", async () => {
   await resetStoreForTests();
 
@@ -1261,6 +1378,8 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.publicSurfaces.useCases.endsWith("/use-cases"), true);
   assert.equal(body.publicSurfaces.mcp.endsWith("/mcp"), true);
   assert.equal(body.publicSurfaces.status.endsWith("/status"), true);
+  assert.equal(body.publicSurfaces.activity.endsWith("/activity"), true);
+  assert.equal(body.publicSurfaces.activityApi.endsWith("/api/activity"), true);
   assert.equal(body.trustSignals.includes("public action catalog and quickstart endpoints"), true);
   assert.equal(body.trustSignals.includes("canonical agent manifest and well-known discovery aliases"), true);
   assert.equal(body.trustSignals.includes("robots.txt and sitemap.xml expose agent entry points"), true);
@@ -1273,6 +1392,12 @@ test("trust endpoint returns redacted public buyer signals", async () => {
   assert.equal(body.trustSignals.includes("browser/action handoff package endpoint is public"), true);
   assert.equal(body.trustSignals.includes("schedule preview endpoint is public and non-executing"), true);
   assert.equal(body.trustSignals.includes("secret storage policy is explicit for authenticated targets"), true);
+  assert.equal(
+    body.trustSignals.includes(
+      "public activity report combining recency, paid execution volume, verified proofs, and redacted failures"
+    ),
+    true
+  );
   assert.equal(JSON.stringify(body).includes("sensitive.example.com"), false);
 });
 

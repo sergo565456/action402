@@ -134,6 +134,10 @@
       "destination": "/trust.html"
     },
     {
+      "source": "/activity",
+      "destination": "/activity.html"
+    },
+    {
       "source": "/proofs",
       "destination": "/proofs.html"
     },

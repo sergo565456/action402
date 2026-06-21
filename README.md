@@ -77,6 +77,7 @@ Agent entry points:
 - `GET /api/monitoring/executions` - durable execution counters and recent failure categories.
 - `GET /api/decisions/:id` and `GET /api/decisions/recent` - redacted decision records and recent summaries.
 - `GET /api/trust` - redacted public trust summary for buyer-side inspection.
+- `GET /api/activity` - agent-facing activity report with proof freshness, paid execution volume, trust score, and redacted failure categories.
 - `/status` - browser-friendly runtime status page backed by `GET /health`.
 - `GET /api/agent-manifest` - canonical machine-readable discovery manifest.
 - `GET /.well-known/agent.json` - well-known manifest alias for agents and crawlers.
@@ -166,6 +167,7 @@ Useful public surfaces for discovery clients:
 - `GET /api/actions` - ready action templates for ChatOps, no-code automation, GitHub dispatch, ops alerts, analytics, and CRM updates.
 - `GET /api/bazaar` - x402/Bazaar route config, price, payTo, tags, examples, and quality signals.
 - `GET /api/trust` - current public trust signals with sensitive execution data redacted.
+- `GET /api/activity` - one-call buyer activity report for recency, verified proofs, paid volume, failure categories, and recommendations.
 - `GET /api/proofs/recent` - verified proof examples without target URLs, bodies, hashes, or signatures.
 
 ## Run locally
@@ -254,7 +256,7 @@ npm run smoke:x402 -- http://127.0.0.1:4021
 
 The smoke script checks `/health`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/decide/webhook`, `/api/decisions/recent`, `/openapi.json`, agent discovery fields, and verifies that unpaid `POST /api/execute/webhook` and `POST /api/execute/guided-webhook` return `402` with a payment-related header. The deploy check also covers `/api/quickstart`, `/api/actions`, `/cookbooks`, `/built-with-action402`, `/submit`, public trust/proof/decision surfaces, developer artifacts, and proof badge routing.
 
-Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/actions`, `/cookbooks`, `/built-with-action402`, `/submit`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, decisions, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
+Stable discovery contracts such as `/api`, `/api/capabilities`, `/api/pricing`, `/api/mcp`, `/api/bazaar`, `/api/actions`, `/cookbooks`, `/built-with-action402`, `/submit`, and `/openapi.json` use a short public cache policy. Runtime state, paid execution, decisions, activity, proof, verification, monitoring, and health endpoints use `Cache-Control: no-store`. Action402 also sends `X-Action402-Cache-Policy` with the intended full policy because some hosts consume `s-maxage` internally and expose a normalized client `Cache-Control`.
 
 Agent-facing pages and machine-readable discovery endpoints also publish HTTP discovery headers: `X-Action402-Agent-Entry: /api` and a `Link` header pointing to the API index, agent manifest, OpenAPI, `llms.txt`, pricing, MCP manifest, cookbooks, ecosystem page, and Bazaar metadata.
 

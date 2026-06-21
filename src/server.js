@@ -38,6 +38,7 @@ import {
   redactionPolicy
 } from "./publicSummaries.js";
 import { buildTrustSummary } from "./trustSummary.js";
+import { buildActivityReport } from "./activityReport.js";
 import { maybeInstallX402 } from "./x402.js";
 import { ApiError, errorBody } from "./errors.js";
 import { createRateLimiter } from "./rateLimit.js";
@@ -277,6 +278,28 @@ app.get("/api/trust", async (req, res, next) => {
         listRecentJobs,
         listRecentDecisions,
         getReceipt
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/activity", async (req, res, next) => {
+  try {
+    res.json(
+      await buildActivityReport({
+        executionStats,
+        listRecentJobs,
+        getReceipt,
+        buildTrustSummary: () =>
+          buildTrustSummary({
+            executionStats,
+            storeStats,
+            listRecentJobs,
+            listRecentDecisions,
+            getReceipt
+          })
       })
     );
   } catch (error) {

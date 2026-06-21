@@ -20,6 +20,7 @@ const PUBLIC_PAGES = [
   { path: "/secrets", priority: "0.75", changefreq: "monthly" },
   { path: "/mcp", priority: "0.8", changefreq: "weekly" },
   { path: "/trust", priority: "0.8", changefreq: "daily" },
+  { path: "/activity", priority: "0.78", changefreq: "daily" },
   { path: "/status", priority: "0.75", changefreq: "daily" },
   { path: "/proofs", priority: "0.75", changefreq: "daily" },
   { path: "/decisions", priority: "0.7", changefreq: "daily" },
@@ -52,6 +53,7 @@ const MACHINE_SURFACES = [
   "/api/schedules/capabilities",
   "/api/secrets/policy",
   "/api/trust",
+  "/api/activity",
   "/api/proofs/recent",
   "/api/monitoring/executions",
   "/openapi.json",
@@ -109,6 +111,8 @@ function discoveryLinks(baseUrl) {
     decisionsPage: absoluteUrl("/decisions", baseUrl),
     canaryEcho: absoluteUrl("/api/canary/echo", baseUrl),
     trust: absoluteUrl("/api/trust", baseUrl),
+    activity: absoluteUrl("/api/activity", baseUrl),
+    activityPage: absoluteUrl("/activity", baseUrl),
     statusPage: absoluteUrl("/status", baseUrl),
     robots: absoluteUrl("/robots.txt", baseUrl),
     sitemap: absoluteUrl("/sitemap.xml", baseUrl)
@@ -129,6 +133,7 @@ export function publicDiscoveryPack({ baseUrl = config.publicBaseUrl } = {}) {
       links.discoveryApi,
       links.apiManifest,
       links.pricing,
+      links.activity,
       links.openapi,
       links.bazaar
     ],
@@ -258,6 +263,8 @@ export function publicAgentManifest({ baseUrl = config.publicBaseUrl } = {}) {
     trust: {
       summary: absoluteUrl("/api/trust", baseUrl),
       monitoring: absoluteUrl("/api/monitoring/executions", baseUrl),
+      activity: absoluteUrl("/api/activity", baseUrl),
+      activityPage: absoluteUrl("/activity", baseUrl),
       publicProofs: absoluteUrl("/proofs", baseUrl)
     },
     links
@@ -270,6 +277,7 @@ export function robotsTxt({ baseUrl = config.publicBaseUrl } = {}) {
     "User-agent: *",
     "Allow: /",
     "Allow: /status",
+    "Allow: /activity",
     "Allow: /api",
     "Allow: /api/discovery",
     "Allow: /llms.txt",
@@ -286,6 +294,7 @@ export function robotsTxt({ baseUrl = config.publicBaseUrl } = {}) {
     "Allow: /submit",
     "Allow: /api/mcp",
     "Allow: /api/bazaar",
+    "Allow: /api/activity",
     "Allow: /openapi.json",
     `Sitemap: ${links.sitemap}`,
     "",
@@ -294,6 +303,7 @@ export function robotsTxt({ baseUrl = config.publicBaseUrl } = {}) {
     `# ${links.apiManifest}`,
     `# ${links.llms}`,
     `# ${links.bazaar}`,
+    `# ${links.activity}`,
     ""
   ].join("\n");
 }

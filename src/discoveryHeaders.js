@@ -4,6 +4,7 @@ const DISCOVERY_HEADER_PATHS = [
   "/discovery",
   "/pricing",
   "/mcp",
+  "/activity",
   "/actions",
   "/cookbooks",
   "/built-with-action402",
@@ -27,6 +28,7 @@ const DISCOVERY_HEADER_PATHS = [
   "/api/snippets",
   "/api/decisions/recent",
   "/api/bazaar",
+  "/api/activity",
   "/openapi.json",
   "/llms.txt"
 ];
@@ -103,6 +105,12 @@ const DISCOVERY_LINKS = [
     rel: "service-meta",
     type: "application/json",
     title: "Action402 Bazaar metadata"
+  },
+  {
+    path: "/api/activity",
+    rel: "monitor",
+    type: "application/json",
+    title: "Action402 activity report"
   }
 ];
 

@@ -275,6 +275,66 @@ const monitoringResponseSchema = {
   }
 };
 
+const activityResponseSchema = {
+  type: "object",
+  required: ["ok", "service", "status", "activity", "trustScore", "recommendations", "links"],
+  properties: {
+    ok: { type: "boolean" },
+    service: { type: "string" },
+    generatedAt: { type: "string" },
+    status: { type: "string", enum: ["ready", "attention", "warming_up"] },
+    summary: { type: "string" },
+    x402: { type: "object" },
+    activity: {
+      type: "object",
+      properties: {
+        total: { type: "integer" },
+        succeeded: { type: "integer" },
+        failed: { type: "integer" },
+        recentWindowMs: { type: "integer" },
+        recentTotal: { type: "integer" },
+        recentSucceeded: { type: "integer" },
+        recentFailed: { type: "integer" },
+        recentSuccessRate: { type: ["number", "null"] },
+        lifetimeSuccessRate: { type: ["number", "null"] },
+        lastUpdatedAt: { type: ["string", "null"] },
+        latestVerifiedProofAt: { type: ["string", "null"] },
+        latestProofHoursAgo: { type: ["number", "null"] },
+        recency: { type: "string" },
+        verifiedProofCount: { type: "integer" },
+        recentFailureRate: { type: "number" }
+      }
+    },
+    trustScore: { type: "object" },
+    failureBreakdown: {
+      type: "array",
+      items: { type: "object" }
+    },
+    recentProofs: {
+      type: "array",
+      items: publicProofSummarySchema
+    },
+    recentFailures: {
+      type: "array",
+      items: publicProofSummarySchema
+    },
+    recommendations: {
+      type: "array",
+      items: { type: "object" }
+    },
+    buyerGuidance: {
+      type: "array",
+      items: { type: "string" }
+    },
+    ecosystemFit: {
+      type: "array",
+      items: { type: "string" }
+    },
+    redactionPolicy: { type: "object" },
+    links: { type: "object" }
+  }
+};
+
 const actionTemplateSchema = {
   type: "object",
   required: ["id", "status", "category", "title", "description", "paidRoute", "exampleRequest"],
@@ -1053,6 +1113,7 @@ export function publicCapabilities() {
         "Read /cookbooks, /built-with-action402, and /submit when evaluating ecosystem examples or listing a compatible endpoint.",
         "Read /api/agent-manifest, /.well-known/agent.json, or /.well-known/x402 for the canonical machine-readable discovery pack.",
         "Read /api/mcp or /.well-known/mcp.json when building a local MCP wrapper.",
+        "Read /api/activity when choosing whether recent paid execution volume and proof freshness are good enough to spend.",
         "Optionally POST the same payload to /api/policy/check before paying.",
         "POST /api/decide/webhook when the buyer needs a structured pay/do-not-pay decision before paying.",
         "Use /api/canary/echo only as a free non-sensitive target check; it does not create a paid receipt.",
@@ -1100,6 +1161,13 @@ export function publicCapabilities() {
       path: "/api/monitoring/executions",
       description:
         "Durable execution counters and recent failed executions, redacted for public agent/operator checks.",
+      defaultWindowMs: 24 * 60 * 60 * 1000
+    },
+    activity: {
+      path: "/api/activity",
+      page: "/activity",
+      description:
+        "Agent-facing activity report combining proof freshness, recent paid execution volume, trust score, redacted failures, and next recommendations.",
       defaultWindowMs: 24 * 60 * 60 * 1000
     },
     trust: {
@@ -1225,6 +1293,8 @@ export function publicCapabilities() {
       useCases: `${config.publicBaseUrl}/use-cases`,
       mcpGuide: `${config.publicBaseUrl}/mcp`,
       trust: `${config.publicBaseUrl}/trust`,
+      activity: `${config.publicBaseUrl}/activity`,
+      activityApi: `${config.publicBaseUrl}/api/activity`,
       status: `${config.publicBaseUrl}/status`,
       proofs: `${config.publicBaseUrl}/proofs`,
       proofBadge: `${config.publicBaseUrl}/proof/{jobOrReceiptId}`,
@@ -1740,6 +1810,24 @@ export function openApiSpec() {
           }
         }
       },
+      "/api/activity": {
+        get: {
+          operationId: "getActivityReport",
+          summary: "Fetch agent activity report",
+          description:
+            "Returns proof freshness, paid execution volume, trust score, redacted failures, and recommendations for buyer agents and directories.",
+          responses: {
+            "200": {
+              description: "Agent activity report",
+              content: {
+                "application/json": {
+                  schema: activityResponseSchema
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/trust": {
         get: {
           operationId: "getTrustSummary",
@@ -2214,6 +2302,7 @@ export function openApiSpec() {
         VerificationReport: verificationReportSchema,
         PublicProofSummary: publicProofSummarySchema,
         MonitoringResponse: monitoringResponseSchema,
+        ActivityResponse: activityResponseSchema,
         ActionTemplate: actionTemplateSchema,
         ActionCatalogResponse: actionCatalogResponseSchema,
         QuickstartResponse: quickstartResponseSchema,

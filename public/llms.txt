@@ -15,7 +15,7 @@ Primary paid action:
 - Payment headers: compatible buyer clients retry with X-PAYMENT or payment-signature; settlement responses may expose X-PAYMENT-RESPONSE or PAYMENT-RESPONSE.
 - Browser access: machine-readable endpoints use non-credentialed CORS with OPTIONS preflight, allow x-payment/payment-signature request headers, and expose payment response headers.
 - Cache policy: stable discovery contracts use short public cache; runtime health, paid execution, proof, verification, and monitoring data use no-store. Read X-Action402-Cache-Policy for the full intended policy when a host normalizes Cache-Control.
-- Discovery headers: agent-facing pages and machine-readable discovery endpoints send X-Action402-Agent-Entry: /api and a Link header for /api, /api/agent-manifest, /openapi.json, /llms.txt, /api/pricing, /api/mcp, /cookbooks, /built-with-action402, and /api/bazaar.
+- Discovery headers: agent-facing pages and machine-readable discovery endpoints send X-Action402-Agent-Entry: /api and a Link header for /api, /api/agent-manifest, /openapi.json, /llms.txt, /api/pricing, /api/mcp, /cookbooks, /built-with-action402, /api/activity, and /api/bazaar.
 
 Recommended decision-first action:
 - POST /api/decide/webhook is free and non-executing.
@@ -45,6 +45,7 @@ Discovery and contracts:
 - /mcp - MCP/Bazaar discovery-first guide for search, inspect, call, verify flows.
 - /api/mcp - machine-readable MCP wrapper manifest for mapping Action402 routes into local tools.
 - /trust - public trust summary page for x402 settings, storage durability, execution counters, proof examples, and redaction policy.
+- /activity - browser-friendly agent activity report with proof freshness, paid execution volume, trust score, and redacted failure categories.
 - /status - browser-friendly live runtime status backed by /health.
 - /proofs - browser-friendly recent verified proof examples with sensitive execution data redacted.
 - /proof/{jobOrReceiptId} - browser-friendly proof badge for a single job or receipt.
@@ -74,6 +75,7 @@ Discovery and contracts:
 - /api/secrets/policy - public policy for authenticated targets; Action402 public MVP does not store long-lived target secrets.
 - /api/capabilities - agent-readable service capabilities, safety limits, payment settings, verification links, and MCP/Bazaar discovery hints.
 - /api/bazaar - Bazaar metadata and x402 route config for POST /api/execute/webhook.
+- /api/activity - machine-readable activity report for buyer agents and directories; combines recency, paid execution volume, verified proofs, trust score, recommendations, and redacted failure categories.
 - /openapi.json - OpenAPI 3.1 API contract.
 - OpenAPI operationIds are stable for tool mapping: executeWebhook, checkWebhookPolicy, getPricing, getMcpManifest, verifyJobReceipt, and related read-only discovery operations.
 - /robots.txt - crawler and agent discovery hints.
@@ -88,12 +90,13 @@ Verification:
 - GET /api/proofs/recent - latest verified proof summaries; target URL, headers, bodies, hashes, and signatures are intentionally redacted.
 - GET /api/monitoring/executions - durable execution counters and recent failure categories without sensitive payload details.
 - GET /api/trust - public trust summary for buyer-side inspection before payment.
+- GET /api/activity - one-call activity report for proof freshness, paid execution volume, trust score, and buyer recommendations.
 - GET /api/decisions/{id} - public redacted decision record with role reports, debate, and outcome link when available.
 - GET /api/decisions/recent - recent redacted decision summaries.
 - GET /proof/{jobOrReceiptId} - public proof badge page for operators and browser-capable agents.
 
 Usage and pricing:
-- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /cookbooks, /built-with-action402, /submit, /actions, /snippets, /decisions, /decision/{id}, /handoff, /schedules, /secrets, /mcp, /trust, /status, /proofs, /proof/{jobOrReceiptId}, /examples/postman/action402.postman_collection.json, /skills/action402/SKILL.md, /api, /api/discovery, /api/pricing, /api/mcp, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402, /.well-known/x402.json, /.well-known/mcp.json, /api/quickstart, /api/decide/webhook, /api/decisions/{id}, /api/decisions/recent, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
+- Free: /agents, /discovery, /pricing, /onboarding, /use-cases, /cookbooks, /built-with-action402, /submit, /actions, /snippets, /decisions, /decision/{id}, /handoff, /schedules, /secrets, /mcp, /trust, /activity, /status, /proofs, /proof/{jobOrReceiptId}, /examples/postman/action402.postman_collection.json, /skills/action402/SKILL.md, /api, /api/discovery, /api/pricing, /api/mcp, /api/agent-manifest, /.well-known/agent.json, /.well-known/action402.json, /.well-known/x402, /.well-known/x402.json, /.well-known/mcp.json, /api/quickstart, /api/decide/webhook, /api/decisions/{id}, /api/decisions/recent, /api/policy/check, /api/canary/echo, /api/snippets, /api/actions, /api/handoff/capabilities, /api/handoff/browser, /api/schedules/capabilities, /api/schedules/preview, /api/secrets/policy, /api/capabilities, /api/bazaar, /api/activity, /api/proofs/recent, /api/monitoring/executions, /api/trust, /openapi.json, /robots.txt, /sitemap.xml, /health.
 - Paid: POST /api/execute/webhook and POST /api/execute/guided-webhook.
 - Published price: $0.003 per paid execution request.
 - Agents should set a buyer-side max amount guardrail and verify the receipt before treating the action as complete.

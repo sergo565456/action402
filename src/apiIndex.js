@@ -20,6 +20,7 @@ export function publicApiIndex() {
       "/api/quickstart",
       "/api/pricing",
       "/api/mcp",
+      "/api/activity",
       "/api/capabilities",
       "/api/actions",
       "/api/bazaar",
@@ -57,14 +58,14 @@ export function publicApiIndex() {
         "/.well-known/mcp.json",
         "/api/capabilities",
         "/api/pricing",
-      "/api/mcp",
-      "/api/actions",
-      "/cookbooks",
-      "/built-with-action402",
-      "/submit",
-      "/examples/postman/action402.postman_collection.json",
-      "/skills/action402/SKILL.md",
-      "/api/quickstart",
+        "/api/mcp",
+        "/api/actions",
+        "/cookbooks",
+        "/built-with-action402",
+        "/submit",
+        "/examples/postman/action402.postman_collection.json",
+        "/skills/action402/SKILL.md",
+        "/api/quickstart",
         "/api/bazaar",
         "/openapi.json",
         "/llms.txt",
@@ -88,7 +89,7 @@ export function publicApiIndex() {
         "/api/schedules/preview",
         "/api/secrets/policy"
       ],
-      trustAndMonitoring: ["/status", "/health", "/api/trust", "/api/monitoring/executions"]
+      trustAndMonitoring: ["/status", "/activity", "/health", "/api/trust", "/api/activity", "/api/monitoring/executions"]
     },
     browserAccess: {
       cors: publicCorsPolicy(),
@@ -127,6 +128,8 @@ export function publicApiIndex() {
       status: absoluteUrl("/status"),
       health: absoluteUrl("/health"),
       trust: absoluteUrl("/api/trust"),
+      activity: absoluteUrl("/api/activity"),
+      activityPage: absoluteUrl("/activity"),
       monitoring: absoluteUrl("/api/monitoring/executions")
     }
   };

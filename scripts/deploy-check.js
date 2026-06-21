@@ -157,7 +157,7 @@ async function checkCachePolicy() {
       record(`${path} exposes discovery headers`, hasDiscoveryHeaders(response));
     }
 
-    const noStorePaths = ["/health", "/api/proofs/recent", "/api/decisions/recent", "/api/monitoring/executions"];
+    const noStorePaths = ["/health", "/api/proofs/recent", "/api/decisions/recent", "/api/monitoring/executions", "/api/activity"];
     for (const path of noStorePaths) {
       const { response } = await fetchText(path);
       record(`${path} uses no-store cache`, hasNoStoreCache(response));
@@ -190,6 +190,7 @@ async function main() {
   await checkStatic("/secrets", "Secret storage policy");
   await checkStatic("/mcp", "Discovery-first instructions");
   await checkStatic("/trust", "Trust summary");
+  await checkStatic("/activity", "Agent activity");
   await checkStatic("/status", "Runtime checks");
   await checkStatic("/proofs", "Verified proof examples");
   await checkStatic("/proof/job_deploy_check_missing", "Proof badge");
@@ -304,6 +305,7 @@ async function main() {
   const proofs = await checkJson("/api/proofs/recent");
   const monitoring = await checkJson("/api/monitoring/executions");
   const trust = await checkJson("/api/trust");
+  const activity = await checkJson("/api/activity");
   const apiNotFound = await checkJsonStatus("/api/deploy-check-missing-route", 404);
   const executeWrongMethod = await checkJsonStatus("/api/execute/webhook", 405);
   const guidedWrongMethod = await checkJsonStatus("/api/execute/guided-webhook", 405);
@@ -335,6 +337,7 @@ async function main() {
     record("api index exposes free discovery", apiIndex.free?.discovery?.includes("/api/capabilities"));
     record("api index exposes verification", apiIndex.free?.verification?.includes("/api/verify/jobs/{id}"));
     record("api index exposes status page", apiIndex.free?.trustAndMonitoring?.includes("/status"));
+    record("api index exposes activity report", apiIndex.free?.trustAndMonitoring?.includes("/api/activity"));
     record("api index exposes health endpoint", apiIndex.free?.trustAndMonitoring?.includes("/health"));
   }
 
@@ -345,6 +348,7 @@ async function main() {
     record("discovery pack exposes pricing", discovery.pricing?.endsWith("/api/pricing"));
     record("discovery pack exposes OpenAPI", discovery.openapi?.endsWith("/openapi.json"));
     record("discovery pack exposes Bazaar metadata", discovery.bazaar?.endsWith("/api/bazaar"));
+    record("discovery pack exposes activity report", discovery.links?.activity?.endsWith("/api/activity"));
     record("discovery pack exposes cookbooks", discovery.links?.cookbooks?.endsWith("/cookbooks"));
     record("discovery pack exposes ecosystem", discovery.links?.builtWith?.endsWith("/built-with-action402"));
   }
@@ -374,6 +378,7 @@ async function main() {
       "capabilities expose execution monitoring",
       capabilities.monitoring?.path === "/api/monitoring/executions"
     );
+    record("capabilities expose activity report", capabilities.activity?.path === "/api/activity");
     record("capabilities expose pricing link", typeof capabilities.links?.pricing === "string");
     record(
       "capabilities expose use-case templates",
@@ -622,6 +627,7 @@ async function main() {
     record("bazaar metadata has secret policy link", typeof bazaar.links?.secretPolicy === "string");
     record("bazaar metadata has proof badge link", typeof bazaar.links?.proofBadge === "string");
     record("bazaar metadata has monitoring link", typeof bazaar.links?.monitoring === "string");
+    record("bazaar metadata has activity link", typeof bazaar.links?.activityApi === "string");
     record("bazaar metadata has status link", typeof bazaar.links?.status === "string");
     record("bazaar metadata has use-case link", typeof bazaar.links?.useCases === "string");
     record("bazaar metadata has cookbook link", typeof bazaar.links?.cookbooks === "string");
@@ -660,6 +666,13 @@ async function main() {
     record("monitoring endpoint exposes recent failures array", Array.isArray(monitoring.recentFailures));
   }
 
+  if (activity) {
+    record("activity endpoint exposes status", ["ready", "attention", "warming_up"].includes(activity.status));
+    record("activity endpoint exposes activity stats", typeof activity.activity?.total === "number");
+    record("activity endpoint exposes recommendations", Array.isArray(activity.recommendations));
+    record("activity endpoint exposes proof list", Array.isArray(activity.recentProofs));
+  }
+
   if (trust) {
     record("trust endpoint exposes status", ["ok", "attention"].includes(trust.status));
     record("trust endpoint exposes x402 settings", trust.x402?.scheme === "exact");
@@ -681,6 +694,7 @@ async function main() {
     record("trust endpoint exposes secret policy surface", typeof trust.publicSurfaces?.secretPolicy === "string");
     record("trust endpoint exposes trust signals", Array.isArray(trust.trustSignals) && trust.trustSignals.length >= 6);
     record("trust endpoint exposes status surface", typeof trust.publicSurfaces?.status === "string");
+    record("trust endpoint exposes activity surface", typeof trust.publicSurfaces?.activityApi === "string");
   }
 
   if (apiNotFound.body) {
